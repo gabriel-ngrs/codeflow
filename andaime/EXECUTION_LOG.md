@@ -33,3 +33,13 @@ Registro incremental das etapas concluídas durante a construção do framework 
 - **Artefatos:** `framework/library/agents/.gitkeep` com comentário documentando a decisão de não-entrega de agent seed.
 - **Validação:** `VALIDATION.md` §V.3.3 → `OK: §V.3.3`. Pasta existe, sem arquivos `.md`, `.gitkeep` presente. Item de inspeção marcado (decisão registrada no próprio `.gitkeep`).
 - **Notas / decisões:** materialização da pasta foi diferida de F1.2 (ver nota em F1.2 acima) para esta etapa, onde a decisão de não-entrega passa a ser explicitamente documentada no `.gitkeep`. Mantenedor confirmou a opção "Criar pasta agora em F3.3", consistente com a política "agents on demand" do SPEC §4.5.4. Etapa consolidada em commit próprio (BUILD_PLAN §F3.3 permitia agrupar com F3.2 ou F4.1, mas F3.2 já estava commitada).
+
+### F4.1 — Três meta-skills `create-*` [✓]
+
+- **Concluída em:** 2026-05-23
+- **Artefatos:** três `SKILL.md` em `framework/meta/`:
+  - `create-workflow/SKILL.md` — aplica literalmente o exemplo §1.9.5 do ARTIFACTS_SPEC; refs §1.5/§1.6/§1.7.
+  - `create-skill/SKILL.md` — estrutura análoga; refs §1.8.5 (template) e §1.8.6 (validação); qualifica e redireciona para rule/workflow quando aplicável.
+  - `create-agent/SKILL.md` — estrutura análoga; refs §1.10.5 e §1.10.6; **recusa** criação quando skill regular bastaria (anti-padrão §1.10.7).
+- **Validação:** `VALIDATION.md` §V.4.1 → `OK: §V.4.1 (3 meta-skills create-* validadas)`. Três itens de inspeção marcados (refs corretas ao ARTIFACTS_SPEC; cada meta-skill qualifica necessidade no Passo 1; create-agent recusa quando skill bastaria).
+- **Notas / decisões:** detectado defeito no snippet de validação §V.4.1 — três `awk '/^## X$/,/^## /'` colapsavam para uma única linha (mesmo bug já corrigido em §V.2.2, §V.2.3, §V.2.4, §V.3.1 e §V.3.2). Aplicada correção análoga: substituído por padrão de flag `awk '/^## X$/{flag=1; next} /^## /{flag=0} flag'`. Adicionalmente, regex de "Template de saída" foi tornada tolerante a backticks intermediários (`ARTIFACTS_SPEC\.md\`? §`) porque o markdown idiomático — usado inclusive no próprio exemplo §1.9.5 — quebra a captura literal `ARTIFACTS_SPEC.md §`. Correção da VALIDATION feita em commit consolidado com a entrega das meta-skills.
