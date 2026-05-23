@@ -94,3 +94,14 @@ Registro incremental das etapas concluídas durante a construção do framework 
 - **Artefatos:** `/tmp/codeflow-test/` (caminho fixo e vinculante por §V.5.4), repositório git, `Makefile` com os quatro targets canônicos (`check`, `test`, `lint`, `typecheck`) todos `noop` retornando 0, `README.md` curto explicando o propósito. Commit inicial `048ea47 chore(init): projeto-teste minimalista para exercitar codeflow`.
 - **Validação:** `VALIDATION.md` §V.5.4 → `OK: §V.5.4`. Diretório existe, é repo git, Makefile presente com quatro targets, working tree limpo. Item de inspeção marcado (projeto é minimalista — apenas Makefile + README — não simula projeto real).
 - **Notas / decisões:** Makefile usa `.PHONY` para os quatro targets e `@echo "noop"` para silenciar a linha de comando, conforme convenção. Smoke-test confirmou que `make check/test/lint/typecheck` imprime `noop` e retorna 0. Branch padrão é `master` (versão local do git); §V.5.4 não exige nome de branch, então mantido. Esta etapa não tem commit no repositório do framework (artefato vive em `/tmp/`, fora do repo do codeflow). Próxima etapa: F5.5 (executar `install.sh` no projeto de teste).
+
+### F5.5 — Executar `install.sh` no projeto de teste [✓]
+
+- **Concluída em:** 2026-05-23
+- **Execução:** `cd /tmp/codeflow-test && bash ~/.codeflow/install.sh`, rc=0 em ambas as rodadas.
+  - **Run 1:** criou `.codeflow/INDEX.md` (placeholder), `.codeflow/decisions/`, `.codeflow/checkpoints/`, e novo `.gitignore` contendo `.codeflow/checkpoints/`. Saída em pt-BR com símbolos `✓` e mensagem final apontando para `/discover` ou `/bootstrap`.
+  - **Run 2:** idempotente — mensagens mudam para `INDEX.md já existe — preservado`, `.gitignore já lista .codeflow/checkpoints/`. Nenhum artefato duplicado, rc=0.
+- **Não-modificação confirmada:** `git status --porcelain` no projeto de teste mostra apenas `?? .codeflow/` e `?? .gitignore`. Makefile e README intocados (working tree limpo antes da execução; só essas duas entradas após).
+- **Anti-decisão respeitada:** nenhum de `constitution.md`, `manifest.md`, `discovered.md` foi criado pelo install.sh (esses dependem de `/discover` ou `/bootstrap`), conforme SPEC §3.9.
+- **Validação:** `VALIDATION.md` §V.5.5 → `OK: §V.5.5`. Item de inspeção marcado (saída lista verificações com `✓` e termina com mensagem de próximos passos).
+- **Notas / decisões:** primeira validação real end-to-end do `install.sh` em um projeto realista — todas as garantias da SPEC §3.9 verificadas em runtime, não apenas por leitura. Próxima etapa: F5.6 (exercitar `discover` no projeto de teste, simulando a meta-skill manualmente).

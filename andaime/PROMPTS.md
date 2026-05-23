@@ -784,7 +784,7 @@ Executar `VALIDATION.md` §V.5.4. Snippet retorna `OK: §V.5.4`. Item de inspeç
 
 ---
 
-### §P.5.5 — Executar `install.sh` no projeto de teste
+### §P.5.5 — Executar `install.sh` no projeto de teste -Concluido
 
 ```markdown
 ## Objetivo
