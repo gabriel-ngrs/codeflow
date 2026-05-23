@@ -450,7 +450,8 @@ for t in "${termos[@]}"; do
     || { echo "FALHA: termo '$t' ausente como sub-seção"; exit 1; }
 done
 # Ordem: extrair termos na ordem em que aparecem e comparar com a esperada
-ordem_obtida=$(awk '/^## Termos centrais$/,/^## /' "$FILE" | grep -E '^### ' | sed 's/^### //')
+# Padrão de flag evita o bug do range awk '/start/,/end/' quando start também casa com end.
+ordem_obtida=$(awk '/^## Termos centrais$/{flag=1; next} /^## /{flag=0} flag' "$FILE" | grep -E '^### ' | sed 's/^### //')
 ordem_esperada=$(printf '%s\n' "${termos[@]}")
 test "$ordem_obtida" = "$ordem_esperada" \
   || { echo "FALHA: termos fora da ordem alfabética pt-BR esperada"; echo "obtido:"; echo "$ordem_obtida"; exit 1; }
@@ -468,7 +469,9 @@ for d in "${distincoes[@]}"; do
 done
 
 # 7. Nota de colisão de Agent (§1.2.6 regra 5)
-awk '/^### Agent$/,/^### /' "$FILE" | grep -qiE 'colisão|cursor|claude code' \
+# Padrão de flag evita o bug do range awk '/start/,/end/' quando start também casa com end.
+awk '/^### Agent$/{flag=1; next} /^### /{flag=0} flag' "$FILE" \
+  | grep -qiE 'colisão|cursor|claude code' \
   || { echo "FALHA: nota de colisão em Agent ausente"; exit 1; }
 
 # 8. Palavras-fraca ausentes
