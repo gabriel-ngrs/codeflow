@@ -85,7 +85,7 @@ Exemplo: `§P.2.1` é o prompt para a etapa `F2.1` (Constitution universal).
 
 ## Parte 1 — Prompts por etapa
 
-### §P.1.1 — Inicializar repositório do framework
+### §P.1.1 — Inicializar repositório do framework -Concluido
 
 ```markdown
 ## Objetivo
@@ -121,7 +121,7 @@ Reportar ao mantenedor:
 
 ---
 
-### §P.1.2 — Criar estrutura de pastas vazia
+### §P.1.2 — Criar estrutura de pastas vazia -Concluido
 
 ```markdown
 ## Objetivo
@@ -155,7 +155,7 @@ Executar `VALIDATION.md` §V.1.2. Snippet retorna `OK: §V.1.2`. Item de inspeç
 
 ---
 
-### §P.1.3 — Copiar documentos do andaime já produzidos
+### §P.1.3 — Copiar documentos do andaime já produzidos -Concluido
 
 ```markdown
 ## Objetivo
@@ -194,7 +194,7 @@ Executar `VALIDATION.md` §V.1.3. Todos os snippets retornam `OK: §V.1.3`. Iten
 
 ---
 
-### §P.1.4 — Criar symlink `~/.codeflow/` → `~/Projetos/codeflow/`
+### §P.1.4 — Criar symlink `~/.codeflow/` → `~/Projetos/codeflow/` -Concluido
 
 ```markdown
 ## Objetivo
@@ -226,7 +226,7 @@ Executar `VALIDATION.md` §V.1.4. Snippet retorna `OK: §V.1.4`. Item de inspeç
 
 ---
 
-### §P.2.1 — Constitution universal
+### §P.2.1 — Constitution universal -Concluido
 
 ```markdown
 ## Objetivo
@@ -270,7 +270,7 @@ Executar `VALIDATION.md` §V.2.1. Todos os snippets retornam `OK: §V.2.1`. Quat
 
 ---
 
-### §P.2.2 — Glossary
+### §P.2.2 — Glossary -Concluido
 
 ```markdown
 ## Objetivo
@@ -313,7 +313,7 @@ Executar `VALIDATION.md` §V.2.2. Todos os snippets retornam `OK: §V.2.2`. Quat
 
 ---
 
-### §P.2.3 — EVOLUTION
+### §P.2.3 — EVOLUTION -Concluido
 
 ```markdown
 ## Objetivo
