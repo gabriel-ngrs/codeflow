@@ -822,12 +822,13 @@ for nome in "${!granul[@]}"; do
   fi
 
   # 6. LEIA TAMBÉM inclui as quatro entradas obrigatórias
+  # Padrão de flag evita o bug do range awk '/start/,/end/' quando start também casa com end.
   for entrada in \
     'framework/core/constitution.md' \
     '.codeflow/INDEX.md' \
     '.codeflow/constitution.md' \
     '.codeflow/manifest.md'; do
-    awk '/^## LEIA TAMBÉM$/,/^## /' "$FILE" | grep -qF "$entrada" \
+    awk '/^## LEIA TAMBÉM$/{flag=1; next} /^## /{flag=0} flag' "$FILE" | grep -qF "$entrada" \
       || { echo "  FALHA: LEIA TAMBÉM sem '$entrada'"; falhas=$((falhas+1)); }
   done
 
@@ -851,7 +852,8 @@ for nome in "${!granul[@]}"; do
     || { echo "  FALHA: '## Proibições durante este workflow' presente"; falhas=$((falhas+1)); }
 
   # 11. Definition of Done com pelo menos um checkbox
-  awk '/^## Definition of Done$/,/^## /' "$FILE" | grep -qE '^- \[ \]' \
+  # Padrão de flag evita o bug do range awk '/start/,/end/' quando start também casa com end.
+  awk '/^## Definition of Done$/{flag=1; next} /^## /{flag=0} flag' "$FILE" | grep -qE '^- \[ \]' \
     || { echo "  FALHA: Definition of Done sem checkboxes '- [ ]'"; falhas=$((falhas+1)); }
 
   # 12. Médios incluem make check (ou marcação [—])
