@@ -1076,7 +1076,8 @@ for nome in discover bootstrap; do
   done
 
   # 7. Onde salvar referencia <projeto>/.codeflow/ (não ~/.codeflow/)
-  awk '/^## Onde salvar$/,/^## /' "$FILE" | grep -qE '\.codeflow/' \
+  # Padrão de flag evita o bug do range awk '/start/,/end/' quando start também casa com end.
+  awk '/^## Onde salvar$/{flag=1; next} /^## /{flag=0} flag' "$FILE" | grep -qE '\.codeflow/' \
     || { echo "  FALHA: Onde salvar sem referência a .codeflow/"; falhas=$((falhas+1)); }
 
   # 8. discover gera 4 artefatos (INDEX, constitution, manifest, discovered)
@@ -1094,7 +1095,9 @@ for nome in discover bootstrap; do
         || { echo "  FALHA: bootstrap não menciona $artefato"; falhas=$((falhas+1)); }
     done
     # bootstrap PODE mencionar discovered (para esclarecer que NÃO gera), mas Validação pós-geração não referencia §2.4
-    awk '/^## Validação pós-geração$/,/^## /' "$FILE" | grep -qE 'ARTIFACTS_SPEC\.md §2\.4' \
+    # Padrão de flag evita o bug do range awk '/start/,/end/' quando start também casa com end.
+    # Regex tolera backticks intermediários (markdown idiomático: `ARTIFACTS_SPEC.md` §2.4).
+    awk '/^## Validação pós-geração$/{flag=1; next} /^## /{flag=0} flag' "$FILE" | grep -qE 'ARTIFACTS_SPEC\.md`? §2\.4' \
       && { echo "  FALHA: bootstrap referencia §2.4 (discovered) em validação"; falhas=$((falhas+1)); }
   fi
 
