@@ -554,7 +554,10 @@ grep -qE 'dois|2.*projeto' "$FILE" \
   || { echo "FALHA: critério de promoção (dois projetos) ausente"; exit 1; }
 
 # 8. Anti-evolução tem exemplos concretos
-awk '/^## Anti-evolução$/,/^## /' "$FILE" | grep -qE '^- ' \
+# Padrão de flag evita o bug do range awk '/start/,/end/' quando start também casa com end.
+# Como Anti-evolução é a última seção, /^## /{flag=0} pode nunca disparar — flag fica em 1
+# até o fim do arquivo, o que é o comportamento desejado.
+awk '/^## Anti-evolução$/{flag=1; next} /^## /{flag=0} flag' "$FILE" | grep -qE '^- ' \
   || { echo "FALHA: Anti-evolução sem bullets"; exit 1; }
 
 # 9. Palavras-fraca ausentes
