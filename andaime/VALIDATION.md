@@ -630,17 +630,19 @@ for tema in code-quality testing security naming; do
   done
 
   # 6. Pelo menos três regras (§1.4.6 regra 4)
-  n_regras=$(awk '/^## Regras$/,/^## /' "$FILE" | grep -cE '^- ')
+  # Padrão de flag evita o bug do range awk '/start/,/end/' quando start também casa com end.
+  n_regras=$(awk '/^## Regras$/{flag=1; next} /^## /{flag=0} flag' "$FILE" | grep -cE '^- ')
   test "$n_regras" -ge 3 \
     || { echo "  FALHA: menos de 3 regras ($n_regras)"; falhas=$((falhas+1)); }
 
   # 7. Anti-regras com forma negativa (§1.4.6 regra 6)
-  n_anti=$(awk '/^## Anti-regras$/,/^## /' "$FILE" | grep -cE '^- (Não|Nunca|Jamais)')
+  n_anti=$(awk '/^## Anti-regras$/{flag=1; next} /^## /{flag=0} flag' "$FILE" | grep -cE '^- (Não|Nunca|Jamais)')
   test "$n_anti" -ge 1 \
     || { echo "  FALHA: nenhuma anti-regra começa com Não/Nunca/Jamais"; falhas=$((falhas+1)); }
 
   # 8. Exceções: pelo menos uma declarada ou texto literal "Nenhuma."
-  n_excecoes=$(awk '/^## Exceções$/,/^## /' "$FILE" | grep -cE '^- |^Nenhuma\.$')
+  # Exceções é a última seção; padrão de flag deixa flag=1 até o fim do arquivo.
+  n_excecoes=$(awk '/^## Exceções$/{flag=1; next} /^## /{flag=0} flag' "$FILE" | grep -cE '^- |^Nenhuma\.$')
   test "$n_excecoes" -ge 1 \
     || { echo "  FALHA: Exceções sem itens nem texto 'Nenhuma.'"; falhas=$((falhas+1)); }
 
