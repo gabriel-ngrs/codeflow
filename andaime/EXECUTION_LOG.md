@@ -52,3 +52,23 @@ Registro incremental das etapas concluídas durante a construção do framework 
   - `bootstrap/SKILL.md` — granularidade detalhada, 5 fases (Coleta de requisitos → Decisão de stack → Geração de estrutura mínima → Geração de artefatos do .codeflow/ → Entrega), pausas obrigatórias nas Fases 1, 2 e 5, seção `## Retomada`. Refs §2.1.5/§2.2.5/§2.3.5 (templates) e §2.1.6/§2.2.6/§2.3.6 (validação). **Não** referencia §2.4 — bootstrap não gera `discovered.md` (`ARTIFACTS_SPEC.md` §2.4.1).
 - **Validação:** `VALIDATION.md` §V.4.2 → `OK: §V.4.2 (2 meta-skills detalhadas validadas)`. Cinco itens de inspeção marcados (discover com 4 fases; bootstrap com 5 fases; discover ≤5 perguntas; bootstrap com pausas em ≥2 fases; `## Retomada` em ambas).
 - **Notas / decisões:** mesmo defeito do range awk corrigido em §V.4.2 (duas ocorrências em "Onde salvar" e em "Validação pós-geração"). Regex de detecção de `§2.4` em bootstrap foi tornada tolerante a backticks intermediários por consistência. Correção da VALIDATION feita em commit separado, seguindo o padrão estabelecido nas etapas anteriores.
+
+### F5.1 — Script `install.sh` [✓]
+
+- **Concluída em:** 2026-05-23
+- **Artefatos:** `install.sh` na raiz do framework (`~/projetos/codeflow/install.sh`), executável (`chmod +x`).
+- **Responsabilidades implementadas** (SPEC §3.9):
+  - Verifica pré-requisitos: `git` no PATH, `~/.codeflow/` existe, cwd é repositório git, Makefile (apenas aviso se ausente).
+  - Cria `.codeflow/INDEX.md` (placeholder com frontmatter universal apontando para `/discover` ou `/bootstrap`), `.codeflow/decisions/`, `.codeflow/checkpoints/`.
+  - Adiciona `.codeflow/checkpoints/` ao `.gitignore` do projeto (cria `.gitignore` se ausente).
+  - Imprime mensagem final em pt-BR com símbolos ✓/⚠/✗ e próximos passos (`/discover` ou `/bootstrap`).
+- **Restrições respeitadas** (anti-decisão SPEC §3.9):
+  - Não modifica CLAUDE.md, AGENTS.md, README.md, nem nenhum arquivo fora de `.codeflow/` e `.gitignore`.
+  - Não cria `constitution.md`, `manifest.md` ou `discovered.md`.
+  - Não chama `git init` nem altera config global.
+  - Não instala dependências, não baixa nada.
+- **Stack:** apenas bash + coreutils + git, conforme `SPEC.md` §7.3 e `ARTIFACTS_SPEC.md` §3.8. Sem `jq`, `python`, `node`, etc.
+- **Códigos de saída:** 0 sucesso, 1 falha de regra (sem `~/.codeflow/`, sem repo git), 2 erro de execução (git ausente), 3 input inválido (argumento não suportado). Conforme `ARTIFACTS_SPEC.md` §0.7.
+- **Idempotência:** segunda execução no mesmo projeto preserva `INDEX.md`, não duplica entrada no `.gitignore`, retorna rc=0.
+- **Validação:** `VALIDATION.md` §V.5.1 → `OK: §V.5.1`. Teste funcional em pasta temporária passa (estrutura criada, README inalterado, rc=0 em ambas execuções). `shellcheck` não disponível na máquina; verificação correspondente emite AVISO conforme V.5.1 (não-bloqueante). Quatro itens de inspeção marcados (pt-BR + símbolos; mensagem final cita próximos passos; sem `git init`; sem instalação de dependências).
+- **Notas / decisões:** harness do shell retornou exit code 1 ao final do teste funcional por efeito colateral de `rm -rf TESTDIR` enquanto cwd ainda apontava para o tempdir — verificado isoladamente que `install.sh` retorna rc=0 nas duas execuções e que a string `OK: §V.5.1` foi emitida pelo snippet. Não houve falha de validação real.

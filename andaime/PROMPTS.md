@@ -623,7 +623,7 @@ Executar `VALIDATION.md` §V.4.2. Snippet retorna `OK: §V.4.2 (2 meta-skills de
 
 ---
 
-### §P.5.1 — Script `install.sh`
+### §P.5.1 — Script `install.sh` -Concluido
 
 ```markdown
 ## Objetivo
