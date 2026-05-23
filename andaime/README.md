@@ -12,5 +12,6 @@ Documentos previstos:
 - `SPEC.md` — especificação normativa do framework.
 - `ARTIFACTS_SPEC.md` — schema de cada tipo de arquivo gerado.
 - `BUILD_PLAN.md` — ordem e dependências das etapas de construção.
-- `VALIDATION.md` — procedimentos de verificação por etapa _(pendente — integração formal na Fase 5)_.
-- `PROMPTS.md` — prompts prontos por etapa _(pendente — integração formal na Fase 5)_.
+- `VALIDATION.md` — procedimentos de verificação por etapa.
+- `PROMPTS.md` — prompts prontos por etapa.
+- `EXECUTION_LOG.md` — log incremental das etapas concluídas no `BUILD_PLAN`.

@@ -718,7 +718,7 @@ Executar `VALIDATION.md` §V.5.2. Todos os snippets retornam `OK: §V.5.2`. Trê
 
 ---
 
-### §P.5.3 — Integrar VALIDATION.md e PROMPTS.md ao andaime
+### §P.5.3 — Integrar VALIDATION.md e PROMPTS.md ao andaime -Concluido
 
 ```markdown
 ## Objetivo
