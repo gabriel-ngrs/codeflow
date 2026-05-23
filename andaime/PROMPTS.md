@@ -673,7 +673,7 @@ Executar `VALIDATION.md` §V.5.1. Todos os snippets retornam `OK: §V.5.1`. Iten
 
 ---
 
-### §P.5.2 — README da raiz do framework
+### §P.5.2 — README da raiz do framework -Concluido
 
 ```markdown
 ## Objetivo

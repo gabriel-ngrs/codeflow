@@ -72,3 +72,11 @@ Registro incremental das etapas concluídas durante a construção do framework 
 - **Idempotência:** segunda execução no mesmo projeto preserva `INDEX.md`, não duplica entrada no `.gitignore`, retorna rc=0.
 - **Validação:** `VALIDATION.md` §V.5.1 → `OK: §V.5.1`. Teste funcional em pasta temporária passa (estrutura criada, README inalterado, rc=0 em ambas execuções). `shellcheck` não disponível na máquina; verificação correspondente emite AVISO conforme V.5.1 (não-bloqueante). Quatro itens de inspeção marcados (pt-BR + símbolos; mensagem final cita próximos passos; sem `git init`; sem instalação de dependências).
 - **Notas / decisões:** harness do shell retornou exit code 1 ao final do teste funcional por efeito colateral de `rm -rf TESTDIR` enquanto cwd ainda apontava para o tempdir — verificado isoladamente que `install.sh` retorna rc=0 nas duas execuções e que a string `OK: §V.5.1` foi emitida pelo snippet. Não houve falha de validação real.
+
+### F5.2 — README da raiz do framework [✓]
+
+- **Concluída em:** 2026-05-23
+- **Artefatos:** `README.md` na raiz do framework, 72 linhas (dentro do alvo 40-80).
+- **Conteúdo:** frontmatter universal; título e descrição curta; quando usar; pré-requisitos (bash, git, Make opcional); comando de instalação `bash ~/.codeflow/install.sh`; primeiros passos pós-instalação (`/discover` ou `/bootstrap`); estrutura de alto nível com referência a `andaime/SPEC.md` §2.2; ponteiros para `andaime/SPEC.md`, `andaime/ARTIFACTS_SPEC.md`, `andaime/BUILD_PLAN.md`; ponteiro para `framework/core/EVOLUTION.md`; licença MIT.
+- **Validação:** `VALIDATION.md` §V.5.2 → `OK: §V.5.2`. Três itens de inspeção marcados (introdução curta de 40-80 linhas; pt-BR consistente; estrutura coerente).
+- **Notas / decisões:** evitado uso de palavras-fraca; o termo "recomendado" do BUILD_PLAN F5.2 foi substituído por descrição factual ("Make opcional; usado para targets canônicos no projeto-alvo"). Não há referência a `andaime/VALIDATION.md` ou `andaime/PROMPTS.md` no README — ambos serão integrados ao andaime na etapa F5.3 e o README pode ser revisado depois para incluí-los, se desejado.
