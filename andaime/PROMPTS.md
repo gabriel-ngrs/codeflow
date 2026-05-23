@@ -752,7 +752,7 @@ Executar `VALIDATION.md` §V.5.3. Snippet retorna `OK: §V.5.3`. Item de inspeç
 
 ---
 
-### §P.5.4 — Criar projeto de teste
+### §P.5.4 — Criar projeto de teste -Concluido
 
 ```markdown
 ## Objetivo
