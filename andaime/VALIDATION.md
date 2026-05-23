@@ -979,17 +979,21 @@ for nome in create-workflow create-skill create-agent; do
   done
 
   # 7. Template de saída tem bloco de código ou referência a ARTIFACTS_SPEC (§1.9.6 regra 6)
-  awk '/^## Template de saída$/,/^## /' "$FILE" \
-    | grep -qE '```|ARTIFACTS_SPEC\.md §' \
+  # Padrão de flag evita o bug do range awk '/start/,/end/' quando start também casa com end.
+  # Regex tolera backticks intermediários (markdown idiomático: `ARTIFACTS_SPEC.md` §).
+  awk '/^## Template de saída$/{flag=1; next} /^## /{flag=0} flag' "$FILE" \
+    | grep -qE '```|ARTIFACTS_SPEC\.md`? §' \
     || { echo "  FALHA: Template de saída sem bloco de código nem referência a §"; falhas=$((falhas+1)); }
 
   # 8. Onde salvar tem caminho concreto (§1.9.6 regra 7)
-  awk '/^## Onde salvar$/,/^## /' "$FILE" \
+  # Padrão de flag evita o bug do range awk '/start/,/end/' quando start também casa com end.
+  awk '/^## Onde salvar$/{flag=1; next} /^## /{flag=0} flag' "$FILE" \
     | grep -qE '~/.codeflow|\.codeflow/' \
     || { echo "  FALHA: Onde salvar sem caminho concreto"; falhas=$((falhas+1)); }
 
   # 9. Validação pós-geração com pelo menos 3 checks (§1.9.6 regra 8)
-  n_checks=$(awk '/^## Validação pós-geração$/,/^## /' "$FILE" | grep -cE '^- ')
+  # Padrão de flag evita o bug do range awk '/start/,/end/' quando start também casa com end.
+  n_checks=$(awk '/^## Validação pós-geração$/{flag=1; next} /^## /{flag=0} flag' "$FILE" | grep -cE '^- ')
   test "$n_checks" -ge 3 \
     || { echo "  FALHA: Validação pós-geração com $n_checks itens (mín 3)"; falhas=$((falhas+1)); }
 
