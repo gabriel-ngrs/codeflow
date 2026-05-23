@@ -368,18 +368,22 @@ test "$ordem_obtida" = "$ordem_esperada" \
   || { echo "FALHA: ordem das seções incorreta"; echo "obtido:"; echo "$ordem_obtida"; exit 1; }
 
 # 7. Quatro proibições absolutas (§1.1.6 regra 7)
-n_proib=$(awk '/^## Proibições absolutas$/,/^## /' "$FILE" \
+# Extrai conteúdo entre '## Proibições absolutas' e próximo '## '. Padrão de flag
+# evita o bug do range awk '/start/,/end/' quando start também casa com end.
+n_proib=$(awk '/^## Proibições absolutas$/{flag=1; next} /^## /{flag=0} flag' "$FILE" \
           | grep -cE '^- (Não|Nunca|Jamais)')
 test "$n_proib" -ge 4 || { echo "FALHA: menos de 4 proibições com 'Não/Nunca/Jamais'"; exit 1; }
 
 # 8. Quatro categorias de falha (§1.1.6 regra 5)
 for cat in 'Transitória' 'Lógica' 'Escopo' 'Ambiente'; do
-  awk '/^## Política de falhas$/,/^## /' "$FILE" | grep -q "$cat" \
+  awk '/^## Política de falhas$/{flag=1; next} /^## /{flag=0} flag' "$FILE" \
+    | grep -q "$cat" \
     || { echo "FALHA: categoria '$cat' ausente em Política de falhas"; exit 1; }
 done
 
 # 9. Formato PARADO (§1.1.6 regra 6) — palavra literal presente
-awk '/^## Formato PARADO$/,/^## /' "$FILE" | grep -q 'PARADO' \
+awk '/^## Formato PARADO$/{flag=1; next} /^## /{flag=0} flag' "$FILE" \
+  | grep -q 'PARADO' \
   || { echo "FALHA: palavra PARADO ausente na seção"; exit 1; }
 
 # 10. Palavras-fraca ausentes (regra transversal 20)
