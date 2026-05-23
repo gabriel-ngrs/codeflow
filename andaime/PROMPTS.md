@@ -398,7 +398,7 @@ Executar `VALIDATION.md` §V.2.4. Snippet retorna `OK: §V.2.4 (4 rules validado
 
 ---
 
-### §P.3.1 — Três skills seed
+### §P.3.1 — Três skills seed -Concluido
 
 ```markdown
 ## Objetivo
