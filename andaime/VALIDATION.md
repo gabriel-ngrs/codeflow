@@ -169,7 +169,6 @@ pastas=(
   framework/library/skills/handoff
   framework/library/skills/self-review
   framework/library/workflows
-  framework/library/agents
   andaime
 )
 

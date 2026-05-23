@@ -166,7 +166,6 @@ Verificações mínimas executáveis nesta etapa:
    framework/library/skills/handoff/
    framework/library/skills/self-review/
    framework/library/workflows/
-   framework/library/agents/
    andaime/
    ```
 2. Em cada pasta criada, adicionar arquivo `.gitkeep` vazio. Isto garante que o git rastreie as pastas mesmo antes de terem conteúdo, e o Claude Code pode validar a estrutura imediatamente.
