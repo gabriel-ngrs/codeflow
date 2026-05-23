@@ -357,7 +357,7 @@ Executar `VALIDATION.md` §V.2.3. Todos os snippets retornam `OK: §V.2.3`. Trê
 
 ---
 
-### §P.2.4 — Quatro rules seed
+### §P.2.4 — Quatro rules seed -Concluido
 
 ```markdown
 ## Objetivo
