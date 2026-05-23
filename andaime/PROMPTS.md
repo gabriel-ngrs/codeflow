@@ -491,7 +491,7 @@ Executar `VALIDATION.md` §V.3.2. Snippet retorna `OK: §V.3.2 (4 workflows vali
 
 ---
 
-### §P.3.3 — Manter `framework/library/agents/` vazio
+### §P.3.3 — Manter `framework/library/agents/` vazio -Concluido
 
 ```markdown
 ## Objetivo
