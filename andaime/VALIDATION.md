@@ -1,7 +1,7 @@
 ---
-versão: 1.1
+versão: 1.2
 status: estável
-atualizado: 2026-05-20
+atualizado: 2026-05-23
 ---
 
 # VALIDATION.md — Procedimentos de validação por etapa
@@ -273,20 +273,25 @@ echo "OK: §V.1.3"
 # 1. Symlink existe
 test -L ~/.codeflow || { echo "FALHA: ~/.codeflow não é symlink"; exit 1; }
 
-# 2. Aponta para o repositório de trabalho
+# 2. Resolve para um diretório que aparenta ser o repositório codeflow.
+# Verificação por estrutura, não por path literal — o nome físico da pasta
+# (~/Projetos/codeflow, ~/projetos/codeflow, ~/dev/codeflow, etc.) varia
+# entre máquinas, e a abstração canônica do framework é ~/.codeflow/.
 target=$(readlink ~/.codeflow)
-expected="$HOME/Projetos/codeflow"
-# Aceita tanto forma absoluta quanto relativa que resolva ao mesmo lugar
-test "$(cd ~/.codeflow && pwd -P)" = "$expected" \
-  || { echo "FALHA: symlink aponta para $target, esperado $expected"; exit 1; }
+resolved=$(cd ~/.codeflow 2>/dev/null && pwd -P)
+test -n "$resolved" || { echo "FALHA: ~/.codeflow não resolve para diretório acessível (target: $target)"; exit 1; }
+test -d "$resolved/andaime" && test -d "$resolved/framework" \
+  || { echo "FALHA: $resolved não contém andaime/ e framework/ (target do symlink: $target)"; exit 1; }
 
 # 3. Conteúdo acessível via symlink
 test -f ~/.codeflow/andaime/SPEC.md || { echo "FALHA: andaime/SPEC.md inacessível via symlink"; exit 1; }
 test -d ~/.codeflow/framework/core || { echo "FALHA: framework/core inacessível via symlink"; exit 1; }
 
-# 4. Sem cópia paralela do framework fora do repositório de trabalho
+# 4. Sem cópia paralela do framework fora do repositório de trabalho.
+# Usa o path resolvido do symlink como referência canônica em vez de path literal,
+# para suportar localizações distintas entre máquinas.
 copias=$(find "$HOME" -maxdepth 6 -name 'constitution.md' -path '*/framework/core/*' 2>/dev/null \
-         | grep -v "$HOME/Projetos/codeflow" \
+         | grep -v "^${resolved}/" \
          | grep -v "$HOME/.codeflow" \
          | head -3)
 if [ -n "$copias" ]; then
