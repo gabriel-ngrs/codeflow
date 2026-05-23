@@ -725,7 +725,8 @@ for nome in debug-protocol handoff self-review; do
     || { echo "  FALHA: ## LEIA TAMBÉM presente (vedado em skill)"; falhas=$((falhas+1)); }
 
   # 8. Proibições com forma negativa (§1.8.6 regra 8)
-  n_proib=$(awk '/^## Proibições durante esta skill$/,/^## /' "$FILE" \
+  # Padrão de flag evita o bug do range awk '/start/,/end/' quando start também casa com end.
+  n_proib=$(awk '/^## Proibições durante esta skill$/{flag=1; next} /^## /{flag=0} flag' "$FILE" \
             | grep -cE '^- (Não|Nunca|Jamais)')
   test "$n_proib" -ge 1 \
     || { echo "  FALHA: nenhuma proibição com Não/Nunca/Jamais"; falhas=$((falhas+1)); }
