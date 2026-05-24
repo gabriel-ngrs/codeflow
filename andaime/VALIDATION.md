@@ -1508,14 +1508,203 @@ echo "OK: §V.5.6"
 
 ---
 
-### §V.5.7 — Limpeza, log de execução e tag de versão
+### §V.5.7 — Documentar wiring de slash commands em SPEC e ARTIFACTS_SPEC
+
+**Arquivo(s) validado(s):**
+- `andaime/SPEC.md` (subseção §3.6.1 acrescentada).
+- `andaime/ARTIFACTS_SPEC.md` (subseção §3.9 acrescentada).
+- `framework/core/glossary.md` (entrada "Wrapper" acrescentada).
+
+**Regras aplicáveis:**
+- `BUILD_PLAN.md` §F5.7.
+
+**Verificações automatizáveis:**
+
+```bash
+cd ~/Projetos/codeflow
+
+# 1. SPEC.md §3.6.1 presente
+grep -qE '^#### 3\.6\.1 Implementação em Claude Code' andaime/SPEC.md \
+  || { echo "FALHA: SPEC.md §3.6.1 ausente"; exit 1; }
+
+# 2. SPEC §3.6.1 cita ~/.claude/commands/
+awk '/^#### 3\.6\.1/{flag=1; next} /^#### /{flag=0} flag' andaime/SPEC.md \
+  | grep -qE '~/\.claude/commands' \
+  || { echo "FALHA: SPEC.md §3.6.1 não documenta ~/.claude/commands/"; exit 1; }
+
+# 3. SPEC §3.6.1 cita .claude/commands/ de projeto
+awk '/^#### 3\.6\.1/{flag=1; next} /^#### /{flag=0} flag' andaime/SPEC.md \
+  | grep -qE '<projeto>/\.claude/commands|\.claude/commands.*projeto' \
+  || { echo "FALHA: SPEC.md §3.6.1 não documenta wrapper de projeto"; exit 1; }
+
+# 4. ARTIFACTS_SPEC.md §3.9 presente
+grep -qE '^### 3\.9 Wrappers de slash command' andaime/ARTIFACTS_SPEC.md \
+  || { echo "FALHA: ARTIFACTS_SPEC.md §3.9 ausente"; exit 1; }
+
+# 5. §3.9 contém exemplo preenchido para /bugfix
+awk '/^### 3\.9 /{flag=1; next} /^### /{flag=0} flag' andaime/ARTIFACTS_SPEC.md \
+  | grep -qE 'bugfix' \
+  || { echo "FALHA: ARTIFACTS_SPEC.md §3.9 sem exemplo /bugfix"; exit 1; }
+
+# 6. Glossary contém entrada "Wrapper"
+grep -qE '^### Wrapper' framework/core/glossary.md \
+  || { echo "AVISO: glossary sem entrada 'Wrapper' — documentar omissão se intencional"; }
+
+echo "OK: §V.5.7"
+```
+
+**Verificações por inspeção:**
+- [ ] SPEC §3.6.1 cobre os cinco pontos: mecanismo, mapeamento, conteúdo do wrapper, setup universal (F5.8), setup de projeto (F5.9).
+- [ ] ARTIFACTS_SPEC §3.9 cobre localização, schema, exemplo, validação, anti-padrão.
+
+**Critério de aprovação:** snippet retorna zero (item 6 é AVISO, não FALHA); itens de inspeção marcados.
+
+---
+
+### §V.5.8 — Criar `setup-slash-commands.sh` e auto-sync em meta-skills
+
+**Arquivo(s) validado(s):**
+- `~/Projetos/codeflow/setup-slash-commands.sh` (executável).
+- `framework/meta/create-workflow/SKILL.md` (atualizado).
+- `~/.claude/commands/<nome>.md` (wrappers gerados).
+
+**Regras aplicáveis:**
+- `BUILD_PLAN.md` §F5.8.
+- `ARTIFACTS_SPEC.md` §3.9.
+
+**Verificações automatizáveis:**
+
+```bash
+cd ~/Projetos/codeflow
+
+# 1. Script existe e é executável
+test -x setup-slash-commands.sh \
+  || { echo "FALHA: setup-slash-commands.sh ausente ou não-executável"; exit 1; }
+
+# 2. Roda sem erro
+bash setup-slash-commands.sh >/tmp/sscmd1.log 2>&1
+rc=$?
+test "$rc" -eq 0 \
+  || { echo "FALHA: setup-slash-commands.sh retornou $rc"; cat /tmp/sscmd1.log; exit 1; }
+
+# 3. Wrapper criado para cada workflow universal
+for f in framework/library/workflows/*.md; do
+  name=$(basename "$f" .md)
+  test -f "$HOME/.claude/commands/$name.md" \
+    || { echo "FALHA: wrapper ~/.claude/commands/$name.md ausente"; exit 1; }
+done
+
+# 4. Wrapper criado para cada meta-skill seed
+for d in framework/meta/*/; do
+  name=$(basename "$d")
+  test -f "$HOME/.claude/commands/$name.md" \
+    || { echo "FALHA: wrapper ~/.claude/commands/$name.md (meta) ausente"; exit 1; }
+done
+
+# 5. Idempotência: segunda execução retorna 0
+bash setup-slash-commands.sh >/tmp/sscmd2.log 2>&1
+rc=$?
+test "$rc" -eq 0 \
+  || { echo "FALHA: segunda execução retornou $rc"; cat /tmp/sscmd2.log; exit 1; }
+
+# 6. create-workflow/SKILL.md referencia setup-slash-commands.sh
+grep -qE 'setup-slash-commands\.sh' framework/meta/create-workflow/SKILL.md \
+  || { echo "FALHA: create-workflow não referencia setup-slash-commands.sh"; exit 1; }
+
+# 7. Wrapper aponta para path correto (cita o arquivo real)
+sample=$(ls ~/.claude/commands/*.md 2>/dev/null | head -1)
+if [ -n "$sample" ]; then
+  grep -qE '~/\.codeflow/framework/' "$sample" \
+    || { echo "FALHA: wrapper $sample não referencia ~/.codeflow/framework/"; exit 1; }
+fi
+
+echo "OK: §V.5.8"
+```
+
+**Verificações por inspeção:**
+- [ ] Saída do script lista cada wrapper com símbolo (`✓ criado`, `✓ preservado`, `⚠ órfão`).
+- [ ] `create-workflow/SKILL.md` instrui claramente quando rodar o script (após criar workflow universal).
+
+**Critério de aprovação:** snippet retorna zero; itens de inspeção marcados.
+
+---
+
+### §V.5.9 — Estender `install.sh` para slash commands de projeto + atualizar ROTEIRO
+
+**Arquivo(s) validado(s):**
+- `~/Projetos/codeflow/install.sh` (estendido).
+- `andaime/tests/ROTEIRO.md` (ampliado).
+
+**Regras aplicáveis:**
+- `BUILD_PLAN.md` §F5.9.
+- `SPEC.md` §3.9 (anti-decisão preservada).
+
+**Verificações automatizáveis:**
+
+```bash
+cd ~/Projetos/codeflow
+
+# 1. install.sh menciona .claude/commands/
+grep -qE '\.claude/commands' install.sh \
+  || { echo "FALHA: install.sh não menciona .claude/commands/"; exit 1; }
+
+# 2. install.sh menciona .codeflow/workflows
+grep -qE '\.codeflow/workflows' install.sh \
+  || { echo "FALHA: install.sh não sincroniza .codeflow/workflows/"; exit 1; }
+
+# 3. install.sh continua executável
+test -x install.sh || { echo "FALHA: install.sh perdeu execução"; exit 1; }
+
+# 4. Idempotência preservada: rodar 2x em pasta de teste limpa
+TMP=$(mktemp -d)
+cd "$TMP"
+git init -q
+echo ".PHONY: check"$'\n'"check:"$'\n\t'"@true" > Makefile
+git add Makefile && git -c user.email=t@t -c user.name=t commit -q -m init
+
+bash ~/Projetos/codeflow/install.sh >/tmp/inst1.log 2>&1
+rc1=$?
+bash ~/Projetos/codeflow/install.sh >/tmp/inst2.log 2>&1
+rc2=$?
+test "$rc1" -eq 0 -a "$rc2" -eq 0 \
+  || { echo "FALHA: install.sh não-idempotente (rc1=$rc1 rc2=$rc2)"; exit 1; }
+
+# 5. Nenhum arquivo do projeto fora de .codeflow/, .gitignore, .claude/commands/ modificado
+unexpected=$(cd "$TMP" && git status --porcelain \
+  | grep -vE '^\?\? \.codeflow/|^\?\? \.gitignore|^ M \.gitignore|^\?\? \.claude/' || true)
+test -z "$unexpected" \
+  || { echo "FALHA: install.sh violou SPEC §3.9: $unexpected"; exit 1; }
+
+cd ~/Projetos/codeflow
+rm -rf "$TMP"
+
+# 6. ROTEIRO.md contém Teste 1.5
+grep -qE 'Teste 1\.5' andaime/tests/ROTEIRO.md \
+  || { echo "FALHA: ROTEIRO.md sem Teste 1.5"; exit 1; }
+
+# 7. ROTEIRO.md contém Teste 7
+grep -qE '^## Teste 7' andaime/tests/ROTEIRO.md \
+  || { echo "FALHA: ROTEIRO.md sem Teste 7"; exit 1; }
+
+echo "OK: §V.5.9"
+```
+
+**Verificações por inspeção:**
+- [ ] `install.sh` mantém saída em pt-BR com símbolos `✓`/`⚠`/`✗`.
+- [ ] `install.sh` não força adicionar `.claude/commands/` ao `.gitignore` do projeto (decisão fica com mantenedor).
+
+**Critério de aprovação:** snippet retorna zero; itens de inspeção marcados.
+
+---
+
+### §V.5.10 — Limpeza, log de execução e tag de versão
 
 **Arquivo(s) validado(s):**
 - Tag git `v1.0.0` no repositório do framework.
 - `andaime/EXECUTION_LOG.md` (obrigatório).
 
 **Regras aplicáveis:**
-- `BUILD_PLAN.md` §F5.7.
+- `BUILD_PLAN.md` §F5.10.
 
 **Verificações automatizáveis:**
 
@@ -1559,14 +1748,14 @@ fi
 # Critério qualitativo: ≈14 commits esperados (varia conforme execução real).
 # Verificação mínima: contagem de commits antes da tag deve ser >= 10.
 n_commits=$(git rev-list --count v1.0.0)
-test "$n_commits" -ge 10 \
-  || { echo "FALHA: apenas $n_commits commits até v1.0.0 (esperado pelo menos 10, idealmente ~14)"; exit 1; }
+test "$n_commits" -ge 13 \
+  || { echo "FALHA: apenas $n_commits commits até v1.0.0 (esperado pelo menos 13, idealmente ~17 com F5.7-F5.9)"; exit 1; }
 
-echo "OK: §V.5.7"
+echo "OK: §V.5.10"
 ```
 
 **Verificações por inspeção:**
-- [ ] **Pelo menos um commit por etapa do BUILD_PLAN que declara `Commit sugerido` não-vazio** (tipicamente ~14 commits no total) antes da tag `v1.0.0`. A contagem exata depende de quantas etapas justificaram commit próprio na execução real; não há número rígido.
+- [ ] **Pelo menos um commit por etapa do BUILD_PLAN que declara `Commit sugerido` não-vazio** (tipicamente ~17 commits no total, incluindo F5.7-F5.9) antes da tag `v1.0.0`. A contagem exata depende de quantas etapas justificaram commit próprio na execução real; não há número rígido.
 - [ ] **Mensagens de commit seguem o padrão** `<tipo>(<escopo>): <mensagem>` declarado no BUILD_PLAN.
 
 **Critério de aprovação:** snippet retorna zero; itens de inspeção marcados.

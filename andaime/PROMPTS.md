@@ -859,20 +859,161 @@ Executar `VALIDATION.md` §V.5.6. Snippet retorna `OK: §V.5.6`. Quatro itens de
 
 ---
 
-### §P.5.7 — Limpeza, log de execução e tag de versão
+### §P.5.7 — Documentar wiring de slash commands em SPEC e ARTIFACTS_SPEC
+
+```markdown
+## Objetivo
+Fechar o gap entre a decisão arquitetural de `SPEC.md` §3.6 (workflows via slash commands) e a implementação concreta. Amendar `SPEC.md` §3.6 com subseção §3.6.1 "Implementação em Claude Code"; acrescentar §3.9 "Wrappers de slash command" em `ARTIFACTS_SPEC.md`; acrescentar termo "Wrapper" no glossary.
+
+## Pré-leitura obrigatória
+- `andaime/SPEC.md` §3.6 (decisão original).
+- `andaime/ARTIFACTS_SPEC.md` §3 (regras transversais — para inserir §3.9 no lugar certo).
+- `andaime/BUILD_PLAN.md` §F5.7.
+- `andaime/VALIDATION.md` §V.5.7.
+- `framework/core/glossary.md` (para verificar termos existentes).
+
+## Tarefa
+1. Confirmar que F5.6 foi concluída.
+2. Editar `andaime/SPEC.md` §3.6 acrescentando subseção `#### 3.6.1 Implementação em Claude Code` cobrindo:
+   - **Mecanismo:** wrappers em `~/.claude/commands/<nome>.md` (universal) e `<projeto>/.claude/commands/<nome>.md` (projeto). Claude Code lê esses arquivos como slash commands custom nativos.
+   - **Mapeamento:** nome do arquivo do workflow (ou meta-skill) = nome do slash command = nome do wrapper. Sem registro central.
+   - **Conteúdo do wrapper:** 2-4 linhas em pt-BR instruindo a IA a ler o arquivo real e executar o protocolo, carregando `## LEIA TAMBÉM` antes.
+   - **Setup universal:** `setup-slash-commands.sh` na raiz do framework (criado em F5.8).
+   - **Setup de projeto:** estendido em `install.sh` (F5.9).
+   - **Adapter para outras ferramentas (Codex, Cursor):** análogo, fora do escopo da v1.0.0; reconsiderar quando houver demanda real.
+3. Editar `andaime/ARTIFACTS_SPEC.md` acrescentando subseção `### 3.9 Wrappers de slash command` com:
+   - Localização (`~/.claude/commands/<nome>.md` ou `<projeto>/.claude/commands/<nome>.md`).
+   - Schema mínimo: sem frontmatter obrigatório; corpo de 2-4 linhas referenciando o path absoluto do workflow/meta-skill.
+   - Exemplo preenchido para `/bugfix`.
+   - Regras de validação: contém exatamente uma referência a path do tipo `~/.codeflow/framework/...`; corpo tem ≤ 6 linhas.
+   - Anti-padrão: duplicar conteúdo do workflow no wrapper; adicionar lógica que não seja apenas instruir leitura.
+4. Editar `framework/core/glossary.md` acrescentando, em ordem alfabética, entrada `### Wrapper` (2-4 linhas) com referência a SPEC §3.6.1.
+5. Commit: `docs(spec): documenta wiring de slash commands (§3.6.1 + §3.9)`.
+
+## Critério de sucesso
+Executar `VALIDATION.md` §V.5.7. Snippet retorna `OK: §V.5.7`. Itens de inspeção marcados.
+
+## Em caso de ambiguidade
+- Texto exato das subseções: propor draft ao mantenedor, aguardar aprovação.
+- Posição da §3.9 dentro de ARTIFACTS_SPEC §3: ler §3 inteiro e inserir após a última subseção existente (provavelmente §3.8 stack de scripts).
+- Se glossary já tiver termo similar (ex: "Slash command"): atualizar referência cruzada em vez de duplicar.
+
+## Saída esperada
+- Diff aplicado em SPEC.md, ARTIFACTS_SPEC.md, glossary.md.
+- Resultado da validação §V.5.7.
+- Hash do commit.
+```
+
+---
+
+### §P.5.8 — Criar `setup-slash-commands.sh` e auto-sync em meta-skills
+
+```markdown
+## Objetivo
+Entregar o script que materializa o wiring universal (`setup-slash-commands.sh` na raiz do framework) e embutir auto-sync na meta-skill `create-workflow`.
+
+## Pré-leitura obrigatória
+- `andaime/SPEC.md` §3.6.1 (recém-criada em F5.7) e §3.9 (anti-decisão de install.sh).
+- `andaime/ARTIFACTS_SPEC.md` §3.9 (schema do wrapper) e §0.6, §0.7 (símbolos e exit codes).
+- `andaime/BUILD_PLAN.md` §F5.8.
+- `andaime/VALIDATION.md` §V.5.8.
+- `framework/meta/create-workflow/SKILL.md` (vai ser editado).
+
+## Tarefa
+1. Confirmar que F5.7 foi concluída.
+2. Criar `~/Projetos/codeflow/setup-slash-commands.sh` (bash, executável):
+   - Verificar pré-requisitos: `~/.codeflow/` existe; criar `~/.claude/commands/` se ausente.
+   - Listar workflows em `~/.codeflow/framework/library/workflows/*.md`.
+   - Listar meta-skills em `~/.codeflow/framework/meta/*/SKILL.md`.
+   - Para cada um, gerar (ou recriar idempotentemente) `~/.claude/commands/<nome>.md` no formato de `ARTIFACTS_SPEC.md` §3.9.
+   - Detectar wrappers órfãos (apontam para arquivos inexistentes); remover ao receber flag `--prune`, apenas avisar por padrão.
+   - Saída em pt-BR com símbolos `✓`/`⚠`/`✗` (criados, preservados, órfãos, erros).
+   - Exit codes: 0 sucesso; 1 falha de regra; 2 erro de execução.
+3. Restrições análogas a `install.sh`: não modifica nada fora de `~/.claude/commands/`; só lê de `~/.codeflow/framework/`; stack bash + coreutils.
+4. Editar `framework/meta/create-workflow/SKILL.md` acrescentando passo final no `## Protocolo`:
+   - "Se o workflow gerado é universal, executar `bash ~/.codeflow/setup-slash-commands.sh` ao final para registrar o slash command. Se é de projeto, o `install.sh` cuida na próxima vez que rodar (F5.9)."
+5. Acrescentar nota informativa em `framework/meta/create-skill/SKILL.md` e `framework/meta/create-agent/SKILL.md`: skills regulares e agents **não** ganham slash command próprio.
+6. `chmod +x setup-slash-commands.sh`.
+7. Commit: `feat(install): adiciona setup-slash-commands.sh + auto-sync em create-workflow`.
+
+## Critério de sucesso
+Executar `VALIDATION.md` §V.5.8. Snippet retorna `OK: §V.5.8`. Itens de inspeção marcados.
+
+## Em caso de ambiguidade
+- Formato exato do wrapper: seguir literalmente `ARTIFACTS_SPEC.md` §3.9.
+- Comportamento default em órfãos: avisar, não remover. Remoção exige flag `--prune` explícita.
+- Conteúdo dos avisos nas meta-skills `create-skill` e `create-agent`: propor texto ao mantenedor.
+
+## Saída esperada
+- Conteúdo completo do `setup-slash-commands.sh`.
+- Lista de wrappers gerados após primeira execução.
+- Confirmação de idempotência (segunda execução, mesmas mensagens "preservado").
+- Resultado da validação §V.5.8.
+- Hash do commit.
+```
+
+---
+
+### §P.5.9 — Estender `install.sh` para slash commands de projeto + atualizar ROTEIRO
+
+```markdown
+## Objetivo
+Garantir que workflows criados a nível de projeto (`<projeto>/.codeflow/workflows/`) ganhem slash commands locais automaticamente via `install.sh`. Atualizar `andaime/tests/ROTEIRO.md` com testes correspondentes.
+
+## Pré-leitura obrigatória
+- `andaime/SPEC.md` §3.6.1 e §3.9.
+- `andaime/ARTIFACTS_SPEC.md` §3.9.
+- `andaime/BUILD_PLAN.md` §F5.9.
+- `andaime/VALIDATION.md` §V.5.9.
+- `~/Projetos/codeflow/install.sh` (será estendido).
+- `andaime/tests/ROTEIRO.md` (será ampliado).
+
+## Tarefa
+1. Confirmar que F5.8 foi concluída.
+2. Editar `install.sh` acrescentando bloco que, após criar `.codeflow/`:
+   - Se `<projeto>/.codeflow/workflows/` existe e contém arquivos `.md`, gera wrappers em `<projeto>/.claude/commands/<nome>.md` (criar diretório se ausente).
+   - Idempotente: wrappers existentes preservados; sem duplicação.
+   - **Não** remove órfãos a nível de projeto (projetos compartilhados podem ter wrappers de outros mantenedores).
+   - **Não** adiciona `.claude/commands/` ao `.gitignore` automaticamente (decisão fica com mantenedor — exibir mensagem informativa apenas).
+3. Manter restrições da SPEC §3.9: ainda só toca em `.codeflow/`, `.gitignore` e agora `.claude/commands/`. Nenhum outro arquivo do projeto.
+4. Editar `andaime/tests/ROTEIRO.md`:
+   - Acrescentar `## Teste 1.5 — Verificar slash commands universais` após Teste 1: rodar `bash ~/.codeflow/setup-slash-commands.sh`, listar `ls ~/.claude/commands/`, abrir Claude Code e confirmar que `/bugfix`, `/discover` aparecem.
+   - Acrescentar verificação no Teste 4 (`create-skill`): confirmar que a skill criada **não** gera slash command (apenas workflows ganham).
+   - Acrescentar `## Teste 7 (opcional) — Workflow de projeto com slash command`: usar `/create-workflow` para criar workflow de projeto, rodar `install.sh`, verificar que slash command local aparece apenas dentro do projeto.
+5. Commit: `feat(install): sincroniza slash commands de projeto + atualiza ROTEIRO`.
+
+## Critério de sucesso
+Executar `VALIDATION.md` §V.5.9. Snippet retorna `OK: §V.5.9`. Itens de inspeção marcados.
+
+## Em caso de ambiguidade
+- Decisão sobre `.gitignore` em `.claude/commands/`: não automatizar; mensagem informativa apenas. Mantenedor decide caso a caso.
+- Texto exato dos novos testes do ROTEIRO: propor draft ao mantenedor.
+- Se o `install.sh` ficar grande (>120 linhas): considerar extrair sync em função separada dentro do mesmo arquivo, manter um único script.
+
+## Saída esperada
+- Diff aplicado em `install.sh` e `andaime/tests/ROTEIRO.md`.
+- Teste funcional: instalar em pasta temporária com workflow fake em `.codeflow/workflows/`, verificar wrapper criado em `.claude/commands/`.
+- Confirmação de idempotência.
+- Resultado da validação §V.5.9.
+- Hash do commit.
+```
+
+---
+
+### §P.5.10 — Limpeza, log de execução e tag de versão
 
 ```markdown
 ## Objetivo
 Consolidar a construção: decidir destino do projeto de teste, registrar log de execução (opcional), criar tag `v1.0.0`.
 
 ## Pré-leitura obrigatória
-- `andaime/BUILD_PLAN.md` §F5.7.
-- `andaime/VALIDATION.md` §V.5.7.
+- `andaime/BUILD_PLAN.md` §F5.10.
+- `andaime/VALIDATION.md` §V.5.10.
 - `andaime/VALIDATION.md` §V.T.1 a §V.T.8 (suite transversal — executar antes da tag).
 
 ## Tarefa
-1. Confirmar que F5.6 foi concluída.
-2. **Executar suite transversal completa**: `VALIDATION.md` §V.T.1 a §V.T.7. Se qualquer uma falha, parar e corrigir antes de prosseguir.
+1. Confirmar que F5.9 foi concluída.
+2. **Executar suite transversal completa**: `VALIDATION.md` §V.T.1 a §V.T.7. Se qualquer uma falha, parar e corrigir antes de prosseguir. Incluir verificação adicional: `setup-slash-commands.sh` roda sem erro e wrappers em `~/.claude/commands/` estão sincronizados com `framework/library/workflows/` + `framework/meta/`.
 3. Perguntar ao mantenedor o destino do projeto de teste:
    - Opção A (default): deletar.
    - Opção B: arquivar em `~/Projetos/codeflow/exemplos/projeto-teste/` (exige decisão registrada).
@@ -882,7 +1023,7 @@ Consolidar a construção: decidir destino do projeto de teste, registrar log de
 7. Confirmar com o mantenedor antes de fazer push para remoto (se configurado).
 
 ## Critério de sucesso
-Executar `VALIDATION.md` §V.5.7. Snippet retorna `OK: §V.5.7`. Itens de inspeção marcados (incluindo: pelo menos um commit por etapa com `Commit sugerido` não-vazio — tipicamente ~14 commits). Suite transversal §V.T.1 a §V.T.7 todas com `OK`.
+Executar `VALIDATION.md` §V.5.10. Snippet retorna `OK: §V.5.10`. Itens de inspeção marcados (incluindo: pelo menos um commit por etapa com `Commit sugerido` não-vazio — tipicamente ~17 commits com F5.7-F5.9). Suite transversal §V.T.1 a §V.T.7 todas com `OK`.
 
 ## Em caso de ambiguidade
 - Destino do projeto de teste: perguntar antes de qualquer ação destrutiva.
@@ -894,7 +1035,7 @@ Executar `VALIDATION.md` §V.5.7. Snippet retorna `OK: §V.5.7`. Itens de inspe�
 - Decisão sobre o projeto de teste (deletado ou arquivado) registrada.
 - Conteúdo final do `EXECUTION_LOG.md`.
 - Output de `git tag -l v1.0.0` e `git log --oneline`.
-- Resultado da validação §V.5.7.
+- Resultado da validação §V.5.10.
 - **Nota final**: framework codeflow v1.0.0 pronto para uso.
 ```
 

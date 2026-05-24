@@ -63,7 +63,7 @@ A Parte 3 deste documento detalha o protocolo de retomada.
 
 ## Parte 1 — Visão geral das fases
 
-A construção é organizada em **cinco fases** sequenciais, contendo um total de **20 etapas**. Cada fase termina em um estado verificável e commit limpo no git do framework.
+A construção é organizada em **cinco fases** sequenciais, contendo um total de **23 etapas**. Cada fase termina em um estado verificável e commit limpo no git do framework.
 
 ### Fase 1 — Andaime físico (4 etapas)
 
@@ -89,11 +89,11 @@ Preenche `framework/meta/`: as cinco meta-skills seed (`discover`, `bootstrap`, 
 
 Saída: cinco pastas de meta-skill com `SKILL.md`.
 
-### Fase 5 — Empacotamento e validação fim-a-fim (7 etapas)
+### Fase 5 — Empacotamento e validação fim-a-fim (10 etapas)
 
-Cria `install.sh`, `README.md` da raiz, copia VALIDATION.md e PROMPTS.md (gerados em paralelo a esta fase) para `andaime/`, executa instalação em projeto de teste, exercita os caminhos críticos (`/discover`, `/bootstrap` simulados), e marca o framework como pronto.
+Cria `install.sh`, `README.md` da raiz, copia VALIDATION.md e PROMPTS.md (gerados em paralelo a esta fase) para `andaime/`, executa instalação em projeto de teste, exercita os caminhos críticos (`/discover`, `/bootstrap` simulados), **documenta e implementa o wiring de slash commands** (via wrappers em `~/.claude/commands/` e `<projeto>/.claude/commands/`), e marca o framework como pronto.
 
-Saída: framework instalado em projeto de teste, paths críticos exercitados sem falha.
+Saída: framework instalado em projeto de teste, paths críticos exercitados sem falha, slash commands `/bugfix`, `/discover` etc. funcionais nativamente.
 
 ### Mapa de dependências entre fases
 
@@ -131,7 +131,7 @@ Dependências mais finas dentro de cada fase são declaradas no campo **Pré-req
 3. Inicializar repositório: `git init`.
 4. Criar `.gitignore` na raiz contendo no mínimo: `.DS_Store`, `*.swp`, `*.bak`, `*~`. Não incluir nada do framework em si — todo o conteúdo do framework é versionado.
 5. Criar `LICENSE` na raiz com o **texto MIT padrão** (ano corrente, titular = nome do mantenedor configurado em `git config user.name`). Licença é definitiva; não há pendência a registrar.
-6. Criar `andaime/EXECUTION_LOG.md` com cabeçalho inicial: frontmatter (`versão`, `status`, `atualizado`), título `# Execução do BUILD_PLAN — log incremental`, e uma linha por etapa concluída a ser preenchida ao longo do build. O log é obrigatório e acompanha o build até F5.7.
+6. Criar `andaime/EXECUTION_LOG.md` com cabeçalho inicial: frontmatter (`versão`, `status`, `atualizado`), título `# Execução do BUILD_PLAN — log incremental`, e uma linha por etapa concluída a ser preenchida ao longo do build. O log é obrigatório e acompanha o build até F5.10.
 7. Commit inicial: `git add . && git commit -m "chore(init): inicializa repositório do codeflow"`.
 
 **Validação:** `VALIDATION.md` §V.1.1 (a definir).
@@ -708,11 +708,116 @@ Verificações mínimas:
 
 ---
 
-#### Etapa F5.7 — Limpeza, log de execução e tag de versão
+#### Etapa F5.7 — Documentar wiring de slash commands em SPEC e ARTIFACTS_SPEC
+
+**Objetivo:** fechar o gap entre a decisão arquitetural de `SPEC.md` §3.6 (workflows via slash commands) e a implementação concreta. Amendar `SPEC.md` §3.6 com seção "Implementação", e acrescentar schema do wrapper em `ARTIFACTS_SPEC.md`.
+
+**Pré-requisitos:** F5.6 concluída.
+
+**Ações:**
+1. Editar `SPEC.md` §3.6 acrescentando subseção **"3.6.1 Implementação em Claude Code"** documentando:
+   - Mecanismo: wrappers em `~/.claude/commands/<nome>.md` (universal) e `<projeto>/.claude/commands/<nome>.md` (projeto).
+   - Mapeamento: nome do arquivo do workflow ↔ nome do slash command ↔ nome do wrapper.
+   - Conteúdo do wrapper: 2-4 linhas em pt-BR instruindo a IA a ler o arquivo real e executar o protocolo, carregando `## LEIA TAMBÉM`.
+   - Ferramenta de setup universal: `setup-slash-commands.sh` na raiz do framework (F5.8).
+   - Ferramenta de setup de projeto: estendida em `install.sh` (F5.9).
+   - Adapter para outras ferramentas (Codex, Cursor): mecanismo análogo, fora do escopo da v1.0.0.
+2. Editar `ARTIFACTS_SPEC.md` acrescentando nova subseção **§3.9 Wrappers de slash command** com:
+   - Localização (`~/.claude/commands/<nome>.md` ou `<projeto>/.claude/commands/<nome>.md`).
+   - Schema mínimo (sem frontmatter obrigatório; corpo: 2-4 linhas).
+   - Exemplo preenchido para `/bugfix`.
+   - Regras de validação (uma única referência a path absoluto do workflow/meta-skill correspondente).
+   - Anti-padrão: duplicar conteúdo do workflow no wrapper.
+3. Atualizar glossário (`framework/core/glossary.md`) acrescentando termo **Wrapper** se ainda não houver — definição curta (2-4 linhas) referenciando SPEC §3.6.1.
+
+**Validação:** `VALIDATION.md` §V.5.7.
+
+Verificações mínimas:
+- `SPEC.md` §3.6.1 presente, com as cinco subsubseções listadas (mecanismo, mapeamento, conteúdo, setup universal, setup de projeto).
+- `ARTIFACTS_SPEC.md` §3.9 presente com schema e exemplo.
+- `framework/core/glossary.md` contém entrada "Wrapper" (ou justificativa documentada para omissão).
+
+**Gate de progressão:** wiring documentado tanto como decisão (SPEC §3.6.1) quanto como artefato (ARTIFACTS_SPEC §3.9).
+
+**Commit sugerido:** `docs(spec): documenta wiring de slash commands (§3.6.1 + §3.9)`.
+
+---
+
+#### Etapa F5.8 — Criar `setup-slash-commands.sh` e auto-sync em meta-skills
+
+**Objetivo:** entregar o script que materializa o wiring universal documentado em F5.7, e embutir auto-sync nas meta-skills que criam workflows.
+
+**Pré-requisitos:** F5.7 concluída.
+
+**Ações:**
+1. Criar `~/Projetos/codeflow/setup-slash-commands.sh` (bash, executável) com responsabilidades:
+   - Verificar pré-requisitos: `~/.codeflow/` existe; `~/.claude/commands/` existe (criar se ausente).
+   - Listar workflows universais em `~/.codeflow/framework/library/workflows/*.md`.
+   - Listar meta-skills em `~/.codeflow/framework/meta/*/SKILL.md` (apenas as que devem ter slash command — todas as cinco seed, conforme SPEC §4.4).
+   - Para cada workflow/meta-skill, gerar (ou recriar idempotentemente) `~/.claude/commands/<nome>.md` no formato definido por `ARTIFACTS_SPEC.md` §3.9.
+   - Detectar wrappers órfãos em `~/.claude/commands/` que apontam para arquivos do codeflow inexistentes; remover com confirmação (ou via flag `--prune`).
+   - Imprimir resumo em pt-BR com símbolos `✓`/`⚠`/`✗` (criados, preservados, removidos, erros).
+2. Restrições análogas a `install.sh` (`SPEC.md` §3.9):
+   - Não modificar nada além de `~/.claude/commands/`.
+   - Não tocar em arquivos do framework (`~/.codeflow/framework/`) — só lê.
+   - Stack permitida: bash + coreutils.
+3. Códigos de saída e símbolos conforme `ARTIFACTS_SPEC.md` §0.6 e §0.7.
+4. Atualizar `framework/meta/create-workflow/SKILL.md` acrescentando passo final no protocolo:
+   - "Se o workflow gerado é universal, executar `bash ~/.codeflow/setup-slash-commands.sh` ao final para registrar o slash command. Se é de projeto, o `install.sh` já cuida na próxima vez que rodar (ou pode-se rodar manualmente em `<projeto>/`)."
+5. Atualizar `framework/meta/create-skill/SKILL.md` e `framework/meta/create-agent/SKILL.md` apenas com nota informativa: skills regulares não ganham slash command (carregadas via `LEIA TAMBÉM`); agents também não (invocados por workflows).
+6. `chmod +x setup-slash-commands.sh`.
+
+**Validação:** `VALIDATION.md` §V.5.8.
+
+Verificações mínimas:
+- `setup-slash-commands.sh` executável.
+- Roda sem erro com framework instalado.
+- Wrapper criado para cada workflow universal e cada meta-skill seed.
+- Segunda execução é idempotente.
+- `create-workflow/SKILL.md` referencia `setup-slash-commands.sh` no protocolo.
+
+**Gate de progressão:** script executável, idempotente, com wrappers gerados para todos os workflows e meta-skills seed; meta-skill `create-workflow` atualizada.
+
+**Commit sugerido:** `feat(install): adiciona setup-slash-commands.sh + auto-sync em create-workflow`.
+
+---
+
+#### Etapa F5.9 — Estender `install.sh` para slash commands de projeto + atualizar ROTEIRO
+
+**Objetivo:** garantir que workflows e skills criados a nível de projeto (`<projeto>/.codeflow/workflows/`) ganhem slash commands locais automaticamente via `install.sh` do projeto. Atualizar `andaime/tests/ROTEIRO.md` para incluir verificação de slash commands.
+
+**Pré-requisitos:** F5.8 concluída.
+
+**Ações:**
+1. Editar `~/Projetos/codeflow/install.sh` acrescentando bloco que, após criar `.codeflow/`:
+   - Se `<projeto>/.codeflow/workflows/` existe e não está vazia, gera wrappers correspondentes em `<projeto>/.claude/commands/<nome>.md` (criar diretório se ausente).
+   - Análogo opcional para `<projeto>/.codeflow/skills/`: apenas se houver skill com flag explícita de slash command (skills regulares **não** ganham; mantém disciplina do SPEC §4.3).
+   - Idempotente: wrappers existentes não são duplicados; órfãos podem ser ignorados (não remover automaticamente a nível de projeto — projetos compartilhados podem ter wrappers de outros mantenedores).
+   - Adicionar `.claude/commands/` ao `.gitignore` do projeto **apenas se o projeto não versionar `.codeflow/`** (caso a caso — opção segura: não adicionar; deixar mantenedor decidir).
+2. Atualizar `andaime/tests/ROTEIRO.md`:
+   - Acrescentar **Teste 1.5 — Verificar slash commands universais**: após Teste 1 (install.sh), o usuário roda `bash ~/.codeflow/setup-slash-commands.sh` e verifica que `/bugfix`, `/discover` aparecem no Claude Code.
+   - Acrescentar verificação no Teste 4 (`create-skill`) de que skill de projeto **não** gera slash command (validar comportamento).
+   - Acrescentar **Teste 7 (opcional) — Workflow de projeto com slash command**: criar workflow de projeto via `/create-workflow`, rodar `install.sh` novamente, verificar que slash command local aparece.
+
+**Validação:** `VALIDATION.md` §V.5.9.
+
+Verificações mínimas:
+- `install.sh` contém bloco de sync de slash commands de projeto.
+- `install.sh` continua idempotente (rodar duas vezes não duplica nada).
+- `install.sh` continua respeitando anti-decisão SPEC §3.9 (não tocar em arquivos do projeto fora de `.codeflow/`, `.gitignore` e agora `.claude/commands/`).
+- `andaime/tests/ROTEIRO.md` contém os novos testes 1.5 e 7.
+
+**Gate de progressão:** `install.sh` estendido, idempotente, com restrições preservadas; ROTEIRO ampliado.
+
+**Commit sugerido:** `feat(install): sincroniza slash commands de projeto + atualiza ROTEIRO`.
+
+---
+
+#### Etapa F5.10 — Limpeza, log de execução e tag de versão
 
 **Objetivo:** consolidar a construção: deletar projeto de teste, finalizar log de execução, criar tag git inicial.
 
-**Pré-requisitos:** F5.6 concluída.
+**Pré-requisitos:** F5.9 concluída.
 
 **Ações:**
 1. **Decidir** sobre o projeto de teste:
@@ -722,12 +827,12 @@ Verificações mínimas:
 3. Criar tag git: `git tag -a v1.0.0 -m "Framework codeflow v1.0.0 — escopo inicial"`.
 4. Push do repositório para remoto (se configurado).
 
-**Validação:** `VALIDATION.md` §V.5.7.
+**Validação:** `VALIDATION.md` §V.5.10.
 
 Verificações mínimas:
 - Tag `v1.0.0` presente: `git tag -l v1.0.0` retorna a tag.
 - Working tree limpo.
-- **Pelo menos um commit por etapa que declara `Commit sugerido` não-vazio** (≈14 commits) presente antes da tag `v1.0.0`. A contagem exata depende de quantas etapas justificam commit próprio na execução real; o critério é qualitativo (toda etapa com commit sugerido tem ao menos um commit correspondente), não numérico.
+- **Pelo menos um commit por etapa que declara `Commit sugerido` não-vazio** (≈17 commits, incluindo as 3 etapas novas F5.7-F5.9) presente antes da tag `v1.0.0`. A contagem exata depende de quantas etapas justificam commit próprio na execução real; o critério é qualitativo (toda etapa com commit sugerido tem ao menos um commit correspondente), não numérico.
 - EXECUTION_LOG.md presente, versionado, e finalizado.
 
 **Gate de progressão:** repositório do framework em estado entregável; tag de versão criada; nenhuma pendência.
@@ -801,7 +906,10 @@ A presença e o estado dos arquivos abaixo é o critério canônico para conside
 | F5.4  | Projeto de teste presente (caminho declarado no log de execução)              |
 | F5.5  | `.codeflow/` criado no projeto de teste, sem outros arquivos modificados      |
 | F5.6  | Quatro artefatos gerados no `.codeflow/` do projeto de teste, validados      |
-| F5.7  | Tag `v1.0.0` presente no repositório                                          |
+| F5.7  | `SPEC.md` §3.6.1 e `ARTIFACTS_SPEC.md` §3.9 presentes; glossary com "Wrapper" |
+| F5.8  | `~/Projetos/codeflow/setup-slash-commands.sh` executável e idempotente; `create-workflow/SKILL.md` referencia o script |
+| F5.9  | `install.sh` sincroniza `.codeflow/workflows/` em `.claude/commands/` do projeto; `andaime/tests/ROTEIRO.md` com Teste 1.5 e Teste 7 |
+| F5.10 | Tag `v1.0.0` presente no repositório                                          |
 
 ### 3.4 Decisão de próxima etapa
 
