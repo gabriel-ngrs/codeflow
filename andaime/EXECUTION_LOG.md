@@ -105,3 +105,38 @@ Registro incremental das etapas concluídas durante a construção do framework 
 - **Anti-decisão respeitada:** nenhum de `constitution.md`, `manifest.md`, `discovered.md` foi criado pelo install.sh (esses dependem de `/discover` ou `/bootstrap`), conforme SPEC §3.9.
 - **Validação:** `VALIDATION.md` §V.5.5 → `OK: §V.5.5`. Item de inspeção marcado (saída lista verificações com `✓` e termina com mensagem de próximos passos).
 - **Notas / decisões:** primeira validação real end-to-end do `install.sh` em um projeto realista — todas as garantias da SPEC §3.9 verificadas em runtime, não apenas por leitura. Próxima etapa: F5.6 (exercitar `discover` no projeto de teste, simulando a meta-skill manualmente).
+
+### F5.6 — Exercitar `discover` no projeto de teste [—]
+
+- **Status:** **substituída por roteiro manual** em `andaime/tests/ROTEIRO.md` (Teste 2). Decisão do mantenedor: validar em projeto real conduzido por humano em vez de simular execução de IA sobre `/tmp/codeflow-test/` (que é minimalista demais para exercitar `discover` de maneira realista).
+- **Artefatos:** `andaime/tests/ROTEIRO.md` (commit `a94efdb`), entrega completa do roteiro com 6 testes (1, 1.5, 2, 3, 4, 5, 6, 7 após F5.9) cobrindo install.sh, discover end-to-end, workflows, meta-skills.
+- **Notas / decisões:** os artefatos `constitution.md`/`manifest.md`/`INDEX.md`/`discovered.md` previstos pela validação §V.5.6 só serão produzidos quando o mantenedor executar o ROTEIRO em projeto real. A etapa fica em estado `[—]` (não iniciada como descrito no BUILD_PLAN original) mas com substituição registrada e equivalente em escopo.
+
+### F5.7 — Documentar wiring de slash commands em SPEC e ARTIFACTS_SPEC [✓]
+
+- **Concluída em:** 2026-05-24
+- **Artefatos:**
+  - `andaime/SPEC.md` §3.6.1 (novo): "Implementação em Claude Code" cobrindo mecanismo (`~/.claude/commands/` universal + `<projeto>/.claude/commands/`), mapeamento, conteúdo do wrapper, setup universal (`setup-slash-commands.sh`, F5.8), setup de projeto (`install.sh` estendido, F5.9), anti-decisão (não inventar registry; não embutir lógica nos wrappers; não gerar wrapper para skills regulares ou agents).
+  - `andaime/ARTIFACTS_SPEC.md` §1.11 (novo): "Wrappers de slash command" com localização, propósito, schema obrigatório (corpo 2-4 linhas, exatamente uma referência a path absoluto, sem lógica), três exemplos preenchidos (workflow universal `/bugfix`, meta-skill `/discover`, workflow de projeto), 7 regras de validação, 5 anti-padrões.
+  - `framework/core/glossary.md`: entrada "Wrapper" em ordem alfabética após "Workflow", referenciando SPEC §3.6.1 e ARTIFACTS_SPEC §1.11.
+- **Validação:** `VALIDATION.md` §V.5.7 → `OK: §V.5.7`. Itens de inspeção marcados.
+- **Notas / decisões:** schema do wrapper foi alocado em **§1.11** (Parte 1 — artefatos universais) e não em §3.x, porque wrapper tem schema próprio (tipo de artefato), não é regra transversal. Renumeração teria sido pior — `ARTIFACTS_SPEC.md` já tem `§3.9 Coerência entre arquivos`. Andaime (BUILD_PLAN, VALIDATION, PROMPTS) ajustado em consequência (refs corrigidas de `§3.9` para `§1.11`). Commit `a86f454`.
+
+### F5.8 — Criar `setup-slash-commands.sh` e auto-sync em meta-skills [✓]
+
+- **Concluída em:** 2026-05-24
+- **Artefatos:**
+  - `~/Projetos/codeflow/setup-slash-commands.sh` (executável, ~150 linhas bash + coreutils, sem dependências externas). Varre `framework/library/workflows/` e `framework/meta/`, gera wrappers em `~/.claude/commands/<nome>.md`. Idempotente. Detecta órfãos (avisa por padrão; remove com flag `--prune`). Exit codes 0/1/2/3 conforme `ARTIFACTS_SPEC.md` §0.7. Saída em pt-BR com símbolos `✓`/`⚠`/`✗`.
+  - `framework/meta/create-workflow/SKILL.md`: novo Passo 7 "Registrar slash command" no protocolo — roda `setup-slash-commands.sh` automaticamente para workflows universais; instrui sobre `install.sh` para workflows de projeto.
+  - `framework/meta/create-skill/SKILL.md` e `framework/meta/create-agent/SKILL.md`: nota informativa explicando que skills regulares e agents não ganham slash command (carregados via LEIA TAMBÉM ou invocados de workflows).
+- **Validação:** `VALIDATION.md` §V.5.8 → `OK: §V.5.8`. Teste funcional confirmou: 9 wrappers criados na primeira rodada (4 workflows seed + 5 meta-skills seed); idempotência na segunda (9 preservados, 0 criados, 0 duplicados); cada wrapper contém referência `~/.codeflow/framework/`.
+- **Notas / decisões:** detectado e corrigido bug de substituição bash — `${var/#${HOME}/~}` não substituía o til como literal (alguns bash interpretam como tilde expansion). Fix: usar prefix removal `${source_path#${HOME}/}` + concatenação manual `~/${relative}`. Sem essa correção, wrappers continham caminhos absolutos `/home/gabriel/...` violando regra 2 de `ARTIFACTS_SPEC.md` §1.11.6. Commit `28bfecc`.
+
+### F5.9 — Estender `install.sh` para slash commands de projeto + atualizar ROTEIRO [✓]
+
+- **Concluída em:** 2026-05-24
+- **Artefatos:**
+  - `~/Projetos/codeflow/install.sh`: novo bloco "Slash commands de projeto" após criação de `.codeflow/`. Se `.codeflow/workflows/` do projeto contém arquivos `.md`, gera wrappers em `.claude/commands/<nome>.md` local apontando para o caminho absoluto do projeto. Idempotente (wrappers iguais preservados, diferentes atualizados, novos criados). **Não** remove órfãos a nível de projeto. **Não** força `.gitignore` para `.claude/commands/` — apenas exibe aviso.
+  - `andaime/tests/ROTEIRO.md`: três atualizações — (1) novo **Teste 1.5** "Slash commands universais"; (2) acréscimo no **Teste 4** verificando que skill regular **não** gera slash command; (3) novo **Teste 7 (opcional)** "Workflow de projeto com slash command".
+- **Validação:** `VALIDATION.md` §V.5.9 → `OK: §V.5.9`. Teste funcional em projeto temporário: install.sh em pasta limpa não criou `.claude/`; após adicionar `.codeflow/workflows/foo.md`, segunda execução criou `.claude/commands/foo.md` com referência ao path absoluto correto; `git status` ficou restrito a `.codeflow/`, `.gitignore`, `.claude/` (anti-decisão SPEC §3.9 preservada).
+- **Notas / decisões:** wrapper de projeto usa **path absoluto do projeto** (não `~/...`), porque `<projeto>` varia por máquina e por dev. Schema em §1.11 já cobre essa variante. Commit `b3fd1bf`. Próxima etapa: F5.10 (limpeza, log final e tag v1.0.0) — ainda não executada; pré-requisito é o mantenedor ter executado o ROTEIRO em projeto real e a suite transversal §V.T.1-§V.T.7 ter passado.
