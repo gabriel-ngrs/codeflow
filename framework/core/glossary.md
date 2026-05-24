@@ -92,6 +92,13 @@ atualizado: 2026-05-23
 - **O que NÃO é:** não é prompt, não é agente, não é runtime. É protocolo estruturado lido pela IA.
 - **Exemplo concreto:** o usuário invoca `/bugfix`, e a IA carrega `bugfix.md` e segue seus passos.
 
+### Wrapper
+
+- **Definição:** arquivo curto (2-4 linhas) em `~/.claude/commands/<nome>.md` (universal) ou `<projeto>/.claude/commands/<nome>.md` (projeto) que registra um workflow ou meta-skill como slash command nativo da ferramenta de IA. Conteúdo: instrução para ler o arquivo real e executar o protocolo.
+- **Onde mora:** fora do framework e do `.codeflow/` do projeto — em `~/.claude/commands/` (gerado por `setup-slash-commands.sh`) ou `<projeto>/.claude/commands/` (gerado por `install.sh`).
+- **O que NÃO é:** não é workflow nem skill. Não duplica conteúdo do arquivo referenciado. Não tem lógica própria.
+- **Referência canônica:** `SPEC.md` §3.6.1 (decisão) e `ARTIFACTS_SPEC.md` §1.11 (schema).
+
 ## Distinções importantes
 
 ### Workflow vs Skill

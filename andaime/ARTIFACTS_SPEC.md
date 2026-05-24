@@ -1644,6 +1644,85 @@ Workflow chamador (tipicamente `feature-small` ou `bugfix`) invoca o agent ao te
 - **Agent sem `## Propósito` justificando por que agent.** Toda criação de agent justifica isolamento. Sem justificativa, a criação viola anti-evolução (`SPEC.md` §6.3).
 - **Agent seed entregue no escopo inicial.** Conforme `SPEC.md` §4.5.4, o framework inicial entrega apenas a meta-skill `create-agent`. Agents reais são criados sob demanda.
 
+### 1.11 Wrappers de slash command
+
+Wrappers materializam a decisão de `SPEC.md` §3.6.1: cada workflow universal e cada meta-skill seed ganha um arquivo curto que registra o nome como slash command nativo na ferramenta de IA (Claude Code). Wrappers não fazem trabalho — apenas instruem a IA a ler o arquivo real e executar.
+
+#### 1.11.1 Localização
+
+Dois caminhos canônicos, conforme escopo:
+
+- **Universal:** `~/.claude/commands/<nome>.md` — disponível em qualquer projeto.
+- **Projeto:** `<projeto>/.claude/commands/<nome>.md` — disponível apenas dentro do projeto; sobrescreve homônimo universal.
+
+Wrappers **não** vivem em `~/.codeflow/framework/` nem em `<projeto>/.codeflow/` — são gerados em `~/.claude/commands/` (pelo `setup-slash-commands.sh`) ou em `<projeto>/.claude/commands/` (pelo `install.sh`).
+
+#### 1.11.2 Propósito
+
+Fechar o gap entre a decisão arquitetural de `SPEC.md` §3.6 (workflows via slash command) e a implementação concreta. Sem o wrapper, o usuário precisaria digitar manualmente "leia tal arquivo e execute" toda vez. O wrapper transforma isso em `/bugfix`.
+
+#### 1.11.3 Schema obrigatório
+
+**Frontmatter:** opcional. Pode ser omitido completamente. Se presente, segue os campos universais de §0.2 (versão, status, atualizado).
+
+**Corpo:**
+
+- 2 a 4 linhas em pt-BR.
+- Contém **exatamente uma** referência a path absoluto começando com `~/.codeflow/framework/` (universal) ou `<projeto>/.codeflow/` (projeto).
+- Instrui a IA a ler o arquivo referenciado e executar o protocolo, carregando `## LEIA TAMBÉM` antes.
+- Sem lógica adicional, sem duplicação de conteúdo, sem reformulação do workflow.
+
+**Restrições adicionais:**
+
+- Tamanho-alvo: 2 a 4 linhas. Acima de 6 sinaliza que conteúdo do workflow vazou para o wrapper.
+- Nome do arquivo (`<nome>.md`) **deve** bater com o nome do workflow/meta-skill referenciado.
+
+#### 1.11.4 Schema opcional
+
+- Nada. Wrappers são deliberadamente mínimos. Qualquer enriquecimento (parâmetros, variantes) cabe no workflow, não no wrapper.
+
+#### 1.11.5 Exemplo preenchido
+
+Wrapper universal para o workflow `bugfix`:
+
+```markdown
+Leia ~/.codeflow/framework/library/workflows/bugfix.md e execute o protocolo
+descrito ali, aplicando ao projeto atual. Carregue todos os arquivos listados
+em ## LEIA TAMBÉM antes de começar.
+```
+
+Wrapper universal para a meta-skill `discover`:
+
+```markdown
+Leia ~/.codeflow/framework/meta/discover/SKILL.md e execute o protocolo da
+meta-skill no projeto atual. Carregue arquivos referenciados antes de começar.
+```
+
+Wrapper de projeto para um workflow específico do projeto:
+
+```markdown
+Leia ~/projetos/meu-projeto/.codeflow/workflows/deploy-staging.md e execute
+o protocolo descrito ali. Carregue ## LEIA TAMBÉM antes de começar.
+```
+
+#### 1.11.6 Regras de validação
+
+1. Corpo tem entre 2 e 6 linhas (alvo: 2-4).
+2. Contém exatamente uma linha começando com `~/.codeflow/framework/` (universal) ou caminho absoluto para `<projeto>/.codeflow/` (projeto).
+3. Path referenciado existe no disco (verificação dinâmica feita pelo `setup-slash-commands.sh` ao gerar/atualizar).
+4. Nome do arquivo `<nome>.md` bate com nome do arquivo referenciado (last segment do path, sem `.md` ou sem `/SKILL.md`).
+5. Conteúdo é em pt-BR (conforme §0.4).
+6. Nenhuma seção markdown (`##`, `###`) — wrapper é prosa curta, não documento estruturado.
+7. Não contém código, scripts, nem instruções operacionais além de "leia X e execute".
+
+#### 1.11.7 Anti-padrões
+
+- **Duplicar conteúdo do workflow no wrapper.** Wrapper apenas aponta; conteúdo vive no arquivo referenciado. Atualização do workflow propaga automaticamente.
+- **Lógica condicional no wrapper.** "Se for projeto Python, leia X; senão Y." Lógica vive no workflow. Wrapper é dispatch puro.
+- **Wrapper para skill regular ou agent.** Skills são carregadas por workflows via `## LEIA TAMBÉM`; agents são invocados de dentro de workflows. Criar slash command próprio quebra o modelo de composição (`SPEC.md` §4.3.4, §4.5.2).
+- **Frontmatter com campos exóticos.** Apenas os universais de §0.2 quando presente. Wrapper não é artefato rico.
+- **Modificar wrappers à mão.** São gerados por `setup-slash-commands.sh` e `install.sh`. Edições manuais são sobrescritas na próxima sincronização.
+
 ---
 
 ## Parte 2 — Artefatos do projeto (`.codeflow/`)

@@ -722,7 +722,7 @@ Verificações mínimas:
    - Ferramenta de setup universal: `setup-slash-commands.sh` na raiz do framework (F5.8).
    - Ferramenta de setup de projeto: estendida em `install.sh` (F5.9).
    - Adapter para outras ferramentas (Codex, Cursor): mecanismo análogo, fora do escopo da v1.0.0.
-2. Editar `ARTIFACTS_SPEC.md` acrescentando nova subseção **§3.9 Wrappers de slash command** com:
+2. Editar `ARTIFACTS_SPEC.md` acrescentando nova subseção **§1.11 Wrappers de slash command** com:
    - Localização (`~/.claude/commands/<nome>.md` ou `<projeto>/.claude/commands/<nome>.md`).
    - Schema mínimo (sem frontmatter obrigatório; corpo: 2-4 linhas).
    - Exemplo preenchido para `/bugfix`.
@@ -906,7 +906,7 @@ A presença e o estado dos arquivos abaixo é o critério canônico para conside
 | F5.4  | Projeto de teste presente (caminho declarado no log de execução)              |
 | F5.5  | `.codeflow/` criado no projeto de teste, sem outros arquivos modificados      |
 | F5.6  | Quatro artefatos gerados no `.codeflow/` do projeto de teste, validados      |
-| F5.7  | `SPEC.md` §3.6.1 e `ARTIFACTS_SPEC.md` §3.9 presentes; glossary com "Wrapper" |
+| F5.7  | `SPEC.md` §3.6.1 e `ARTIFACTS_SPEC.md` §1.11 presentes; glossary com "Wrapper" |
 | F5.8  | `~/Projetos/codeflow/setup-slash-commands.sh` executável e idempotente; `create-workflow/SKILL.md` referencia o script |
 | F5.9  | `install.sh` sincroniza `.codeflow/workflows/` em `.claude/commands/` do projeto; `andaime/tests/ROTEIRO.md` com Teste 1.5 e Teste 7 |
 | F5.10 | Tag `v1.0.0` presente no repositório                                          |

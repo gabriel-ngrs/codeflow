@@ -406,6 +406,37 @@ Formato de cada decisão:
 - Não criar meta-skill que decida workflow baseado na mensagem do usuário.
 - Não exigir que toda mensagem do usuário seja precedida por slash command.
 
+#### 3.6.1 Implementação em Claude Code
+
+A decisão acima delegou à ferramenta de IA o disparo de workflows. Esta subseção documenta como o disparo é materializado **em Claude Code**. Outras ferramentas (Codex, Cursor) suportam mecanismo análogo; adapters específicos ficam fora do escopo da v1.0.0.
+
+**Mecanismo.** Claude Code descobre slash commands custom em dois caminhos nativos:
+
+- `~/.claude/commands/<nome>.md` — disponível em qualquer projeto (escopo de usuário).
+- `<projeto>/.claude/commands/<nome>.md` — disponível apenas dentro do projeto (escopo local). Sobrescreve homônimo universal.
+
+O codeflow não tenta substituir esse mecanismo. Em vez disso, **gera wrappers** nesses caminhos que apontam para os arquivos reais em `~/.codeflow/framework/` (universal) ou `<projeto>/.codeflow/` (projeto).
+
+**Mapeamento.** Para cada workflow `framework/library/workflows/<nome>.md`, existe wrapper `~/.claude/commands/<nome>.md`. Para cada meta-skill seed `framework/meta/<nome>/SKILL.md` declarada com slash command (todas as cinco do escopo inicial: `discover`, `bootstrap`, `create-workflow`, `create-skill`, `create-agent`), existe wrapper `~/.claude/commands/<nome>.md`. Skills regulares (`framework/library/skills/*/SKILL.md`) **não** ganham wrapper — são carregadas via `## LEIA TAMBÉM` de workflows, não disparadas direto. Agents também não — são invocados de dentro de workflows.
+
+A nível de projeto: cada workflow em `<projeto>/.codeflow/workflows/<nome>.md` ganha wrapper correspondente em `<projeto>/.claude/commands/<nome>.md` quando `install.sh` roda no projeto.
+
+**Conteúdo do wrapper.** Formato literal definido em `ARTIFACTS_SPEC.md` §1.11. Resumo: 2-4 linhas em pt-BR instruindo a IA a ler o arquivo real e executar o protocolo, carregando `## LEIA TAMBÉM` antes. Sem lógica adicional, sem duplicação de conteúdo.
+
+**Setup universal: `setup-slash-commands.sh`.** Script na raiz do framework. Varre `framework/library/workflows/` e `framework/meta/`, gera/atualiza wrappers em `~/.claude/commands/`. Idempotente. Detecta órfãos (wrapper que aponta para arquivo inexistente) — apenas avisa por padrão; remove com flag `--prune`. Roda **uma vez por máquina** ao instalar o framework, e novamente sempre que workflows ou meta-skills universais são adicionados ou removidos. A meta-skill `create-workflow` invoca o script automaticamente ao gerar workflow universal.
+
+**Setup de projeto: extensão de `install.sh`.** Após criar `.codeflow/` no projeto, se `<projeto>/.codeflow/workflows/` existe e contém arquivos, `install.sh` gera wrappers em `<projeto>/.claude/commands/`. Roda toda vez que `install.sh` é invocado (idempotente).
+
+**Implicações operacionais:**
+- Editar conteúdo de workflow ou meta-skill **não** exige rodar o setup — wrappers apontam para path, não copiam conteúdo.
+- Adicionar ou remover workflow/meta-skill universal exige rodar `setup-slash-commands.sh` (ou usar `create-workflow` que dispara automaticamente).
+- Trocar de máquina exige rodar `setup-slash-commands.sh` uma vez no setup inicial.
+
+**Anti-decisão (complementa §3.6):**
+- Não inventar registry, banco de dados, ou runtime para slash commands. O mecanismo é uma pasta com arquivos.
+- Não embutir lógica nos wrappers além de "leia X e execute". Lógica vive no workflow.
+- Não gerar wrappers para skills regulares ou agents — viola o modelo de composição (`SPEC.md` §4.3.4, §4.5).
+
 ### 3.7 Sessão fresca por workflow
 
 **Decisão:** Cada invocação de workflow significativo deve acontecer em uma **sessão nova** da ferramenta de IA (chat novo, contexto limpo). A constitution é carregada uma vez no início dessa sessão.

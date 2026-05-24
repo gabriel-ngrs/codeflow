@@ -863,7 +863,7 @@ Executar `VALIDATION.md` §V.5.6. Snippet retorna `OK: §V.5.6`. Quatro itens de
 
 ```markdown
 ## Objetivo
-Fechar o gap entre a decisão arquitetural de `SPEC.md` §3.6 (workflows via slash commands) e a implementação concreta. Amendar `SPEC.md` §3.6 com subseção §3.6.1 "Implementação em Claude Code"; acrescentar §3.9 "Wrappers de slash command" em `ARTIFACTS_SPEC.md`; acrescentar termo "Wrapper" no glossary.
+Fechar o gap entre a decisão arquitetural de `SPEC.md` §3.6 (workflows via slash commands) e a implementação concreta. Amendar `SPEC.md` §3.6 com subseção §3.6.1 "Implementação em Claude Code"; acrescentar §1.11 "Wrappers de slash command" em `ARTIFACTS_SPEC.md`; acrescentar termo "Wrapper" no glossary.
 
 ## Pré-leitura obrigatória
 - `andaime/SPEC.md` §3.6 (decisão original).
@@ -881,7 +881,7 @@ Fechar o gap entre a decisão arquitetural de `SPEC.md` §3.6 (workflows via sla
    - **Setup universal:** `setup-slash-commands.sh` na raiz do framework (criado em F5.8).
    - **Setup de projeto:** estendido em `install.sh` (F5.9).
    - **Adapter para outras ferramentas (Codex, Cursor):** análogo, fora do escopo da v1.0.0; reconsiderar quando houver demanda real.
-3. Editar `andaime/ARTIFACTS_SPEC.md` acrescentando subseção `### 3.9 Wrappers de slash command` com:
+3. Editar `andaime/ARTIFACTS_SPEC.md` acrescentando subseção `### 1.11 Wrappers de slash command` (após §1.10 Agents, ainda dentro da Parte 1) com:
    - Localização (`~/.claude/commands/<nome>.md` ou `<projeto>/.claude/commands/<nome>.md`).
    - Schema mínimo: sem frontmatter obrigatório; corpo de 2-4 linhas referenciando o path absoluto do workflow/meta-skill.
    - Exemplo preenchido para `/bugfix`.
@@ -895,7 +895,7 @@ Executar `VALIDATION.md` §V.5.7. Snippet retorna `OK: §V.5.7`. Itens de inspe�
 
 ## Em caso de ambiguidade
 - Texto exato das subseções: propor draft ao mantenedor, aguardar aprovação.
-- Posição da §3.9 dentro de ARTIFACTS_SPEC §3: ler §3 inteiro e inserir após a última subseção existente (provavelmente §3.8 stack de scripts).
+- Posição da §1.11 dentro de ARTIFACTS_SPEC Parte 1: inserir logo após §1.10 Agents, antes do separador `---` que abre a Parte 2.
 - Se glossary já tiver termo similar (ex: "Slash command"): atualizar referência cruzada em vez de duplicar.
 
 ## Saída esperada
@@ -914,7 +914,7 @@ Entregar o script que materializa o wiring universal (`setup-slash-commands.sh` 
 
 ## Pré-leitura obrigatória
 - `andaime/SPEC.md` §3.6.1 (recém-criada em F5.7) e §3.9 (anti-decisão de install.sh).
-- `andaime/ARTIFACTS_SPEC.md` §3.9 (schema do wrapper) e §0.6, §0.7 (símbolos e exit codes).
+- `andaime/ARTIFACTS_SPEC.md` §1.11 (schema do wrapper) e §0.6, §0.7 (símbolos e exit codes).
 - `andaime/BUILD_PLAN.md` §F5.8.
 - `andaime/VALIDATION.md` §V.5.8.
 - `framework/meta/create-workflow/SKILL.md` (vai ser editado).
@@ -925,7 +925,7 @@ Entregar o script que materializa o wiring universal (`setup-slash-commands.sh` 
    - Verificar pré-requisitos: `~/.codeflow/` existe; criar `~/.claude/commands/` se ausente.
    - Listar workflows em `~/.codeflow/framework/library/workflows/*.md`.
    - Listar meta-skills em `~/.codeflow/framework/meta/*/SKILL.md`.
-   - Para cada um, gerar (ou recriar idempotentemente) `~/.claude/commands/<nome>.md` no formato de `ARTIFACTS_SPEC.md` §3.9.
+   - Para cada um, gerar (ou recriar idempotentemente) `~/.claude/commands/<nome>.md` no formato de `ARTIFACTS_SPEC.md` §1.11.
    - Detectar wrappers órfãos (apontam para arquivos inexistentes); remover ao receber flag `--prune`, apenas avisar por padrão.
    - Saída em pt-BR com símbolos `✓`/`⚠`/`✗` (criados, preservados, órfãos, erros).
    - Exit codes: 0 sucesso; 1 falha de regra; 2 erro de execução.
@@ -940,7 +940,7 @@ Entregar o script que materializa o wiring universal (`setup-slash-commands.sh` 
 Executar `VALIDATION.md` §V.5.8. Snippet retorna `OK: §V.5.8`. Itens de inspeção marcados.
 
 ## Em caso de ambiguidade
-- Formato exato do wrapper: seguir literalmente `ARTIFACTS_SPEC.md` §3.9.
+- Formato exato do wrapper: seguir literalmente `ARTIFACTS_SPEC.md` §1.11.
 - Comportamento default em órfãos: avisar, não remover. Remoção exige flag `--prune` explícita.
 - Conteúdo dos avisos nas meta-skills `create-skill` e `create-agent`: propor texto ao mantenedor.
 
@@ -962,7 +962,7 @@ Garantir que workflows criados a nível de projeto (`<projeto>/.codeflow/workflo
 
 ## Pré-leitura obrigatória
 - `andaime/SPEC.md` §3.6.1 e §3.9.
-- `andaime/ARTIFACTS_SPEC.md` §3.9.
+- `andaime/ARTIFACTS_SPEC.md` §1.11.
 - `andaime/BUILD_PLAN.md` §F5.9.
 - `andaime/VALIDATION.md` §V.5.9.
 - `~/Projetos/codeflow/install.sh` (será estendido).

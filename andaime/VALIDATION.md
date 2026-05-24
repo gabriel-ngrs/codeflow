@@ -1512,7 +1512,7 @@ echo "OK: §V.5.6"
 
 **Arquivo(s) validado(s):**
 - `andaime/SPEC.md` (subseção §3.6.1 acrescentada).
-- `andaime/ARTIFACTS_SPEC.md` (subseção §3.9 acrescentada).
+- `andaime/ARTIFACTS_SPEC.md` (subseção §1.11 acrescentada).
 - `framework/core/glossary.md` (entrada "Wrapper" acrescentada).
 
 **Regras aplicáveis:**
@@ -1537,14 +1537,14 @@ awk '/^#### 3\.6\.1/{flag=1; next} /^#### /{flag=0} flag' andaime/SPEC.md \
   | grep -qE '<projeto>/\.claude/commands|\.claude/commands.*projeto' \
   || { echo "FALHA: SPEC.md §3.6.1 não documenta wrapper de projeto"; exit 1; }
 
-# 4. ARTIFACTS_SPEC.md §3.9 presente
-grep -qE '^### 3\.9 Wrappers de slash command' andaime/ARTIFACTS_SPEC.md \
-  || { echo "FALHA: ARTIFACTS_SPEC.md §3.9 ausente"; exit 1; }
+# 4. ARTIFACTS_SPEC.md §1.11 presente
+grep -qE '^### 1\.11 Wrappers de slash command' andaime/ARTIFACTS_SPEC.md \
+  || { echo "FALHA: ARTIFACTS_SPEC.md §1.11 ausente"; exit 1; }
 
-# 5. §3.9 contém exemplo preenchido para /bugfix
-awk '/^### 3\.9 /{flag=1; next} /^### /{flag=0} flag' andaime/ARTIFACTS_SPEC.md \
+# 5. §1.11 contém exemplo preenchido para /bugfix
+awk '/^### 1\.11 /{flag=1; next} /^### /{flag=0} flag' andaime/ARTIFACTS_SPEC.md \
   | grep -qE 'bugfix' \
-  || { echo "FALHA: ARTIFACTS_SPEC.md §3.9 sem exemplo /bugfix"; exit 1; }
+  || { echo "FALHA: ARTIFACTS_SPEC.md §1.11 sem exemplo /bugfix"; exit 1; }
 
 # 6. Glossary contém entrada "Wrapper"
 grep -qE '^### Wrapper' framework/core/glossary.md \
@@ -1555,7 +1555,7 @@ echo "OK: §V.5.7"
 
 **Verificações por inspeção:**
 - [ ] SPEC §3.6.1 cobre os cinco pontos: mecanismo, mapeamento, conteúdo do wrapper, setup universal (F5.8), setup de projeto (F5.9).
-- [ ] ARTIFACTS_SPEC §3.9 cobre localização, schema, exemplo, validação, anti-padrão.
+- [ ] ARTIFACTS_SPEC §1.11 cobre localização, schema, exemplo, validação, anti-padrão.
 
 **Critério de aprovação:** snippet retorna zero (item 6 é AVISO, não FALHA); itens de inspeção marcados.
 
