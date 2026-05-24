@@ -39,17 +39,84 @@ Descobrir vem antes de assumir. A inspeção silenciosa precede qualquer pergunt
 
 ### Fase 3 — Geração de constitution + manifest + INDEX
 
-- Gerar `<projeto>/.codeflow/constitution.md` aplicando o template de `ARTIFACTS_SPEC.md` §2.2.5. Incluir apenas regras confirmadas pela inspeção ou pelo usuário. Sem regras especulativas.
-- Gerar `<projeto>/.codeflow/manifest.md` aplicando o template de `ARTIFACTS_SPEC.md` §2.3.5. Incluir: stack detectada, comandos make canônicos, padrões arquiteturais, arquivos críticos para freshness.
-- Gerar `<projeto>/.codeflow/INDEX.md` aplicando o template de `ARTIFACTS_SPEC.md` §2.1.5. Listar `constitution.md` e `manifest.md` em `## Leia sempre primeiro`.
-- Aplicar `## Validação pós-geração` em cada arquivo antes de avançar.
-- Gravar checkpoint ao fim da fase.
+**Regra dura desta fase:** seguir os templates de `ARTIFACTS_SPEC.md` §2.1.5, §2.2.5 e §2.3.5 **literalmente** — títulos, nomes de seções e campos de frontmatter são vinculantes. Não renomear, não numerar, não traduzir, não improvisar. Os checklists abaixo são extratos das regras de validação §2.1.6, §2.2.6, §2.3.6 e existem porque execuções anteriores deste protocolo divergiram dos templates ao parafrasear nomes de seções.
+
+#### 3a) `<projeto>/.codeflow/constitution.md` — schema §2.2.3
+
+**Frontmatter obrigatório:** `versão`, `status`, `atualizado` (ISO), `projeto` (obrigatório — nome do projeto). Não inventar campos.
+
+**Título exato:** `# Constitution do projeto: <nome>` — com dois pontos e `<nome>` idêntico ao valor de `projeto` no frontmatter.
+
+**Seções obrigatórias, nesta ordem literal:**
+1. `## Stack` — lista factual (linguagem, frameworks, banco, libs principais). Mesmo que repita o manifest, **não omitir**.
+2. `## Padrão arquitetural` — nome do padrão (hexagonal, MVC, camadas, etc.) ou literal `Sem padrão definido — discutir com /discover --refresh`.
+3. `## Regras invariantes específicas` — bullets imperativos verificáveis. No mínimo um, ou literal `Sem regras específicas além da constitution universal.`.
+4. `## Áreas de alto risco` — caminhos concretos do projeto, não descrições genéricas.
+5. `## Definition of Done específica` — extensões do DoD universal ou literal `Sem extensões.`. **Sempre presente**, nunca omitida.
+
+Caminhos referenciados são relativos à raiz do projeto (sem `/` ou `~/`).
+
+#### 3b) `<projeto>/.codeflow/manifest.md` — schema §2.3.3
+
+**Frontmatter obrigatório:** `versão`, `status`, `atualizado`, `projeto` (não-vazio), `last_validated` (ISO), `validation_hash` (SHA-256 hexadecimal de 64 caracteres).
+
+**Cálculo de `validation_hash`** — comando canônico (§2.3.3): `cat <arquivo1> <arquivo2> ... <arquivoN> 2>/dev/null | sha256sum | cut -d' ' -f1`. A ordem dos arquivos é a mesma que aparece em `## Arquivos críticos para freshness`. Arquivos ausentes contribuem como string vazia.
+
+**Título exato:** `# Manifest do projeto: <nome>` — com dois pontos.
+
+**Seções obrigatórias, nesta ordem literal:**
+1. `## Stack identificada` — versões exatas (ex: `Python 3.11.5`, não `Python`).
+2. `## Comandos make canônicos` — mapeia `check`, `test`, `lint`, `typecheck` para os comandos efetivos. Targets ausentes ficam como `[—]`. Os quatro sempre listados.
+3. `## Padrões detectados` — bullets factuais (no mínimo três). Descritivo, nunca prescritivo (regras vão na constitution).
+4. `## Arquivos críticos para freshness` — lista dos arquivos usados no `validation_hash`, na mesma ordem.
+5. `## Notas de inspeção` — registrar data ISO da inspeção e a meta-skill que gerou (`discover` ou `bootstrap`).
+
+#### 3c) `<projeto>/.codeflow/INDEX.md` — schema §2.1.3
+
+**Frontmatter obrigatório:** `versão`, `status`, `atualizado`, `schema_version` em formato `X.Y`.
+
+**Título exato:** `# INDEX do .codeflow/ do projeto` — sem sufixo com nome do projeto. (Variantes como `# INDEX do .codeflow/ do projeto <nome>` violam o schema.)
+
+**Seções obrigatórias, nesta ordem literal:**
+1. `## Leia sempre primeiro` — lista ordenada começando por `constitution.md` (item 1) e `manifest.md` (item 2), nesta ordem. Caminhos relativos a `.codeflow/` (escrever `constitution.md`, não `/home/...` nem `~/.../`).
+2. `## Leia se relevante ao contexto` — inclui `discovered.md` (se existe) e `decisions/INDEX.md`.
+3. `## Arquivos gerados automaticamente — não editar manualmente` — cita `checkpoints/*` e `decisions/<arquivo>.md` individuais.
+4. `## Versão do schema e última atualização` — uma linha registrando `schema_version` e data ISO.
+
+**Tamanho-alvo: 15–25 linhas.** Acima de 35 sinaliza inchaço (regra 2 de §2.1.6). Não criar seções extras (`Fora do .codeflow/`, `Áreas protegidas`, etc.) — essas informações vivem na constitution. INDEX é mapa de prioridade, não inventário.
+
+#### 3d) Validação obrigatória antes de seguir
+
+Para cada um dos três arquivos gerados:
+1. Re-ler o arquivo do disco.
+2. Confrontar **item por item** com a respectiva seção `§2.X.6` do `ARTIFACTS_SPEC.md` (validação) e `§2.X.3` (schema obrigatório).
+3. Se algum item falhar: **regenerar o artefato inteiro** a partir do template §2.X.5, não corrigir parcialmente. Correções parciais tendem a deixar resíduos da versão anterior.
+4. Só prosseguir para a Fase 4 quando os três arquivos passarem em todas as regras numeradas.
+5. Gravar checkpoint ao fim da fase.
 
 ### Fase 4 — Geração de discovered.md e entrega
 
-- Gerar `<projeto>/.codeflow/discovered.md` aplicando o template de `ARTIFACTS_SPEC.md` §2.4.5. Registrar: o que foi inspecionado, hipóteses formadas (com rótulo final), perguntas feitas ao usuário e respostas, áreas marcadas como "não tocar", artefatos gerados.
-- Apresentar ao usuário o resumo dos quatro artefatos gerados, cada um com caminho e tamanho. Pergunta ao usuário se algum precisa de ajuste antes de fechar.
-- Aguardar resposta. Aplicar ajustes solicitados, re-rodar validação. Após confirmação final, encerrar.
+#### 4a) `<projeto>/.codeflow/discovered.md` — schema §2.4.3
+
+**Frontmatter obrigatório:** `versão`, `status`, `atualizado`, `data_inspeção` (ISO), `meta_skill: discover` (valor fixo, literal), `superseded_by: null` (literal `null` no snapshot mais recente; nome de snapshot mais recente quando este for substituído). Não usar `gerado_por` nem outras variantes.
+
+**Título exato:** `# Discovered: snapshot de <data>` — com a data idêntica ao `data_inspeção` do frontmatter.
+
+**Seções obrigatórias, nesta ordem literal e sem numeração:**
+1. `## O que foi inspecionado` — lista cronológica (no mínimo três itens).
+2. `## Hipóteses formadas` — cada hipótese começa com rótulo **literal entre colchetes**: `[confirmada]`, `[refutada]` ou `[pendente]`. Não usar variantes como `confirmada-pela-inspeção`, `confirmada pelo usuário`, etc. — registrar a origem da confirmação no texto da hipótese, mas o rótulo de estado entre colchetes é vinculante.
+3. `## Perguntas feitas ao usuário e respostas` — no máximo cinco perguntas (`SPEC.md` §4.4.2). Cada pergunta com resposta declarada.
+4. `## Áreas marcadas como "não tocar"` — caminhos concretos do projeto ou literal `Nenhuma.`.
+5. `## Artefatos gerados a partir deste discovered` — cita ao menos `constitution.md`, `manifest.md`, `INDEX.md`.
+
+Seções extras (anexos, padrões qualitativos, lacunas) só são permitidas conforme `§2.4.4` (opcional) e **depois** das obrigatórias.
+
+#### 4b) Validação e entrega
+
+- Confrontar `discovered.md` item por item com `§2.4.6`. Em falha, regenerar do template §2.4.5 (não corrigir parcialmente).
+- Apresentar ao usuário o resumo dos quatro artefatos gerados (caminho + tamanho de cada).
+- Perguntar se algum precisa de ajuste antes de fechar (esta é a única pergunta da Fase 4 e não conta no limite de cinco da Fase 2).
+- Aguardar resposta. Aplicar ajustes solicitados re-rodando a validação correspondente. Após confirmação final, encerrar.
 
 ## Proibições durante esta meta-skill
 

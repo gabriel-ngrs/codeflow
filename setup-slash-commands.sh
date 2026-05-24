@@ -1,34 +1,64 @@
 #!/usr/bin/env bash
 # setup-slash-commands.sh — registra workflows e meta-skills universais
 # do codeflow como slash commands custom em Claude Code, via wrappers
-# em ~/.claude/commands/. Conforme SPEC.md §3.6.1 e ARTIFACTS_SPEC.md §1.11.
+# em <config-dir>/commands/. Conforme SPEC.md §3.6.1 e ARTIFACTS_SPEC.md §1.11.
 #
 # Uso:
-#   bash ~/.codeflow/setup-slash-commands.sh           # sincroniza, avisa órfãos
-#   bash ~/.codeflow/setup-slash-commands.sh --prune   # também remove órfãos
+#   bash ~/.codeflow/setup-slash-commands.sh                       # ~/.claude/commands/
+#   bash ~/.codeflow/setup-slash-commands.sh --prune               # também remove órfãos
+#   bash ~/.codeflow/setup-slash-commands.sh --config-dir ~/.claude2
+#   CLAUDE_CONFIG_DIR=~/.claude2 bash ~/.codeflow/setup-slash-commands.sh
 #
-# Idempotente. Restrições: só toca em ~/.claude/commands/. Não modifica
+# O destino é resolvido nesta ordem: --config-dir <path>, depois a env var
+# CLAUDE_CONFIG_DIR (a mesma usada pelo próprio Claude Code), depois o default
+# ~/.claude. Em qualquer caso, os wrappers vão para <config-dir>/commands/.
+# Para registrar em múltiplas instalações de Claude Code, rode o script uma vez
+# por config-dir.
+#
+# Idempotente. Restrições: só toca em <config-dir>/commands/. Não modifica
 # nada em ~/.codeflow/framework/ — apenas lê.
 
 set -u
 
 CODEFLOW="${HOME}/.codeflow"
-CMD_DIR="${HOME}/.claude/commands"
+CONFIG_DIR_OVERRIDE=""
 PRUNE=0
 
-for arg in "$@"; do
-  case "$arg" in
-    --prune) PRUNE=1 ;;
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --prune) PRUNE=1; shift ;;
+    --config-dir)
+      if [ "$#" -lt 2 ] || [ -z "${2:-}" ]; then
+        echo "✗ --config-dir exige um caminho como argumento." >&2
+        exit 3
+      fi
+      CONFIG_DIR_OVERRIDE="$2"; shift 2 ;;
+    --config-dir=*)
+      CONFIG_DIR_OVERRIDE="${1#--config-dir=}"
+      if [ -z "$CONFIG_DIR_OVERRIDE" ]; then
+        echo "✗ --config-dir= exige valor não-vazio." >&2
+        exit 3
+      fi
+      shift ;;
     -h|--help)
-      sed -n '2,12p' "$0" | sed 's/^# \{0,1\}//'
+      sed -n '2,20p' "$0" | sed 's/^# \{0,1\}//'
       exit 0
       ;;
     *)
-      echo "✗ argumento inválido: $arg" >&2
+      echo "✗ argumento inválido: $1" >&2
       exit 3
       ;;
   esac
 done
+
+if [ -n "$CONFIG_DIR_OVERRIDE" ]; then
+  CONFIG_DIR="$CONFIG_DIR_OVERRIDE"
+elif [ -n "${CLAUDE_CONFIG_DIR:-}" ]; then
+  CONFIG_DIR="$CLAUDE_CONFIG_DIR"
+else
+  CONFIG_DIR="${HOME}/.claude"
+fi
+CMD_DIR="${CONFIG_DIR}/commands"
 
 echo "codeflow — sincronização de slash commands"
 echo
