@@ -53,6 +53,7 @@ Agent é mais caro de operar do que skill e justificável apenas quando a sub-ta
 
 ### Passo 7 — Validar e apresentar
 - Aplicar `## Validação pós-geração`. Se qualquer check falha, corrigir antes de apresentar.
+- **Nota informativa:** agents **não** ganham slash command próprio. São invocados de dentro de workflows que os chamam pelo nome (`SPEC.md` §4.5.2). Não executar `setup-slash-commands.sh` para agent — ele ignora `framework/library/agents/` por design (`SPEC.md` §3.6.1).
 
 ## Proibições durante esta meta-skill
 

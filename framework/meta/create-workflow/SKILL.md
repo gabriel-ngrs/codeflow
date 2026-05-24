@@ -46,6 +46,11 @@ Workflow novo nasce de necessidade concreta e usada, não de especulação. A en
 ### Passo 6 — Validar e apresentar
 - Aplicar `## Validação pós-geração`. Se qualquer check falha, corrigir antes de apresentar.
 
+### Passo 7 — Registrar slash command (apenas workflows universais)
+- Se o workflow gerado foi salvo em `~/.codeflow/framework/library/workflows/`, executar `bash ~/.codeflow/setup-slash-commands.sh` para criar o wrapper em `~/.claude/commands/<nome>.md` conforme `SPEC.md` §3.6.1 e `ARTIFACTS_SPEC.md` §1.11.
+- Se o workflow foi salvo em `<projeto>/.codeflow/workflows/`, **não** rodar o script universal. O wrapper local é criado por `install.sh` na próxima vez que rodar no projeto (ou pode-se rodar `bash ~/.codeflow/install.sh` imediatamente para sincronizar).
+- Confirmar com o usuário que o slash command (`/<nome>`) está disponível antes de encerrar.
+
 ## Proibições durante esta meta-skill
 
 - Não gerar workflow sem qualificar a necessidade no Passo 1.

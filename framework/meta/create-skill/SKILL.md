@@ -50,6 +50,7 @@ Skill nova cobre um protocolo repetível com princípio guia claro. A entrevista
 
 ### Passo 6 — Validar e apresentar
 - Aplicar `## Validação pós-geração`. Se qualquer check falha, corrigir antes de apresentar.
+- **Nota informativa:** skills regulares **não** ganham slash command próprio. São carregadas via `## LEIA TAMBÉM` de workflows (`SPEC.md` §4.3.4). Não executar `setup-slash-commands.sh` para skill — ele ignora `framework/library/skills/` por design (`SPEC.md` §3.6.1).
 
 ## Proibições durante esta meta-skill
 
