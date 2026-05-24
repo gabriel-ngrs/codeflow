@@ -64,7 +64,37 @@ Substitua o caminho conforme o tipo:
 
 **O que reportar:** saída completa das duas execuções, `git status` antes/depois, confirmação de não-modificação.
 
-**Sinais de alerta (✗):** qualquer arquivo do projeto modificado fora de `.codeflow/` e `.gitignore`; criação de `constitution.md`, `manifest.md` ou `discovered.md` (esses dependem de `/discover` ou `/bootstrap`, nunca de `install.sh`); chamada a `git init`.
+**Sinais de alerta (✗):** qualquer arquivo do projeto modificado fora de `.codeflow/`, `.gitignore` e (se aplicável) `.claude/commands/`; criação de `constitution.md`, `manifest.md` ou `discovered.md` (esses dependem de `/discover` ou `/bootstrap`, nunca de `install.sh`); chamada a `git init`.
+
+---
+
+## Teste 1.5 — Slash commands universais
+
+**Objetivo:** confirmar que após rodar `setup-slash-commands.sh` os workflows e meta-skills aparecem como slash commands nativos em Claude Code (`/bugfix`, `/discover` etc.).
+
+**Passos:**
+
+1. Rode uma vez por máquina (idempotente): `bash ~/.codeflow/setup-slash-commands.sh`.
+2. Liste os wrappers: `ls ~/.claude/commands/ | grep -E '(bugfix|feature-small|refactor-safe|review-only|discover|bootstrap|create-)'`.
+3. Inspecione um wrapper: `cat ~/.claude/commands/bugfix.md` — deve ter 1 linha em pt-BR começando com `Leia ~/.codeflow/framework/library/workflows/bugfix.md`.
+4. Abra Claude Code em qualquer projeto. Digite `/` e confirme que `/bugfix`, `/discover`, `/create-workflow` aparecem na lista.
+5. (Opcional) Digite `/bugfix` em sessão fresca e verifique que o agente lê o workflow real e começa o protocolo.
+6. Idempotência: rode `bash ~/.codeflow/setup-slash-commands.sh` de novo — saída muda para "preservado", nenhuma duplicação.
+
+**Resultado esperado:**
+
+- 9 wrappers em `~/.claude/commands/` (4 workflows seed + 5 meta-skills seed).
+- Cada wrapper tem 1-2 linhas, referencia path absoluto em `~/.codeflow/framework/`.
+- Slash commands aparecem em Claude Code sem reiniciar.
+- 2ª execução: 9 preservados, 0 criados, 0 duplicados.
+
+**O que reportar:** saída do `setup-slash-commands.sh`; lista de `ls ~/.claude/commands/`; um exemplo de wrapper; confirmação de que `/bugfix` aparece no Claude Code.
+
+**Sinais de alerta (✗):**
+
+- Wrapper duplica conteúdo do workflow em vez de apontar para o path.
+- Wrapper tem mais de 6 linhas.
+- Slash command não aparece em Claude Code mesmo com wrapper presente (problema da ferramenta, não do codeflow — checar versão do Claude Code).
 
 ---
 
@@ -152,6 +182,7 @@ Substitua o caminho conforme o tipo:
 - Skill criada em `<projeto>/.codeflow/skills/<X>/SKILL.md`, **não** em `~/.codeflow/framework/library/skills/`.
 - 6 seções obrigatórias, **sem** `## Definition of Done`, **sem** `## LEIA TAMBÉM`.
 - Frontmatter com `descrição` (uma linha).
+- **NÃO** é gerado wrapper em `~/.claude/commands/<X>.md` nem em `<projeto>/.claude/commands/<X>.md` — skills regulares não viram slash command (`SPEC.md` §3.6.1). Verifique: `ls ~/.claude/commands/ | grep <X>` deve ser vazio.
 
 **O que reportar:** a skill gerada; a qualificação inicial foi útil ou pulada?; a IA tentou pôr em `framework/library/`?
 
@@ -181,6 +212,31 @@ Substitua o caminho conforme o tipo:
 - Definition of Done verificada antes de declarar pronto.
 
 **O que reportar:** a correção fez sentido?; quantos decisions foram gerados — úteis ou ruidosos?; workflow respeitou os passos?
+
+---
+
+## Teste 7 (opcional) — Workflow de projeto com slash command
+
+**Objetivo:** validar que workflow criado a nível de projeto vira slash command local automaticamente.
+
+**Passos:**
+
+1. Em Claude Code, no projeto-alvo:
+   > "Leia `~/.codeflow/framework/meta/create-workflow/SKILL.md` e crie um workflow chamado `<Z>` específico deste projeto."
+2. Confirme destino "projeto" (não universal). O arquivo deve aparecer em `<projeto>/.codeflow/workflows/<Z>.md`.
+3. Rode `bash ~/.codeflow/install.sh` novamente no projeto.
+4. Verifique que `<projeto>/.claude/commands/<Z>.md` foi criado.
+5. Em Claude Code, dentro do projeto, digite `/` e confirme que `/<Z>` aparece.
+6. Mude para outro projeto: `/<Z>` **não** deve aparecer ali (é local).
+
+**Resultado esperado:**
+
+- Workflow em `.codeflow/workflows/<Z>.md` (versionado no projeto).
+- Wrapper em `.claude/commands/<Z>.md` referenciando o path absoluto do workflow.
+- Slash command `/<Z>` disponível apenas dentro do projeto.
+- `install.sh` sugere decisão sobre `.gitignore` para `.claude/commands/` mas não força.
+
+**O que reportar:** o workflow criado; output do `install.sh` na 2ª rodada; confirmação de que `/<Z>` é local.
 
 ---
 
