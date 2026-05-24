@@ -692,7 +692,7 @@ Meta-skills sempre são universais. Não existem versões específicas de projet
 
 O framework é entregue com cinco meta-skills:
 
-**`discover`:** aprende um projeto existente. Conduz inspeção silenciosa, formula hipóteses, faz no máximo 5 perguntas, gera os artefatos iniciais (INDEX.md, constitution.md, manifest.md, discovered.md). Granularidade detalhada.
+**`discover`:** aprende um projeto existente. Conduz inspeção silenciosa, formula hipóteses, conduz entrevista qualificada (orientação: até cinco perguntas; sem limite duro — quando passar de cinco, emite aviso ao usuário de que inspeção pode estar superficial e aguarda decisão antes de continuar), gera os artefatos iniciais (INDEX.md, constitution.md, manifest.md, discovered.md). Granularidade detalhada.
 
 **`bootstrap`:** cria um projeto novo a partir de uma ideia. Conduz conversa estruturada (escopo, stack, padrão arquitetural, regras), gera estrutura de pastas, configs iniciais, Makefile, e os artefatos do codeflow. Granularidade detalhada.
 

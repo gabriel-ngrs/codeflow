@@ -581,7 +581,7 @@ Criar duas meta-skills detalhadas em `framework/meta/`: `discover` e `bootstrap`
 - `andaime/ARTIFACTS_SPEC.md` §1.9.1 a §1.9.7 (foco nas regras de granularidade detalhada).
 - `andaime/ARTIFACTS_SPEC.md` §2.1 a §2.4 (artefatos de projeto que `discover` e `bootstrap` geram).
 - `andaime/ARTIFACTS_SPEC.md` Parte 3.
-- `andaime/SPEC.md` §4.4.2 (limite de cinco perguntas em `discover`).
+- `andaime/SPEC.md` §4.4.2 (orientação de cinco perguntas em `discover`, sem limite duro; aviso obrigatório ao chegar à 5ª).
 - `andaime/SPEC.md` §6.6 (checkpoints, para seção `## Retomada`).
 - `andaime/BUILD_PLAN.md` §F4.2.
 - `andaime/VALIDATION.md` §V.4.2.
@@ -590,7 +590,7 @@ Criar duas meta-skills detalhadas em `framework/meta/`: `discover` e `bootstrap`
 1. Confirmar que F4.1 foi concluída.
 2. Criar `framework/meta/discover/SKILL.md`:
    - Frontmatter: `é_meta_skill: yes`, `granularidade: detalhado`.
-   - Protocolo em **quatro fases**: Inspeção → Entrevista qualificada (no máximo 5 perguntas) → Geração de constitution + manifest + INDEX → Geração de discovered.md + entrega.
+   - Protocolo em **quatro fases**: Inspeção → Entrevista qualificada (orientação: até 5 perguntas; sem limite duro — aviso obrigatório ao chegar à 5ª, com vocabulário canônico para respostas de incerteza) → Geração de constitution + manifest + INDEX → Geração de discovered.md + entrega.
    - Pausa para confirmação do usuário entre Fase 2 e Fase 3.
    - `## Template de saída` referencia §2.1.5, §2.2.5, §2.3.5, §2.4.5.
    - `## Validação pós-geração` referencia §2.1.6, §2.2.6, §2.3.6, §2.4.6.
@@ -611,7 +611,7 @@ Executar `VALIDATION.md` §V.4.2. Snippet retorna `OK: §V.4.2 (2 meta-skills de
 
 ## Em caso de ambiguidade
 - Conteúdo das fases (especialmente perguntas exatas em `discover` e `bootstrap`): propor draft completo ao mantenedor, aguardar aprovação. Estas duas meta-skills são críticas — não improvisar.
-- Limite de cinco perguntas em `discover`: manter rígido. Mais que cinco viola SPEC §4.4.2.
+- Cinco perguntas em `discover`: orientação, não limite duro (SPEC §4.4.2). Quando passar de cinco, a meta-skill deve emitir aviso ao usuário e registrar justificativa em `## Limitações da inspeção` do discovered. Vocabulário canônico de incerteza (`não sei` / `o que recomenda` / `usa padrão` / `depois decido`) é obrigatório na Fase 2.
 - Em `bootstrap`, se houver tentação de gerar `discovered.md`: parar. Bootstrap não gera discovered (não há projeto a descobrir).
 
 ## Saída esperada
@@ -837,7 +837,7 @@ Validar que a meta-skill `discover` é executável conceitualmente, gerando os q
 2. Ler `framework/meta/discover/SKILL.md` na íntegra.
 3. Aplicar o protocolo da meta-skill ao projeto de teste, atuando como se você fosse a IA executando a meta-skill:
    - Fase 1 — Inspeção: examinar Makefile, README, estrutura do projeto de teste.
-   - Fase 2 — Entrevista (até 5 perguntas): perguntar ao mantenedor as cinco perguntas mais relevantes inferidas pela inspeção. Aguardar respostas.
+   - Fase 2 — Entrevista (orientação: até 5 perguntas; sem limite duro): perguntar ao mantenedor as perguntas mais relevantes inferidas pela inspeção. Ao chegar à 5ª, emitir aviso e aguardar decisão antes da próxima. Aguardar respostas.
    - Fase 3 — Geração de constitution + manifest + INDEX: criar três arquivos em `<projeto-teste>/.codeflow/`.
    - Fase 4 — Geração de discovered.md + entrega.
 4. Para cada arquivo gerado, aplicar as regras de validação correspondentes: §2.1.6, §2.2.6, §2.3.6, §2.4.6 do ARTIFACTS_SPEC.
@@ -848,7 +848,7 @@ Executar `VALIDATION.md` §V.5.6. Snippet retorna `OK: §V.5.6`. Quatro itens de
 
 ## Em caso de ambiguidade
 - Se a meta-skill `discover` tem instruções ambíguas que tornam impossível seguir mecanicamente: parar, registrar a ambiguidade, corrigir `discover/SKILL.md` antes de continuar.
-- Se a entrevista exige mais de cinco perguntas para inferir o projeto de teste: parar — isso indica que `discover` foi mal escrita ou que o projeto de teste é complexo demais.
+- Se a entrevista exige mais de cinco perguntas para inferir o projeto de teste: emitir o aviso obrigatório (5ª pergunta), registrar a justificativa em `## Limitações da inspeção`, continuar. Para o projeto de teste mínimo de F5.4, cinco perguntas devem ser suficientes — ultrapassar é sinal de que o protocolo de `discover` foi mal escrito.
 
 ## Saída esperada
 - Conteúdo completo dos quatro artefatos gerados em `<projeto-teste>/.codeflow/`.

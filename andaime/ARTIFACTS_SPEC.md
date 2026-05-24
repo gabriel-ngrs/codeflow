@@ -2095,7 +2095,7 @@ Workflows não consultam discovered diretamente em fluxo normal. Discovered é r
 1. `# Discovered: snapshot de <data>` — título único.
 2. `## O que foi inspecionado` — lista de arquivos, pastas e configurações que `discover` examinou. Ordem cronológica de inspeção.
 3. `## Hipóteses formadas` — interpretações que `discover` fez a partir da inspeção. Cada hipótese rotulada como `confirmada`, `refutada` ou `pendente`.
-4. `## Perguntas feitas ao usuário e respostas` — diálogo estruturado de no máximo cinco perguntas (`SPEC.md` §4.4.2), com a resposta de cada uma.
+4. `## Perguntas feitas ao usuário e respostas` — diálogo estruturado com a resposta de cada pergunta. Orientação: até cinco perguntas (`SPEC.md` §4.4.2); sem limite duro — quando ultrapassar, registrar a justificativa em `## Limitações da inspeção`.
 5. `## Áreas marcadas como "não tocar"` — lista de pastas ou arquivos que o usuário declarou explicitamente como fora de escopo para workflows.
 6. `## Artefatos gerados a partir deste discovered` — lista de outros artefatos criados por `discover` nesta execução: constitution.md, manifest.md, INDEX.md.
 
@@ -2167,7 +2167,7 @@ superseded_by: null
 3. As seis seções obrigatórias presentes na ordem listada em §2.4.3.
 4. `## O que foi inspecionado` lista pelo menos três itens (sem inspeção mínima, não há base para hipóteses).
 5. `## Hipóteses formadas` contém ao menos uma hipótese, cada uma com rótulo explícito `[confirmada]`, `[refutada]` ou `[pendente]`.
-6. `## Perguntas feitas ao usuário e respostas` contém **no máximo cinco** perguntas (`SPEC.md` §4.4.2). Pode conter menos.
+6. `## Perguntas feitas ao usuário e respostas` registra todas as perguntas feitas, sem limite duro. Quando passar de cinco perguntas, deve existir entrada em `## Limitações da inspeção` justificando (ex: "projeto excepcionalmente complexo na fronteira backend/IA, exigiu duas perguntas extras sobre cache").
 7. Cada pergunta tem resposta correspondente declarada.
 8. `## Áreas marcadas como "não tocar"` lista caminhos concretos ou texto literal `Nenhuma.` quando o usuário não declarou nenhuma.
 9. `## Artefatos gerados a partir deste discovered` cita pelo menos `constitution.md`, `manifest.md`, `INDEX.md`.
@@ -2177,7 +2177,7 @@ superseded_by: null
 
 - **Atualizar discovered.md depois de gerado.** Conforme `SPEC.md` §4.7.1, discovered é snapshot. Atualizações vêm via novo snapshot datado.
 - **Hipóteses sem rótulo de estado.** Sem `[confirmada]`/`[refutada]`/`[pendente]`, a hipótese fica ambígua e perde valor histórico.
-- **Mais de cinco perguntas.** Limite literal do SPEC §4.4.2. Mais que cinco indica falha na inspeção: a meta-skill deveria ter inferido mais sem perguntar.
+- **Mais de cinco perguntas sem justificativa.** Cinco continua sendo orientação (não limite duro): inspeção profunda quase sempre cobre o suficiente. Quando ultrapassar, registrar a razão em `## Limitações da inspeção` — sem justificativa, é sinal de inspeção superficial e o discovered fica em débito técnico.
 - **Conteúdo prescritivo em discovered.** Discovered registra o que foi descoberto, não o que deve ser feito. Prescrições vivem na constitution gerada a partir do discovered.
 - **Misturar inspeção e perguntas em ordem caótica.** Cada seção tem propósito específico; misturar quebra a função histórica do snapshot.
 - **Discovered como base de leitura recorrente.** Workflows leem manifest e constitution, não discovered. Discovered é referência arqueológica; consultas frequentes indicam que algo está faltando no manifest.

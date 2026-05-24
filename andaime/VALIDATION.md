@@ -1117,7 +1117,7 @@ fi
 **Verificações por inspeção:**
 - [ ] **`discover` tem 4 fases**: Inspeção → Entrevista → Geração de constitution/manifest/INDEX → Geração de discovered.md.
 - [ ] **`bootstrap` tem 5 fases**: Coleta de requisitos → Decisão de stack → Geração de estrutura do projeto → Geração de artefatos do `.codeflow/` → Entrega.
-- [ ] **`discover` faz no máximo 5 perguntas ao usuário** (`SPEC.md` §4.4.2 limite literal).
+- [ ] **`discover` declara orientação de até 5 perguntas + aviso obrigatório ao chegar à 5ª** (`SPEC.md` §4.4.2; não é mais limite duro). Skill menciona explicitamente o aviso e o vocabulário de tratamento das respostas de incerteza (não sei / o que recomenda / usa padrão / depois decido).
 - [ ] **`bootstrap` pausa em pelo menos 2 fases**.
 - [ ] **Seção opcional `## Retomada` presente** em ambas (recomendado para detalhadas conforme `ARTIFACTS_SPEC.md` §1.9.4).
 
@@ -1502,7 +1502,7 @@ echo "OK: §V.5.6"
 - [ ] **Constitution gerada coerente com o projeto de teste**: stack declarada corresponde ao que o projeto realmente tem (Makefile mínimo, sem outras dependências).
 - [ ] **Manifest reflete inspeção real**: `## Stack identificada` lista o que existe; `## Comandos make canônicos` mapeia os 4 targets canônicos do Makefile minimal.
 - [ ] **Discovered registra inspeção e hipóteses** com rótulos `[confirmada]`/`[refutada]`/`[pendente]`.
-- [ ] **No máximo 5 perguntas** em `## Perguntas feitas ao usuário e respostas` no discovered.
+- [ ] **Contagem de perguntas em `## Perguntas feitas ao usuário e respostas` no discovered:** se ≤5, passa direto; se >5, deve existir entrada correspondente em `## Limitações da inspeção` justificando.
 
 **Critério de aprovação:** snippet retorna zero; itens de inspeção marcados.
 

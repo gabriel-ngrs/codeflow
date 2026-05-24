@@ -488,7 +488,7 @@ As cinco meta-skills do escopo inicial dividem-se em dois grupos por complexidad
 1. Ler `ARTIFACTS_SPEC.md` §1.9 novamente, atentando às adições para granularidade detalhada (presença de fases `### Fase N` em `## Protocolo` e opcionalmente seção `## Retomada`).
 2. Criar `framework/meta/discover/SKILL.md`:
    - Frontmatter com `é_meta_skill: yes`, `granularidade: detalhado`.
-   - Protocolo em quatro fases: **Inspeção** → **Entrevista qualificada** (no máximo cinco perguntas, conforme `SPEC.md` §4.4.2) → **Geração de constitution + manifest + INDEX** → **Geração de discovered.md + entrega**.
+   - Protocolo em quatro fases: **Inspeção** → **Entrevista qualificada** (orientação: até cinco perguntas, conforme `SPEC.md` §4.4.2; sem limite duro — aviso obrigatório ao chegar à 5ª, com vocabulário canônico para respostas de incerteza) → **Geração de constitution + manifest + INDEX** → **Geração de discovered.md + entrega**.
    - Pausa para confirmação do usuário entre Fase 2 e Fase 3.
    - `## Template de saída` referencia múltiplos templates: §2.2.5 (constitution), §2.3.5 (manifest), §2.1.5 (INDEX), §2.4.5 (discovered).
    - `## Validação pós-geração` referencia §2.1.6, §2.2.6, §2.3.6, §2.4.6 — cada artefato gerado tem seu conjunto de regras.

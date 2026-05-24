@@ -140,3 +140,22 @@ Registro incremental das etapas concluídas durante a construção do framework 
   - `andaime/tests/ROTEIRO.md`: três atualizações — (1) novo **Teste 1.5** "Slash commands universais"; (2) acréscimo no **Teste 4** verificando que skill regular **não** gera slash command; (3) novo **Teste 7 (opcional)** "Workflow de projeto com slash command".
 - **Validação:** `VALIDATION.md` §V.5.9 → `OK: §V.5.9`. Teste funcional em projeto temporário: install.sh em pasta limpa não criou `.claude/`; após adicionar `.codeflow/workflows/foo.md`, segunda execução criou `.claude/commands/foo.md` com referência ao path absoluto correto; `git status` ficou restrito a `.codeflow/`, `.gitignore`, `.claude/` (anti-decisão SPEC §3.9 preservada).
 - **Notas / decisões:** wrapper de projeto usa **path absoluto do projeto** (não `~/...`), porque `<projeto>` varia por máquina e por dev. Schema em §1.11 já cobre essa variante. Commit `b3fd1bf`. Próxima etapa: F5.10 (limpeza, log final e tag v1.0.0) — ainda não executada; pré-requisito é o mantenedor ter executado o ROTEIRO em projeto real e a suite transversal §V.T.1-§V.T.7 ter passado.
+
+### Revisão pós-teste — discover sem limite duro + vocabulário de incerteza [✓]
+
+- **Concluída em:** 2026-05-24
+- **Motivação:** durante teste real de `/discover` no projeto CalorIA (rodado após F5.9, antes da F5.10), dois atritos de UX apareceram:
+  1. A 5ª pergunta foi gasta como esclarecimento da 2ª pergunta (usuário não entendeu duas das opções multi-select), esgotando o budget antes de explorar todas as hipóteses pendentes.
+  2. O protocolo não cobria explicitamente como tratar respostas de incerteza do tipo "não sei" / "passa" / "o que você recomenda?" — risco da IA improvisar regra especulativa na constitution.
+- **Decisão arquitetural:** transformar o limite duro de 5 perguntas em **orientação com aviso obrigatório** ao chegar à 5ª. Mantenedor escolheu "Sem limite, com aviso" (vs. "Sem limite, sem aviso" ou "Limite configurável"). Trade-off explicitamente aceito: perde-se a pressão dura por inspeção profunda; ganha-se cobertura de casos legítimos (projetos complexos, esclarecimentos da própria entrevista). Aviso preserva pressão social.
+- **Vocabulário canônico de incerteza:** quatro variantes (`não sei` → `[pendente]` sem regra; `o que você recomenda` → IA propõe A/B/C; `usa o padrão` → default da inspeção com `[confirmada por default]`; `depois eu decido` → `[pendente]` como lacuna conhecida). Mantenedor escolheu as 4 variantes (vs. fallback único).
+- **Artefatos modificados:**
+  - `andaime/SPEC.md` §4.4.2 — descrição de `discover` reformulada.
+  - `andaime/ARTIFACTS_SPEC.md` §2.4.3 (schema), §2.4.6 regra 6 (validação), §2.4.7 (anti-padrão).
+  - `framework/meta/discover/SKILL.md` — `## Princípio guia` reescrito, Fase 2 com aviso de 5ª pergunta e nova sub-seção `#### Como tratar respostas de incerteza`, `## Proibições` ampliadas (não pular aviso; não re-perguntar após incerteza; não gerar regra a partir de `[pendente]`).
+  - `andaime/VALIDATION.md` §V.4.2 e §V.5.6 — itens de inspeção atualizados.
+  - `andaime/BUILD_PLAN.md` §F4.2 — referência ao limite reformulada.
+  - `andaime/PROMPTS.md` §P.4.2 e §P.5.6 — pré-leitura, tarefa e ambiguidade atualizadas.
+  - `andaime/tests/ROTEIRO.md` Teste 2 — passos, resultado esperado e sinais de alerta atualizados.
+- **Validação:** `VALIDATION.md` §V.4.2 segue passando (`OK: §V.4.2 (2 meta-skills detalhadas validadas)`). Nenhum snippet bash quebrou; só itens de inspeção foram reformulados.
+- **Próxima etapa real:** re-rodar testes do ROTEIRO (Teste 2 em particular) para validar o novo comportamento, depois F5.10.

@@ -107,14 +107,14 @@ Substitua o caminho conforme o tipo:
 1. No Claude Code, no projeto-alvo, instrua:
    > "Leia `~/.codeflow/framework/meta/discover/SKILL.md` e execute o protocolo no projeto atual."
 2. A IA deve fazer **Fase 1 — Inspeção silenciosa** (lê arquivos, mapeia estrutura, examina commits) **sem te interromper**.
-3. A IA deve fazer **Fase 2 — Entrevista** com no máximo **5 perguntas**, baseadas em hipóteses específicas formadas na inspeção. Deve **pausar aguardando sua confirmação** antes da Fase 3.
+3. A IA deve fazer **Fase 2 — Entrevista** com até **5 perguntas** como orientação (sem limite duro), baseadas em hipóteses específicas formadas na inspeção. Se chegar à 5ª, deve emitir aviso e perguntar se vale continuar perguntando ou reinspecionar. Deve aceitar respostas de incerteza (`não sei`, `o que você recomenda`, `usa o padrão`, `depois eu decido`) sem improvisar. Deve **pausar aguardando sua confirmação** antes da Fase 3.
 4. Responda as perguntas; confirme o resumo.
 5. A IA gera `constitution.md`, `manifest.md`, `INDEX.md` em `<projeto>/.codeflow/`.
 6. A IA gera `discovered.md` e apresenta resumo final dos 4 arquivos.
 
 **Resultado esperado:**
 
-- **≤ 5 perguntas**, específicas, não genéricas. Cada uma cita o que a inspeção encontrou que motivou a pergunta.
+- **Orientação ≤ 5 perguntas**, específicas, não genéricas; quando passar, aviso obrigatório seguido de justificativa em `## Limitações da inspeção` do discovered. Cada pergunta cita o que a inspeção encontrou que motivou.
 - **Pausa explícita** antes da Fase 3 aguardando sua confirmação.
 - `constitution.md` declara apenas regras que você **confirmou** ou que foram **observadas direto no código** (sem invenção).
 - `manifest.md` lista versões reais da stack (`Python 3.11.5`, não `Python`), e tem `validation_hash` em hex de 64 caracteres.
@@ -132,7 +132,9 @@ Substitua o caminho conforme o tipo:
 **Sinais de alerta (✗):**
 
 - IA pula Fase 1 e vai direto perguntar.
-- Mais de 5 perguntas.
+- Mais de 5 perguntas **sem** o aviso intermediário e **sem** justificativa em `## Limitações da inspeção`.
+- IA insiste/re-pergunta após resposta de incerteza (`não sei`, `passa`) em vez de marcar hipótese como `[pendente]` e seguir.
+- IA gera regra em `constitution.md` baseada em hipótese `[pendente]`.
 - Não pausa antes da Fase 3.
 - `constitution.md` declara regras não-confirmadas.
 - `manifest.md` afirma versões de bibliotecas que não estão no projeto.
