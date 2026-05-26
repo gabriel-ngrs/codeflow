@@ -159,3 +159,35 @@ Registro incremental das etapas concluídas durante a construção do framework 
   - `andaime/tests/ROTEIRO.md` Teste 2 — passos, resultado esperado e sinais de alerta atualizados.
 - **Validação:** `VALIDATION.md` §V.4.2 segue passando (`OK: §V.4.2 (2 meta-skills detalhadas validadas)`). Nenhum snippet bash quebrou; só itens de inspeção foram reformulados.
 - **Próxima etapa real:** re-rodar testes do ROTEIRO (Teste 2 em particular) para validar o novo comportamento, depois F5.10.
+
+### Re-teste do ROTEIRO §Teste 2 — `/discover` em CalorIA (pós-revisão) [✓ com ressalva]
+
+- **Concluído em:** 2026-05-26
+- **Projeto-alvo:** CalorIA (`~/projetos/CalorIA`, branch `dev`), stack Python 3.12 + FastAPI + Next.js 14, com auditoria interna em andamento.
+- **Resultado do protocolo:**
+  - Fase 1 (inspeção): 18 grupos de arquivos inspecionados (root, backend, frontend, AI pipeline, CI/CD, docs/auditoria, git log) — inspeção profunda, sem ramo "perguntar antes de ler".
+  - Fase 2 (entrevista): **3 perguntas**, todas específicas ao CalorIA (paths "não tocar", regras invariantes de domínio, foco operacional). Abaixo do limite de 5; aviso não foi acionado (esperado).
+  - Pausa pré-Fase 3: respeitada.
+- **Artefatos gerados em `~/projetos/CalorIA/.codeflow/`:**
+  - `INDEX.md` — "Leia sempre primeiro" lista `constitution.md` + `manifest.md` ✓.
+  - `constitution.md` — stack, padrão arquitetural, 6 regras invariantes específicas, 7 áreas de alto risco, DoD. Cada item rastreável ou à inspeção (Makefile/pyproject/CI) ou à resposta do usuário. Zero regra inventada.
+  - `manifest.md` — versões reais com número (Python 3.12, FastAPI >=0.115.0, Next.js ^14.2.0, etc.). `validation_hash` em 64 chars hex (`f012c257…c0da`). `last_validated: 2026-05-26`.
+  - `discovered.md` — 9 hipóteses todas `[confirmada]` (6 pela inspeção, 3 pela entrevista). Q/R registradas literalmente. Áreas "não tocar" listadas. Contexto qualitativo sobre auditoria de 57 achados em 4 ondas.
+- **Ressalva (cobertura parcial):** o vocabulário de incerteza (`não sei` / `o que você recomenda` / `usa o padrão` / `depois eu decido`) **não foi exercitado** — o usuário respondeu as 3 perguntas com conteúdo concreto, sem acionar nenhum dos ramos de incerteza. O caminho feliz foi totalmente validado; o ramo de incerteza permanece coberto apenas por leitura do `SKILL.md` (prescrito em `## Como tratar respostas de incerteza`, mas sem execução real). Decisão do mantenedor: aceitar a cobertura parcial e seguir para F5.10. Se o ramo apresentar bug, será descoberto no próximo `/discover` que envolva incerteza.
+- **Veredito:** `/discover` aprovado para v1.0.0 com nota de cobertura parcial registrada. Sem sinais de alerta.
+
+### F5.10 — Limpeza, log final e tag v1.0.0 [✓]
+
+- **Concluída em:** 2026-05-26
+- **Decisão sobre projeto de teste:** `/tmp/codeflow-test/` removido (opção A do BUILD_PLAN §F5.10). Foi temporário e seu propósito (smoke-test de install.sh / setup-slash-commands) já estava registrado no EXECUTION_LOG das etapas F5.4-F5.5 e F5.8-F5.9. Não havia razão para arquivar.
+- **EXECUTION_LOG finalizado:** este registro fecha o build. Cobertura final: Fases 1-4 todas concluídas (artefatos no disco, etapas com entrada explícita ou implícita); Fase 5 com 9 etapas formalmente `[✓]` + F5.6 substituída por roteiro manual (Teste 2 executado em CalorIA com a ressalva acima).
+- **Tag git:** `v1.0.0` criada com mensagem `Framework codeflow v1.0.0 — escopo inicial completo`, apontando para o commit que inclui esta entrada do log.
+- **Push:** branch `main` e tag `v1.0.0` empurradas para `origin` (`https://github.com/gabriel-ngrs/codeflow.git`).
+- **Estado entregável confirmado:** working tree limpo após a entrega, tag presente em `git tag -l`, todos os arquivos-prova da tabela §3.3 do BUILD_PLAN existentes.
+
+## Fechamento
+
+- **Data de início do build:** 2026-05-23 (commit inicial `c3678c8 chore(init)`, com SPEC/ARTIFACTS_SPEC/BUILD_PLAN/VALIDATION/PROMPTS já prontos como entrada).
+- **Data de conclusão do build:** 2026-05-26.
+- **Versão entregue:** v1.0.0 — escopo inicial completo. Pendência conhecida: ramo de incerteza do `/discover` ainda sem execução real (registrado no Re-teste acima).
+- **Próximos passos sugeridos** (fora do escopo deste build): executar demais testes do ROTEIRO (1, 1.5, 3, 4, 5, 6, 7) em cadência; expandir biblioteca a partir do backlog em `New_Ideas.md`.
