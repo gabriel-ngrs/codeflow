@@ -1,407 +1,532 @@
 ---
-versão: 1.2
+versão: 2.0
 status: estável
-atualizado: 2026-05-26
+atualizado: 2026-05-28
 ---
 
 # Roteiro de testes manuais — codeflow
 
-Roteiro para validar o framework em um **projeto real**, executado por você (humano). Substitui o teste sintético previsto em F5.6 (`/tmp/codeflow-test`), que era execução simulada por IA sobre projeto-cobaia.
+Roteiro para **você (humano)** testar o framework do começo ao fim em um projeto real. Cada teste descreve o que você faz, o que deve aparecer e o que indica problema. Use uma sessão do Claude Code para apoiar (tirar dúvida, comparar saída contra o esperado) — mas a execução e o julgamento são seus.
 
-**Cobertura:** v1.1 do roteiro cobre todos os artefatos seed do framework — 5 meta-skills, 4 workflows universais, 3 skills universais, 2 scripts shell. Testes 1, 1.5, 2, 3, 4, 8, 9, 10, 11, 12 são canônicos; 5 e 7 são opcionais. Teste 6 documenta desinstalação. **Camada comportamental** (julgamento sobre saída da IA) só é validável manualmente; **camada estrutural** (formato, paths, exit codes, idempotência) pode ser automatizada (ver §"Próximos passos após o teste").
+**Cobertura:** 12 testes que exercitam os 5 meta-skills, 4 workflows universais, 3 skills universais e os 2 scripts shell que vêm como seed do framework. Testes 1 a 4 e 8 a 12 são canônicos; 5, 6 e 7 são opcionais.
 
-## Pré-requisitos
+## Status atual da execução
 
-1. **Projeto-alvo:** repositório git real ao qual você queira aplicar o codeflow.
-   - Tamanho recomendado: pequeno a médio (alguns milhares de linhas).
-   - Ter `Makefile` ou estar disposto a criar um simples durante o teste.
-   - **Precaução:** crie um branch dedicado antes (`git checkout -b codeflow-test`). O codeflow só escreve em `.codeflow/` e `.gitignore`, mas a precaução é barata.
+Última sessão: **2026-05-28**, projeto **koryn-ai** (`~/projetos/Koryn-Ai`).
 
-2. **Framework instalado:** `ls ~/.codeflow/` deve listar `andaime/`, `framework/`, `install.sh`. Se não, o symlink quebrou — refazer F1.4.
+| # | Teste | Status | Notas |
+|---|---|---|---|
+| 1 | `install.sh` em projeto real | ✓ | — |
+| 1.5 | Slash commands universais | ✓ | — |
+| 2 | `/discover` em projeto existente | ⚠ | 2 rodadas; path de incerteza ✓ na 2ª. Achados #1 e #2 em `melhorias-fix.md`. |
+| 3 | `/review-only` | ✓ | — |
+| 4 | `/create-skill` | ✓ | Gerou `multi-tenant-audit` em `<koryn-ai>/.codeflow/skills/`. |
+| 5 | `/bugfix` *(opc)* | ✓ | Bug controlado de status code 409. Achado #3 em `melhorias-fix.md`. |
+| 6 | Desinstalação *(opc)* | — | Pulado até terminar todos os testes no projeto. |
+| 7 | Workflow de projeto + slash local *(opc)* | — | Pulado. |
+| 8 | `/feature-small` | ⚠ | Endpoint `GET /me/quotes/count`. Achado #4 em `melhorias-fix.md`. |
+| 9 | `/refactor-safe` | ⚠ | Cenário A ✓; cenário B recusou mas ofereceu override indevido. Achado #5 em `melhorias-fix.md`. |
+| 10 | `/bootstrap` em projeto novo | ⚠ | 2026-06-05, projeto `tsconv` em `~/projetos/codeflow-bootstrap-test`. Estrutural 100% ✓ (sem `discovered.md`, hash 64 hex, 4 targets, 5 seções de cada artefato, pausas Fase 1/2/5 ✓). Achado #6 em `melhorias-fix.md` (manifest diz "Padrões detectados" para arquitetura só decidida + entrypoint aponta módulo inexistente). |
+| 11 | `/create-agent` (foco em recusa) | ✗ | 2026-06-05, koryn-ai. **T1 falhou:** não recusou o checklist de revisão — fabricou justificativa de isolamento e criou `revisor-checklist` (✗ canônico, anti-padrão §1.10.7). **T2 passou:** `auditor-dependencias` gerado correto (Bash excluído = isolamento genuíno). Achados #7 (critério de recusa) e #8 (spec não instalado) em `melhorias-fix.md`. |
+| 12 | Skills carregadas (`handoff` + `self-review`) | — | Pendente. Parte A aproveita execução anterior de `/feature-small` ou `/bugfix`; Parte B exige sessão interrompida pela metade. |
 
-3. **Claude Code aberto no diretório do projeto-alvo** (não no `~/projetos/codeflow/`).
+**Achados:** as 8 entradas de `andaime/tests/melhorias-fix.md` foram **resolvidas nos artefatos do framework em 2026-06-13** (cada uma com linha `**Resolução:**`). Resta **re-testar** o que dependia de execução comportamental: **T11** (re-rodar a recusa T1 do `/create-agent`, agora que o critério #7 foi afiado) e **T12** (`handoff`+`self-review`).
 
-## Como invocar uma meta-skill, workflow ou skill
+**Estado do koryn-ai entre sessões:**
+- `.codeflow/` populado (constitution, manifest, INDEX, discovered, skill `multi-tenant-audit`).
+- Arquivos novos do Teste 8 mantidos (não revertidos): `src/backend/app/api/v1/endpoints/me.py`, `src/backend/tests/test_me_quotes_count.py`, e modificações em `src/backend/app/api/v1/__init__.py`, `src/backend/tests/conftest.py`, `src/backend/tests/test_multitenancy.py` (refator do T9 cenário A).
+- Bug controlado do Teste 5 já foi revertido.
+- Sessão fica numa branch dedicada `codeflow-test` — quando quiser merge ou descarte, decida você.
 
-A partir de F5.8/F5.9, **workflows universais e meta-skills viram slash commands nativos** após `bash ~/.codeflow/setup-slash-commands.sh` (uma vez por máquina) — basta digitar `/bugfix`, `/discover`, `/create-workflow` etc.
+**Como retomar:** abre o Claude Code no `~/projetos/codeflow` (este repo, do framework) e diz "vamos continuar do Teste 12". O T12 (skills `handoff`+`self-review`) é o **último pendente** e roda **no koryn-ai** — não precisa de pasta nova. O T10 já foi: a pasta de teste `~/projetos/codeflow-bootstrap-test` pode ser apagada (`rm -rf`).
 
-Skills regulares (`debug-protocol`, `handoff`, `self-review`) **não** ganham slash command — são invocadas indiretamente por workflows via `LEIA TAMBÉM`, ou explicitamente por prompt quando for o caso:
+## Antes de começar
 
-> "Leia `~/.codeflow/framework/library/skills/<nome>/SKILL.md` e aplique o protocolo agora."
+### Pré-requisitos
 
-Caminhos absolutos por tipo (para referência ou fallback):
+1. **Framework instalado** em `~/.codeflow/`. Confira:
+   ```
+   ls ~/.codeflow/
+   ```
+   Deve listar `andaime/`, `framework/`, `install.sh`, `setup-slash-commands.sh`. Se faltar, refaça a instalação do framework.
 
-- Meta-skill: `~/.codeflow/framework/meta/<nome>/SKILL.md`
-- Workflow universal: `~/.codeflow/framework/library/workflows/<nome>.md`
-- Skill universal: `~/.codeflow/framework/library/skills/<nome>/SKILL.md`
+2. **Slash commands sincronizados** uma vez por máquina:
+   ```
+   bash ~/.codeflow/setup-slash-commands.sh
+   ```
+   Esse passo é validado pelo Teste 1.5 — você vai rodar de novo lá.
 
-## Convenções
+3. **Projeto-alvo:** um repositório git real de tamanho pequeno a médio, ao qual você queira aplicar o codeflow. Crie um branch dedicado antes (`git checkout -b codeflow-test`) — o codeflow só escreve em `.codeflow/`, `.gitignore` e (se você usar workflows de projeto) `.claude/commands/`, mas a precaução custa nada.
 
-- ✓ = passou; ⚠ = passou com ressalva; ✗ = falhou.
-- Cada teste declara **Objetivo**, **Passos**, **Resultado esperado**, **O que reportar**, **Sinais de alerta**.
-- Se um teste falha de forma bloqueante, pode parar e reportar — não precisa terminar todos.
+4. **Claude Code aberto na raiz do projeto-alvo** — nunca dentro de `~/projetos/codeflow/` (você ia testar o framework no próprio framework).
 
-### Tags de delegação
+### Como invocar cada artefato
 
-Cada passo e cada verificação carrega uma tag que indica quem executa:
+- **Workflows** (`/bugfix`, `/feature-small`, `/refactor-safe`, `/review-only`) e **meta-skills** (`/discover`, `/bootstrap`, `/create-skill`, `/create-workflow`, `/create-agent`) viram **slash commands nativos** após `setup-slash-commands.sh`. Basta digitar `/<nome>` no Claude Code.
+- **Skills universais** (`debug-protocol`, `handoff`, `self-review`) **não** ganham slash command. Elas são carregadas indiretamente por workflows (via `## LEIA TAMBÉM`) ou explicitamente quando você pede:
+  > "Leia `~/.codeflow/framework/library/skills/<nome>/SKILL.md` e aplique o protocolo agora."
 
-- **`[IA]`** — passo determinístico (rodar shell, comparar output, checar formato/path). Delegue a uma sessão de Claude Code: cola o prompt canônico (ver §"Prompts de delegação" no final), recebe relatório ✓/✗ com evidência. Não exige sua presença durante a execução.
-- **`[IA-EXTERNA]`** — verificação sobre o **comportamento ou saída** de uma execução de protocolo. Precisa rodar em **sessão nova de Claude Code**, sem ter lido o `SKILL.md` testado (evita conflito de interesse: a IA que executou o protocolo não pode auto-julgar se o seguiu). Cola o prompt canônico, recebe relatório.
-- **`[HUMANO]`** — passo que exige seu julgamento sobre o projeto real, sua observação visual da UI do Claude Code, ou sua interação como usuário (responder perguntas de uma meta-skill, por exemplo). Não delegável.
+### Como usar a sessão Claude Code de apoio
 
-Cobertura média estimada: ~55% `[IA]` direta, ~20% `[IA-EXTERNA]`, ~25% `[HUMANO]`.
+Em qualquer teste, se você quiser conferir se uma saída está correta sem ter que ler o `ARTIFACTS_SPEC.md` inteiro, basta colar a saída na sessão de apoio e pedir uma comparação direta. Exemplo:
+
+> "Cola aqui o `manifest.md` que foi gerado pelo `/discover` e me diz se o `validation_hash` tem 64 caracteres hex e se todas as 5 seções obrigatórias do schema §2.3 do `ARTIFACTS_SPEC.md` estão presentes na ordem certa."
+
+A sessão de apoio é **leitura/comparação** — quem executa o protocolo testado é outra sessão (a do projeto-alvo). Isso evita que a mesma IA que executou também se julgue.
+
+### Como reportar
+
+Para cada teste:
+- ✓ passou — comportamento bate com o esperado.
+- ⚠ passou com ressalva — funcionou mas algo estranho aconteceu (anote o quê).
+- ✗ falhou — algum sinal de problema da seção "Sinais de problema" disparou.
+
+Ao final, salve um relatório em `andaime/tests/RELATORIO-<data>.md` com:
+- status de cada teste,
+- bugs encontrados (e qual artefato precisa correção: `install.sh`? `meta/<nome>/SKILL.md`? `workflows/<nome>.md`?),
+- atritos de UX (onde a IA hesitou, perguntou demais, perdeu tempo),
+- sugestões de melhoria.
 
 ---
 
-## Teste 1 — `install.sh` em projeto real
+## Teste 1 — `install.sh` em projeto real ✓ (2026-05-28, koryn-ai)
 
-**Objetivo:** confirmar que `install.sh` cria `.codeflow/` sem modificar nenhum arquivo do projeto além de `.gitignore`.
+**O que valida:** o `install.sh` cria `.codeflow/` sem encostar em nada do projeto além de `.gitignore`. É idempotente.
 
-**Delegação:** `[IA]` 100%. Use o prompt §P1 (em "Prompts de delegação"). Você não precisa estar presente.
+**O que você faz:**
 
-**Passos:**
+1. Numa pasta temporária (mais seguro que rodar direto no projeto-alvo na primeira vez):
+   ```
+   mkdir -p /tmp/codeflow-test-install && cd /tmp/codeflow-test-install
+   git init -q
+   ```
+2. Anota o estado: `git status`.
+3. Roda: `bash ~/.codeflow/install.sh` — observa a saída.
+4. Confere o que mudou: `git status`.
+5. Inspeciona o que foi criado:
+   ```
+   ls -la .codeflow/
+   grep codeflow .gitignore
+   cat .codeflow/INDEX.md
+   ```
+6. **Roda de novo** (idempotência): `bash ~/.codeflow/install.sh`.
+7. Limpa quando terminar: `cd ~ && rm -rf /tmp/codeflow-test-install`.
 
-1. `[IA]` `cd <projeto-alvo>` (pode ser projeto real ou tmpdir com `git init`).
-2. `[IA]` `git status` — anota o estado.
-3. `[IA]` `bash ~/.codeflow/install.sh` — observa a saída.
-4. `[IA]` `git status` de novo.
-5. `[IA]` `ls -la .codeflow/`
-6. `[IA]` `grep codeflow .gitignore` — confirma entrada de `.codeflow/checkpoints/`.
-7. `[IA]` `cat .codeflow/INDEX.md` — deve ser placeholder.
-8. `[IA]` Rode uma 2ª vez: `bash ~/.codeflow/install.sh` (idempotência).
+**O que deve aparecer:**
 
-**Resultado esperado:**
+- Saída em pt-BR com `✓` em cada verificação; última linha aponta para `/discover` ou `/bootstrap`.
+- `.codeflow/INDEX.md` criado (placeholder), `.codeflow/decisions/`, `.codeflow/checkpoints/` presentes.
+- `.gitignore` contém `.codeflow/checkpoints/`.
+- `git status` mostra **apenas** `.codeflow/` e `.gitignore` como mudanças.
+- Na 2ª execução: mensagens viram "já existe — preservado", nada duplicado, exit code 0.
 
-- `[IA]` Mensagens pt-BR com `✓` em cada verificação; final cita `/discover` ou `/bootstrap`.
-- `[IA]` `.codeflow/INDEX.md` (placeholder), `.codeflow/decisions/`, `.codeflow/checkpoints/` criados.
-- `[IA]` `.gitignore` contém `.codeflow/checkpoints/`.
-- `[IA]` `git status` mostra **apenas** `.codeflow/` e `.gitignore` como mudanças. Código-fonte, README, CLAUDE.md etc. intocados.
-- `[IA]` 2ª execução: mensagens mudam para "já existe — preservado"; nada duplicado; `rc=0`.
+**Sinais de problema (✗):**
 
-**O que reportar:** `[IA]` saída completa das duas execuções, `git status` antes/depois, confirmação de não-modificação.
-
-**Sinais de alerta (✗):** qualquer arquivo do projeto modificado fora de `.codeflow/`, `.gitignore` e (se aplicável) `.claude/commands/`; criação de `constitution.md`, `manifest.md` ou `discovered.md` (esses dependem de `/discover` ou `/bootstrap`, nunca de `install.sh`); chamada a `git init`.
+- Algum arquivo do projeto modificado fora de `.codeflow/`, `.gitignore` (ou `.claude/commands/` se você já tinha workflows de projeto).
+- `install.sh` cria `constitution.md`, `manifest.md` ou `discovered.md` — esses devem vir só do `/discover` ou `/bootstrap`.
+- `install.sh` chama `git init` (deveria recusar quando não é repo git).
+- Não é idempotente (a 2ª execução duplica algo ou falha).
 
 ---
 
-## Teste 1.5 — Slash commands universais
+## Teste 1.5 — Slash commands universais ✓ (2026-05-28, koryn-ai)
 
-**Objetivo:** confirmar que após rodar `setup-slash-commands.sh` os workflows e meta-skills aparecem como slash commands nativos em Claude Code (`/bugfix`, `/discover` etc.).
+**O que valida:** depois de `setup-slash-commands.sh`, os 4 workflows e as 5 meta-skills aparecem como slash commands nativos no Claude Code (`/bugfix`, `/discover`, `/create-workflow` etc.).
 
-**Delegação:** ~95% `[IA]` + ~5% `[HUMANO]` (checagem visual no menu). Use o prompt §P1.5.
+**O que você faz:**
 
-**Passos:**
+1. `bash ~/.codeflow/setup-slash-commands.sh` — anota a saída.
+2. Confere os wrappers criados:
+   ```
+   ls ~/.claude/commands/ | grep -E '(bugfix|feature-small|refactor-safe|review-only|discover|bootstrap|create-)'
+   ```
+3. Espia um wrapper:
+   ```
+   cat ~/.claude/commands/bugfix.md
+   cat ~/.claude/commands/discover.md
+   ```
+   Cada um deve ter 1 linha, em pt-BR, começando com `Leia ~/.codeflow/framework/...` e mandando executar o protocolo.
+4. **Visualmente:** abra o Claude Code em qualquer projeto, digite `/` e confirme que `/bugfix`, `/discover`, `/create-workflow` aparecem na lista de comandos.
+5. (Opcional) Em sessão fresca, digite `/bugfix` e verifique que o Claude lê o workflow real e começa o protocolo.
+6. **Idempotência:** roda `bash ~/.codeflow/setup-slash-commands.sh` de novo. A saída muda para "preservado", nada se duplica.
 
-1. `[IA]` Rode uma vez por máquina (idempotente): `bash ~/.codeflow/setup-slash-commands.sh`.
-2. `[IA]` Liste os wrappers: `ls ~/.claude/commands/ | grep -E '(bugfix|feature-small|refactor-safe|review-only|discover|bootstrap|create-)'`.
-3. `[IA]` Inspecione um wrapper: `cat ~/.claude/commands/bugfix.md` — deve ter 1 linha em pt-BR começando com `Leia ~/.codeflow/framework/library/workflows/bugfix.md`.
-4. `[HUMANO]` Abra Claude Code em qualquer projeto. Digite `/` e confirme visualmente que `/bugfix`, `/discover`, `/create-workflow` aparecem na lista.
-5. `[HUMANO]` (Opcional) Digite `/bugfix` em sessão fresca e verifique que o agente lê o workflow real e começa o protocolo.
-6. `[IA]` Idempotência: rode `bash ~/.codeflow/setup-slash-commands.sh` de novo — saída muda para "preservado", nenhuma duplicação.
+**O que deve aparecer:**
 
-**Resultado esperado:**
+- 9 wrappers em `~/.claude/commands/` (4 workflows + 5 meta-skills).
+- Cada wrapper tem 1-2 linhas e referencia um path em `~/.codeflow/framework/`.
+- Slash commands aparecem no menu do Claude Code sem precisar reiniciar.
+- 2ª execução: 9 preservados, 0 criados.
 
-- `[IA]` 9 wrappers em `~/.claude/commands/` (4 workflows seed + 5 meta-skills seed).
-- `[IA]` Cada wrapper tem 1-2 linhas, referencia path absoluto em `~/.codeflow/framework/`.
-- `[HUMANO]` Slash commands aparecem em Claude Code sem reiniciar.
-- `[IA]` 2ª execução: 9 preservados, 0 criados, 0 duplicados.
+**Sinais de problema (✗):**
 
-**O que reportar:** `[IA]` saída do `setup-slash-commands.sh`; lista de `ls ~/.claude/commands/`; um exemplo de wrapper. `[HUMANO]` confirmação de que `/bugfix` aparece no menu do Claude Code.
-
-**Sinais de alerta (✗):**
-
-- Wrapper duplica conteúdo do workflow em vez de apontar para o path.
+- Wrapper duplica o conteúdo do workflow em vez de só apontar o path.
 - Wrapper tem mais de 6 linhas.
-- Slash command não aparece em Claude Code mesmo com wrapper presente (problema da ferramenta, não do codeflow — checar versão do Claude Code).
+- Slash command não aparece no menu do Claude Code mesmo com o wrapper presente (provavelmente é a versão do Claude Code, não o codeflow — verifique).
 
 ---
 
-## Teste 2 — `discover` end-to-end (TESTE PRINCIPAL)
+## Teste 2 — `/discover` em projeto existente *(teste principal)* ⚠ (2026-05-28, koryn-ai — 2 rodadas; path de incerteza ✓ na 2ª; ver melhorias-fix.md #1 e #2)
 
-**Objetivo:** validar que a meta-skill `discover` gera quatro artefatos (`constitution.md`, `manifest.md`, `INDEX.md`, `discovered.md`) coerentes com a realidade do projeto.
+**O que valida:** o `/discover` inspeciona o projeto, faz orientação de até 5 perguntas e gera 4 artefatos coerentes — `constitution.md`, `manifest.md`, `INDEX.md` e `discovered.md`.
 
-**Delegação:** ~50% `[IA-EXTERNA]` (validação estrutural pós-execução) + ~50% `[HUMANO]` (executar o protocolo respondendo perguntas; julgar veracidade sobre o projeto). Use o prompt §P2 para a validação estrutural após a execução.
+**O que você faz:**
 
-**Passos:**
+1. No Claude Code aberto no projeto-alvo, digite `/discover`.
+2. **Fase 1 — Inspeção silenciosa:** a IA deve ler arquivos, mapear estrutura, examinar commits **sem te interromper**. Observe se ela faz isso ou pula direto pra perguntar.
+3. **Fase 2 — Entrevista:** a IA deve fazer **até 5 perguntas** específicas, cada uma com contexto de "o que a inspeção encontrou". Se chegar à 5ª, deve emitir um aviso antes de fazer a 6ª.
+4. **Force ao menos uma resposta de incerteza** numa das perguntas: responda `não sei`, `o que você recomenda?`, `usa o padrão` ou `depois eu decido`. Observe se a IA respeita (marca como `[pendente]` ou aplica default), em vez de re-perguntar.
+5. Responda o resto das perguntas; confirme o resumo na pausa antes da Fase 3.
+6. Espere a IA gerar `constitution.md`, `manifest.md`, `INDEX.md`, `discovered.md` em `.codeflow/`.
+7. **Valide os 4 arquivos.** Abra cada um e confira (ou cole na sessão de apoio para comparar contra `~/.codeflow/framework/core/ARTIFACTS_SPEC.md`):
 
-1. `[HUMANO]` No Claude Code, no projeto-alvo, digite `/discover`.
-2. `[HUMANO]` Observe a Fase 1 — Inspeção silenciosa. A IA deve ler arquivos, mapear estrutura, examinar commits **sem te interromper**.
-3. `[HUMANO]` Conduza a Fase 2 — Entrevista. A IA deve fazer até **5 perguntas** como orientação (sem limite duro), específicas baseadas em hipóteses da inspeção. Se chegar à 5ª, deve emitir aviso. Force deliberadamente ao menos uma resposta de incerteza (`não sei` / `o que você recomenda` / `usa o padrão` / `depois eu decido`) para exercitar o vocabulário.
-4. `[HUMANO]` Responda as perguntas; confirme o resumo na pausa pré-Fase 3.
-5. `[HUMANO]` A IA gera `constitution.md`, `manifest.md`, `INDEX.md` em `<projeto>/.codeflow/`.
-6. `[HUMANO]` A IA gera `discovered.md` e apresenta resumo final dos 4 arquivos.
+   **`constitution.md`:**
+   - Frontmatter com `versão`, `status`, `atualizado`, `projeto`.
+   - Título exato: `# Constitution do projeto: <nome>`.
+   - Cinco seções na ordem: `## Stack`, `## Padrão arquitetural`, `## Regras invariantes específicas`, `## Áreas de alto risco`, `## Definition of Done específica`.
+   - Só declara regras que **você confirmou** ou que estão observáveis direto no código. Nada inventado sobre o seu projeto.
 
-**Resultado esperado:**
+   **`manifest.md`:**
+   - Frontmatter com `validation_hash` em **64 caracteres hex**.
+   - Versões com número real (ex: `Python 3.11.5`, não só `Python`).
+   - Cinco seções na ordem: `## Stack identificada`, `## Comandos make canônicos`, `## Padrões detectados`, `## Arquivos críticos para freshness`, `## Notas de inspeção`.
 
-- `[HUMANO]` **Orientação ≤ 5 perguntas**, específicas, não genéricas; quando passar, aviso obrigatório seguido de justificativa em `## Limitações da inspeção` do discovered. Cada pergunta cita o que a inspeção encontrou que motivou.
-- `[HUMANO]` **Pausa explícita** antes da Fase 3 aguardando sua confirmação.
-- `[HUMANO]` `constitution.md` declara apenas regras que você **confirmou** ou que foram **observadas direto no código** (sem invenção). [HUMANO porque exige conhecer o projeto]
-- `[IA-EXTERNA]` `manifest.md` tem `validation_hash` em hex de 64 caracteres; versões com número (não placeholders como `Python` solto).
-- `[IA-EXTERNA]` `INDEX.md` lista `constitution.md` e `manifest.md` em "Leia sempre primeiro".
-- `[IA-EXTERNA]` `discovered.md` contém seções: inspeção, hipóteses com rótulo `[confirmada]`/`[refutada]`/`[pendente]`, diálogo Q/R.
-- `[IA-EXTERNA]` Para cada hipótese marcada `[pendente]`, **não** há regra correspondente na constitution.
+   **`INDEX.md`:**
+   - Título exato: `# INDEX do .codeflow/ do projeto` (sem sufixo com nome).
+   - `## Leia sempre primeiro` lista `constitution.md` (item 1) e `manifest.md` (item 2).
+   - Tem 15-25 linhas.
+
+   **`discovered.md`:**
+   - Seções: `## O que foi inspecionado`, `## Hipóteses formadas`, `## Perguntas feitas ao usuário e respostas`, `## Áreas marcadas como "não tocar"`, `## Artefatos gerados a partir deste discovered`.
+   - Hipóteses rotuladas literalmente entre colchetes: `[confirmada]`, `[refutada]`, `[pendente]`.
+   - Para cada hipótese `[pendente]`: **não** existe regra correspondente em `constitution.md`.
 
 **O que reportar:**
 
-- `[IA-EXTERNA]` Estrutura de cada um dos 4 arquivos: presença de seções obrigatórias, formato do hash, rotulação das hipóteses.
-- `[HUMANO]` A IA seguiu o protocolo? Como reagiu à resposta de incerteza?
-- `[HUMANO]` Alguma pergunta foi desnecessária? Faltou alguma crítica?
-- `[HUMANO]` Algum artefato contém afirmação **falsa** sobre o seu projeto?
-- `[HUMANO]` Tempo aproximado da inspeção e da entrevista.
+- A IA seguiu Fase 1 → Fase 2 → pausa → Fase 3 → Fase 4?
+- Como reagiu à resposta de incerteza (respeitou ou insistiu)?
+- Alguma pergunta foi desnecessária ou faltou alguma crítica?
+- Algum dos 4 artefatos contém afirmação **falsa** sobre o projeto?
+- Tempo aproximado de inspeção + entrevista.
 
-**Sinais de alerta (✗):**
+**Sinais de problema (✗):**
 
-- IA pula Fase 1 e vai direto perguntar.
-- Mais de 5 perguntas **sem** o aviso intermediário e **sem** justificativa em `## Limitações da inspeção`.
-- IA insiste/re-pergunta após resposta de incerteza (`não sei`, `passa`) em vez de marcar hipótese como `[pendente]` e seguir.
-- IA gera regra em `constitution.md` baseada em hipótese `[pendente]`.
+- IA pula Fase 1 (vai direto pra pergunta sem inspecionar).
+- Passa de 5 perguntas sem o aviso intermediário e sem justificativa em `## Limitações da inspeção` no `discovered.md`.
+- Re-pergunta depois de uma resposta de incerteza (`não sei`, `passa`).
+- Gera regra em `constitution.md` baseada em hipótese ainda `[pendente]`.
 - Não pausa antes da Fase 3.
-- `constitution.md` declara regras não-confirmadas.
-- `manifest.md` afirma versões de bibliotecas que não estão no projeto.
-- `validation_hash` ausente ou em formato errado.
+- `validation_hash` ausente ou em formato errado (não 64 hex).
+- `manifest.md` cita versões de bibliotecas que não existem no projeto.
 
 ---
 
-## Teste 3 — Workflow `review-only`
+## Teste 3 — Workflow `/review-only` ✓ (2026-05-28, koryn-ai)
 
-**Objetivo:** workflow magro (sem decisão, leitura-only) funciona em diff real.
+**O que valida:** workflow magro de revisão. Não modifica nada, não gera decision.
 
-**Delegação:** ~70% `[IA]` (smoke + validação de "não modificou") + ~30% `[HUMANO]` (julgar utilidade da revisão).
+**O que você faz:**
 
-**Passos:**
+1. Faça uma mudança pequena e real no projeto (edite uma função, corrija typo, mude comentário). **Não** commita.
+2. No Claude Code: `/review-only`.
+3. Observe a revisão emitida.
+4. Depois, no terminal:
+   ```
+   git status
+   ls .codeflow/decisions/
+   ```
 
-1. `[HUMANO]` Faça uma mudança pequena e real no projeto (edite uma função, corrija typo, mude comentário). **Não** faça commit ainda.
-2. `[HUMANO]` Em Claude Code: digite `/review-only`.
-3. `[HUMANO]` Observe a revisão emitida.
+**O que deve aparecer:**
 
-**Resultado esperado:**
+- Revisão estruturada conforme os passos do workflow, citando regras de `constitution.md` quando aplicáveis.
+- `git status` mostra **as mesmas modificações que existiam antes** do `/review-only` (a IA não tocou em nada).
+- `.codeflow/decisions/` **não** ganhou arquivo novo nesta sessão (workflow é `gera_decision: no`).
 
-- `[HUMANO]` Revisão estruturada conforme os passos do workflow.
-- `[IA]` **Nenhum arquivo modificado** pela IA (`git status` mostra mesmas modificações de antes da execução).
-- `[IA]` **Nenhum decision** gerado em `.codeflow/decisions/` (`gera_decision: no`).
-- `[IA-EXTERNA]` A revisão menciona claramente as regras de `constitution.md` que aplicou (pode-se confirmar lendo o output).
+**Sinais de problema (✗):**
 
-**O que reportar:** `[HUMANO]` a revisão emitida + se a IA respeitou que não devia modificar + se a revisão foi útil ou genérica. `[IA]` `git status` + `ls .codeflow/decisions/` após execução.
-
-**Sinais de alerta (✗):** IA propõe ou aplica edits no código; IA cria decision; IA ignora `constitution.md`.
-
----
-
-## Teste 4 — `create-skill` (criar skill no nível de projeto)
-
-**Objetivo:** validar que `create-skill` cria nova skill **a nível de projeto** (não universal) e faz qualificação antes de criar.
-
-**Delegação:** ~70% `[IA]` (validar formato/path/ausência de wrapper) + ~20% `[IA-EXTERNA]` (qualificação ocorreu?) + ~10% `[HUMANO]` (escolher tarefa).
-
-**Passos:**
-
-1. `[HUMANO]` Pense em uma tarefa repetitiva específica do seu projeto não coberta por skill existente (ex: "validar formato de migração antes de aplicar", "preparar checklist de release").
-2. `[HUMANO]` Em Claude Code: digite `/create-skill` e descreva a tarefa quando solicitado.
-3. `[HUMANO]` A IA deve **primeiro qualificar**: a tarefa cabe em workflow ou rule existente? Skill é mesmo o tipo certo?
-4. `[HUMANO]` Se sim, responde perguntas; IA gera `SKILL.md` em `<projeto>/.codeflow/skills/<X>/SKILL.md`.
-
-**Resultado esperado:**
-
-- `[IA-EXTERNA]` IA **qualifica antes** de criar (transcript mostra perguntas de qualificação antes de qualquer geração de arquivo).
-- `[IA]` Skill criada em `<projeto>/.codeflow/skills/<X>/SKILL.md`, **não** em `~/.codeflow/framework/library/skills/`.
-- `[IA]` 6 seções obrigatórias presentes; **sem** `## Definition of Done`; **sem** `## LEIA TAMBÉM` no formato proibido.
-- `[IA]` Frontmatter com `descrição` em uma linha.
-- `[IA]` **NÃO** existe wrapper em `~/.claude/commands/<X>.md` nem em `<projeto>/.claude/commands/<X>.md` — `ls ~/.claude/commands/ | grep <X>` retorna vazio.
-
-**O que reportar:** `[IA]` skill gerada (caminho + conteúdo) + ausência de wrapper. `[HUMANO]` a qualificação inicial foi útil ou pulada?; a IA tentou pôr em `framework/library/`?
-
-**Sinais de alerta (✗):**
-
-- IA cria diretamente em `~/.codeflow/framework/library/skills/` (viola política de evolução — promoção exige uso em 2 projetos distintos, ver `framework/core/EVOLUTION.md`).
-- IA não qualifica antes.
-- Skill com `## Definition of Done` ou `## LEIA TAMBÉM`.
+- IA propõe ou aplica edits no código.
+- IA cria decision.
+- IA ignora a `constitution.md` (revisão genérica, sem referência ao projeto).
 
 ---
 
-## Teste 5 (opcional) — Workflow `bugfix` com decision
+## Teste 4 — `/create-skill` (skill no nível do projeto) ✓ (2026-05-28, koryn-ai/multi-tenant-audit)
 
-**Objetivo:** workflow médio com geração automática de decision em pontos não-óbvios.
+**O que valida:** `create-skill` qualifica antes de criar, salva no projeto (não no framework universal), gera o formato certo e **não** cria slash command.
 
-**Delegação:** ~60% `[IA]` (validar decision + DoD + teste novo) + ~10% `[IA-EXTERNA]` (workflow seguido?) + ~30% `[HUMANO]` (foi causa raiz ou superficial?).
+**O que você faz:**
 
-**Passos:**
+1. Pense em uma tarefa repetitiva específica do seu projeto que **não** é coberta por skill existente (ex: "validar formato de migração antes de aplicar", "preparar checklist de release").
+2. `/create-skill` no Claude Code. Descreva a tarefa quando perguntar.
+3. **Observe a qualificação:** a IA deve primeiro perguntar se a necessidade não cabe melhor em rule (regra estática) ou workflow (sequência com decisões). Só depois propõe criar skill.
+4. Se for skill mesmo, ela vai gerar o arquivo.
+5. Confira:
+   ```
+   ls <projeto>/.codeflow/skills/<X>/SKILL.md
+   ls ~/.claude/commands/ | grep <X>
+   ls <projeto>/.claude/commands/ | grep <X>
+   ```
+6. Abra o `SKILL.md` e confira:
+   - Frontmatter com `descrição` em uma linha.
+   - 6 seções obrigatórias do schema §1.8.5 do `ARTIFACTS_SPEC.md` (cole na sessão de apoio se preferir comparar lá).
+   - **Não** tem `## Definition of Done` (skill regular não usa esse formato).
+   - **Não** tem `## LEIA TAMBÉM` no formato proibido.
 
-1. `[HUMANO]` Identifique (ou simule) um bug real no projeto.
-2. `[HUMANO]` Em Claude Code: digite `/bugfix` e descreva o bug.
-3. `[HUMANO]` Acompanhe os passos do workflow.
+**O que deve aparecer:**
 
-**Resultado esperado:**
+- Skill em `<projeto>/.codeflow/skills/<X>/SKILL.md`, **não** em `~/.codeflow/framework/library/skills/`.
+- Nenhum wrapper em `~/.claude/commands/<X>.md` nem em `<projeto>/.claude/commands/<X>.md` — `ls | grep` volta vazio.
+- Qualificação aconteceu antes da geração.
 
-- `[IA-EXTERNA]` Workflow segue o esqueleto (reprodução, isolamento, fix mínimo, teste) — verificável no transcript.
-- `[IA]` Em escolhas não-óbvias, existe pelo menos um arquivo em `.codeflow/decisions/<data>-<titulo>.md` criado nesta sessão.
-- `[IA]` Definition of Done verificada antes do "pronto" (`make check` ou equivalente verde).
-- `[IA]` Teste de regressão adicionado cobrindo o caso reportado.
+**Sinais de problema (✗):**
 
-**O que reportar:** `[IA]` decisions criados + diff do teste + saída do `make check`. `[HUMANO]` a correção foi causa raiz ou cosmética?; decisions úteis ou ruidosos?
-
----
-
-## Teste 7 (opcional) — Workflow de projeto com slash command
-
-**Objetivo:** validar que workflow criado a nível de projeto vira slash command local automaticamente.
-
-**Delegação:** ~80% `[IA]` (validar arquivo + wrapper + paths) + ~20% `[HUMANO]` (confirmação visual no menu, escopo local).
-
-**Passos:**
-
-1. `[HUMANO]` Em Claude Code, no projeto-alvo: digite `/create-workflow` e descreva o workflow específico do projeto.
-2. `[HUMANO]` Confirme destino "projeto" (não universal). O arquivo deve aparecer em `<projeto>/.codeflow/workflows/<Z>.md`.
-3. `[IA]` Rode `bash ~/.codeflow/install.sh` novamente no projeto.
-4. `[IA]` Verifique que `<projeto>/.claude/commands/<Z>.md` foi criado.
-5. `[HUMANO]` Em Claude Code, dentro do projeto, digite `/` e confirme visualmente que `/<Z>` aparece.
-6. `[HUMANO]` Mude para outro projeto: `/<Z>` **não** deve aparecer ali (é local).
-
-**Resultado esperado:**
-
-- `[IA]` Workflow em `.codeflow/workflows/<Z>.md` (versionado no projeto).
-- `[IA]` Wrapper em `.claude/commands/<Z>.md` referenciando o path absoluto do workflow (não `~/...`).
-- `[HUMANO]` Slash command `/<Z>` disponível apenas dentro do projeto.
-- `[IA]` `install.sh` exibe aviso sobre `.gitignore` para `.claude/commands/` mas não força.
-
-**O que reportar:** `[IA]` workflow criado + output do `install.sh` na 2ª rodada + path do wrapper. `[HUMANO]` confirmação visual de que `/<Z>` é local.
+- IA criou direto em `~/.codeflow/framework/library/skills/` (viola política de evolução — promoção exige uso em 2+ projetos, ver `framework/core/EVOLUTION.md`).
+- IA não qualifica antes (pula direto pra gerar).
+- Skill criada com `## Definition of Done` ou `## LEIA TAMBÉM` no formato proibido.
+- Ganhou slash command.
 
 ---
 
-## Teste 8 — Workflow `/feature-small` end-to-end
+## Teste 5 *(opcional)* — Workflow `/bugfix` com decision ✓ (2026-05-28, koryn-ai bug controlado — ver melhorias-fix.md #3)
 
-**Objetivo:** validar workflow médio que implementa feature pequena com decisions automáticas e self-review.
+**O que valida:** workflow médio que reproduz, isola, corrige causa raiz, adiciona teste e gera decision em escolhas não-óbvias.
 
-**Delegação:** ~60% `[IA]` (teste novo, decision, make check) + ~20% `[IA-EXTERNA]` (self-review aplicado no transcript?) + ~20% `[HUMANO]` (refactor lateral?).
+**O que você faz:**
 
-**Passos:**
+1. Identifique (ou simule) um bug real no projeto.
+2. `/bugfix` no Claude Code. Descreva o bug.
+3. Acompanhe os passos do workflow.
+4. Ao final:
+   ```
+   ls .codeflow/decisions/
+   make check         # ou comando equivalente do projeto
+   git diff -- '*test*' '*spec*'
+   ```
 
-1. `[HUMANO]` Identifique uma feature pequena real no projeto (1-3 arquivos, interface clara, sem decisão arquitetural maior).
-2. `[HUMANO]` Em Claude Code, no projeto-alvo: digite `/feature-small` e descreva a feature.
-3. `[HUMANO]` Acompanhe o protocolo: a IA deve carregar `constitution.md` (universal + projeto) e rules relevantes, implementar o mínimo, adicionar teste, rodar `make check` (ou equivalente) e aplicar `self-review` antes do "pronto".
+**O que deve aparecer:**
 
-**Resultado esperado:**
+- Workflow segue o esqueleto: reprodução → isolamento → fix mínimo → teste novo.
+- Em escolhas não-óbvias: pelo menos um arquivo em `.codeflow/decisions/<data>-<titulo>.md`.
+- Definition of Done verificada antes de declarar pronto (`make check` ou equivalente verde).
+- Teste de regressão novo cobrindo o caso reportado.
+- A correção atacou causa raiz, não só o sintoma.
 
-- `[HUMANO]` Implementação cobre **exatamente** a feature pedida — sem refactor lateral, sem feature paralela, sem "while we're at it".
-- `[IA]` Teste novo presente cobrindo o comportamento adicionado (verificável por `git diff` + execução).
-- `[IA]` Em `.codeflow/decisions/` existe pelo menos um arquivo da sessão se houve escolha não-óbvia (`gera_decision: auto`).
-- `[IA-EXTERNA]` Self-review aparece no transcript com ações explícitas (relê diff, checklist), não apenas menção.
-- `[IA]` `make check` (ou comando canônico do projeto) verde antes do "pronto".
+**Sinais de problema (✗):**
 
-**O que reportar:** `[IA]` diff final + decisions criadas + saída do `make check`. `[IA-EXTERNA]` evidência do self-review no transcript. `[HUMANO]` algum refactor lateral indevido?
+- Correção cosmética (esconde o sintoma).
+- Sem teste novo.
+- Sem decision em escolha que claramente exigiria registro.
+- `make check` ficou vermelho e a IA declarou pronto mesmo assim.
 
-**Sinais de alerta (✗):**
+---
+
+## Teste 6 *(opcional)* — Desinstalação manual
+
+**O que valida:** dá pra remover o codeflow de um projeto sem deixar lixo.
+
+**O que você faz:**
+
+1. `rm -rf .codeflow/`
+2. Edite `.gitignore` removendo a linha `.codeflow/checkpoints/` (ou apague o `.gitignore` se ele só foi criado pelo `install.sh`).
+3. Se você criou workflows de projeto e wrappers locais: `rm -rf .claude/commands/` (decida caso a caso se quer remover só os wrappers gerados ou tudo).
+
+Não há `uninstall.sh` — a desinstalação é trivial e isso é por design.
+
+---
+
+## Teste 7 *(opcional)* — Workflow de projeto + slash command local
+
+**O que valida:** workflow criado a nível de projeto vira slash command **local** automaticamente (só aparece dentro daquele projeto).
+
+**O que você faz:**
+
+1. No Claude Code, no projeto-alvo: `/create-workflow` e descreva um workflow específico do projeto.
+2. Confirme destino "projeto" (não universal). O arquivo deve aparecer em `<projeto>/.codeflow/workflows/<Z>.md`.
+3. Roda `bash ~/.codeflow/install.sh` de novo dentro do projeto. Esse re-run vai gerar o wrapper local.
+4. Verifica:
+   ```
+   ls <projeto>/.codeflow/workflows/<Z>.md
+   cat <projeto>/.claude/commands/<Z>.md
+   ```
+5. No Claude Code dentro do projeto, digite `/` e confirme que `/<Z>` aparece no menu.
+6. Mude para outro projeto: `/<Z>` **não** deve aparecer ali (é local, não universal).
+
+**O que deve aparecer:**
+
+- Workflow em `.codeflow/workflows/<Z>.md` versionado no projeto.
+- Wrapper em `.claude/commands/<Z>.md` referenciando o **path absoluto** do workflow (não usa `~/`).
+- Slash command `/<Z>` aparece só dentro do projeto.
+- `install.sh` exibe aviso sobre `.gitignore` para `.claude/commands/` mas não força.
+
+**Sinais de problema (✗):**
+
+- Wrapper local usa `~/` no path (devia ser absoluto pra apontar pro próprio projeto).
+- `/<Z>` aparece em outros projetos (vazou pra escopo universal).
+
+---
+
+## Teste 8 — Workflow `/feature-small` end-to-end ⚠ (2026-05-28, koryn-ai/GET-me-quotes-count — ver melhorias-fix.md #4)
+
+**O que valida:** workflow médio que implementa feature pequena com decisions automáticas em escolhas não-óbvias e self-review antes do "pronto".
+
+**O que você faz:**
+
+1. Identifique uma feature pequena real no projeto (1-3 arquivos, interface clara, sem decisão arquitetural maior).
+2. `/feature-small`. Descreva a feature.
+3. Acompanhe o protocolo: a IA deve carregar `constitution.md` (universal + projeto) e rules relevantes, implementar o mínimo, adicionar teste, rodar `make check` (ou equivalente) e aplicar `self-review` antes de declarar pronto.
+4. Ao final:
+   ```
+   git diff --stat HEAD
+   ls .codeflow/decisions/
+   make check
+   git diff HEAD -- '*test*' '*spec*'
+   ```
+
+**O que deve aparecer:**
+
+- Implementação cobre **exatamente** a feature pedida — sem refactor lateral, sem feature paralela, sem "while we're at it".
+- Teste novo cobrindo o comportamento adicionado (visível no diff).
+- Em `.codeflow/decisions/`: pelo menos um arquivo desta sessão se houve escolha não-óbvia (`gera_decision: auto`).
+- Self-review aparece visivelmente no transcript (a IA relê o diff, lista verificações, declara achados) — não basta mencionar "fiz self-review".
+- `make check` (ou comando canônico do projeto) verde antes do "pronto".
+
+**Sinais de problema (✗):**
 
 - Refactor lateral fora do escopo declarado.
 - Sem teste novo cobrindo a feature.
-- Sem self-review antes de declarar pronto.
-- Decision gerada para escolha trivial (ruído) ou ausente em escolha não-óbvia.
-- IA ignora `constitution.md` ou rules relevantes.
+- Sem self-review visível antes do "pronto" (só uma menção textual).
+- Decision gerada para escolha trivial (ruído) ou ausente em escolha claramente não-óbvia.
+- IA ignora `constitution.md` ou rules carregadas.
 
 ---
 
-## Teste 9 — Workflow `/refactor-safe`
+## Teste 9 — Workflow `/refactor-safe` (com gate de cobertura) ⚠ (2026-05-28, koryn-ai — cenário A ✓; cenário B recusou mas ofereceu override; ver melhorias-fix.md #5)
 
-**Objetivo:** validar workflow de refator com gate de cobertura — recusa quando suite é insuficiente.
+**O que valida:** workflow de refator. Suite verde antes e depois. **Recusa** quando a área não tem cobertura suficiente.
 
-**Delegação:** ~70% `[IA]` (suite, diff, ausência de decision) + ~20% `[IA-EXTERNA]` (recusa cenário B?) + ~10% `[HUMANO]` (escolher função coberta vs não-coberta).
+**O que você faz:**
 
-**Passos:**
+### Cenário A — caminho feliz
 
-1. `[HUMANO]` **Cenário A (caminho feliz):** escolha uma função/módulo do projeto que tenha **cobertura de teste passando**. Em Claude Code: digite `/refactor-safe` e descreva (extrair função X, rename, divisão de função grande).
-2. `[HUMANO]` Observe o protocolo: a IA deve confirmar cobertura antes de refatorar, rodar suite, aplicar mudança, rodar suite de novo.
-3. `[HUMANO]` **Cenário B (gate de cobertura):** escolha um módulo propositalmente **sem testes** e peça refator nele.
-4. `[HUMANO]` A IA deve **recusar** e redirecionar para `/feature-small` ou `/bugfix` para adicionar testes antes.
+1. Escolha uma função ou módulo do projeto que **tenha cobertura de teste passando**.
+2. `/refactor-safe`. Descreva (extrair função X, rename, dividir função grande).
+3. Observe: a IA deve confirmar cobertura antes de refatorar, rodar suite, aplicar mudança, rodar suite de novo.
+4. Ao final:
+   ```
+   git diff --stat
+   make test         # capture exit code
+   ls .codeflow/decisions/
+   ```
 
-**Resultado esperado:**
+### Cenário B — gate de cobertura
 
-- `[IA]` **Cenário A:** suite verde antes e depois (capturar exit code); diff minimalista (`git diff --stat`); nenhum decision gerado (`ls .codeflow/decisions/` sem arquivo novo).
-- `[HUMANO]` **Cenário A:** comportamento observável idêntico (não é mais refator se mudou).
-- `[IA-EXTERNA]` **Cenário B:** transcript contém recusa explícita citando ausência de cobertura; sugestão clara de próximo passo.
+1. Escolha um módulo propositalmente **sem testes** e peça refator nele.
+2. A IA deve **recusar** e redirecionar para `/feature-small` ou `/bugfix` para adicionar testes primeiro.
 
-**O que reportar:** `[IA]` diff + saídas da suite (A) + decisions vazio. `[IA-EXTERNA]` texto da recusa (B). `[HUMANO]` comportamento preservado em A?
+**O que deve aparecer:**
 
-**Sinais de alerta (✗):**
+- **Cenário A:** suite verde antes e depois (exit 0 nos dois pontos); diff minimalista; comportamento observável **idêntico** (não é mais refator se mudou); nenhum decision novo (`refactor-safe` é `gera_decision: no`).
+- **Cenário B:** recusa explícita no transcript citando ausência de cobertura; sugestão clara de próximo passo.
+
+**Sinais de problema (✗):**
 
 - IA refatora sem checar cobertura.
-- Diff muda comportamento observável (não é mais refator).
-- Suite quebra após o refator.
-- Decision criado em `.codeflow/decisions/` (refactor-safe é `gera_decision: no`).
-- IA inclui melhorias oportunistas não-pedidas.
-- IA **não** recusa no cenário B (refatora sem cobertura).
+- Diff muda comportamento observável.
+- Suite quebra depois do refator.
+- Decision criado em `.codeflow/decisions/`.
+- IA incluiu melhorias oportunistas não pedidas.
+- IA **não** recusa no cenário B (refatora sem cobertura mesmo assim).
 
 ---
 
-## Teste 10 — `/bootstrap` (projeto novo do zero)
+## Teste 10 — `/bootstrap` em projeto novo do zero
 
-**Objetivo:** validar meta-skill que cria projeto novo sem código pré-existente — contraparte do `/discover`.
+**O que valida:** contraparte do `/discover` para projeto **novo**, sem código pré-existente. Não gera `discovered.md`.
 
-**Delegação:** ~70% `[IA-EXTERNA]` (validar estrutura gerada) + ~15% `[HUMANO]` (executar fases interativas, julgar coerência) + ~15% `[IA]` (setup tmpdir).
+**O que você faz:**
 
-**Passos:**
+1. Pasta vazia:
+   ```
+   mkdir /tmp/codeflow-bootstrap-test && cd /tmp/codeflow-bootstrap-test
+   git init -q
+   ```
+2. **Não** rode `install.sh` antes — `/bootstrap` cuida da estrutura inteira.
+3. Abra Claude Code nessa pasta.
+4. `/bootstrap`. Descreva nome e propósito do projeto quando perguntado.
+5. A IA deve passar pelas **5 fases**, com **pausas obrigatórias** em Fase 1, 2 e 5:
+   - **Fase 1:** coleta nome, propósito, tipo (CLI/lib/serviço/app/etc.), licença, idioma.
+   - **Fase 2:** decide stack com base nas respostas e pede confirmação.
+   - **Fase 3:** gera estrutura mínima do projeto (não só `.codeflow/`).
+   - **Fase 4:** gera artefatos do `.codeflow/`: `constitution.md`, `manifest.md`, `INDEX.md`.
+   - **Fase 5:** pausa final apresentando o estado e próximos passos.
+6. Ao final, no terminal:
+   ```
+   ls -la
+   test -f .codeflow/discovered.md && echo VIOLAÇÃO || echo OK
+   cat Makefile
+   ```
+7. Confere os 3 artefatos como no Teste 2 (frontmatter, seções, validation_hash 64 hex).
+8. Limpa: `cd ~ && rm -rf /tmp/codeflow-bootstrap-test`.
 
-1. `[IA]` Em pasta vazia: `mkdir /tmp/codeflow-bootstrap-test && cd /tmp/codeflow-bootstrap-test && git init`.
-2. `[HUMANO]` **Não** rode `install.sh` antes — `/bootstrap` cuida da estrutura.
-3. `[HUMANO]` Abra Claude Code nessa pasta.
-4. `[HUMANO]` Digite `/bootstrap` e descreva nome do projeto e propósito quando perguntado.
-5. `[HUMANO]` A IA deve passar pelas **5 fases**, com pausas obrigatórias em Fase 1, 2 e 5:
-   - Fase 1: coleta nome, propósito, tipo (CLI/lib/serviço/app/etc.), licença, idioma.
-   - Fase 2: decide stack com base nas respostas; pede confirmação.
-   - Fase 3: gera estrutura mínima (não só `.codeflow/`).
-   - Fase 4: gera artefatos do `.codeflow/`: `constitution.md`, `manifest.md`, `INDEX.md`.
-   - Fase 5: pausa final apresentando estado e próximos passos.
-6. `[IA]` Verifique:
-   - `ls -la` mostra arquivos do projeto + `.codeflow/`.
-   - `test -f .codeflow/discovered.md && echo PRESENTE || echo AUSENTE` deve imprimir `AUSENTE` (esse arquivo **não** é gerado por bootstrap — `ARTIFACTS_SPEC.md` §2.4.1).
-   - `cat Makefile` mostra 4 targets canônicos (check, test, lint, typecheck).
+**O que deve aparecer:**
 
-**Resultado esperado:**
+- 5 fases com pausas visíveis em 1, 2, 5.
+- Estrutura mínima **coerente com o tipo de projeto declarado** (CLI vira CLI; biblioteca vira biblioteca; não esqueleto genérico).
+- `Makefile` com os 4 targets canônicos: `check`, `test`, `lint`, `typecheck`.
+- 3 artefatos em `.codeflow/`: `constitution.md`, `manifest.md`, `INDEX.md`.
+- `discovered.md` **não existe** — o teste com `test -f ... && echo VIOLAÇÃO || echo OK` deve imprimir `OK`.
+- `manifest.md` com versões reais decididas na Fase 2 (não placeholders) e `validation_hash` em 64 hex.
 
-- `[HUMANO]` 5 fases executadas com pausas em 1, 2, 5 observáveis na sessão.
-- `[HUMANO]` Estrutura mínima coerente com o tipo de projeto declarado (não esqueleto genérico).
-- `[IA]` Makefile canônico presente com os 4 targets.
-- `[IA]` 3 artefatos em `.codeflow/`: `constitution.md`, `manifest.md`, `INDEX.md`. **NÃO** existe `discovered.md`.
-- `[IA-EXTERNA]` `manifest.md` com versões reais decididas durante a Fase 2 (não placeholders); frontmatter completo; validation_hash em 64 hex.
-- `[HUMANO]` `constitution.md` com regras mínimas declaradas, sem invenção sobre o domínio.
-
-**O que reportar:** `[IA]` `tree -L 2 -a` + conteúdo dos 3 artefatos + confirmação de ausência de `discovered.md`. `[HUMANO]` observação das pausas + tempo total.
-
-**Sinais de alerta (✗):**
+**Sinais de problema (✗):**
 
 - IA gera `discovered.md` (viola `ARTIFACTS_SPEC.md` §2.4.1 — bootstrap não inspeciona porque não há código pré-existente).
-- Sem pausa nas Fases 1, 2, ou 5.
+- Sem pausa nas Fases 1, 2 ou 5.
 - Estrutura genérica que ignora o tipo de projeto declarado.
-- Sem Makefile canônico (ou Makefile com targets diferentes dos 4).
-- Constitution especulando regras não-confirmadas.
+- Sem `Makefile` ou `Makefile` com targets diferentes dos 4 canônicos.
+- `constitution.md` especulando regras não-confirmadas.
 - IA pula a Fase 2 (escolhe stack sem confirmar).
 
 ---
 
 ## Teste 11 — `/create-agent` (foco em recusa)
 
-**Objetivo:** validar que `create-agent` **recusa** criação quando skill regular bastaria — anti-padrão §1.10.7 do `ARTIFACTS_SPEC.md`.
+**O que valida:** `create-agent` **recusa** criação quando skill regular bastaria — anti-padrão §1.10.7 do `ARTIFACTS_SPEC.md`.
 
-**Delegação:** ~30% `[IA]` (validar ausência/presença de arquivos e wrappers) + ~40% `[IA-EXTERNA]` (recusa fez sentido?) + ~30% `[HUMANO]` (conduzir as duas tentativas).
+**O que você faz:**
 
-**Passos:**
+### Tentativa 1 — esperada recusa
 
-1. `[HUMANO]` **Tentativa 1 — esperada recusa:** em Claude Code digite `/create-agent` e proponha: *"criar um agent que aplique nosso checklist de revisão de código"*. (Esta tarefa **não** exige isolamento mecânico — skill regular basta.)
-2. `[HUMANO]` A IA deve **qualificar** e **recusar**, redirecionando para `/create-skill`.
-3. `[IA]` Verifique que nenhum arquivo de agent foi criado nesta tentativa.
-4. `[HUMANO]` **Tentativa 2 — esperada aprovação:** digite `/create-agent` e proponha: *"criar um agent read-only que faça auditoria de dependências, sem capacidade de modificar nenhum arquivo do projeto"*. (Justifica isolamento mecânico — restrição de ferramentas a leitura.)
-5. `[HUMANO]` A IA deve prosseguir e gerar o agent.
-6. `[IA]` `ls ~/.claude/commands/ | grep <nome-do-agent>` deve retornar vazio — agents não ganham slash command.
+1. `/create-agent`. Proponha:
+   > "criar um agent que aplique nosso checklist de revisão de código"
 
-**Resultado esperado:**
+   Essa tarefa **não** exige isolamento mecânico — skill regular basta.
+2. A IA deve **qualificar e recusar**, redirecionando para `/create-skill`.
+3. Confere que nenhum agent foi criado:
+   ```
+   ls ~/.codeflow/framework/library/agents/ 2>/dev/null
+   ls <projeto>/.codeflow/agents/ 2>/dev/null
+   ```
 
-- `[IA-EXTERNA]` **Tentativa 1:** transcript contém recusa explícita citando que skill regular basta; sugere `/create-skill`.
-- `[IA]` **Tentativa 1:** nenhum arquivo de agent criado (procurar em `~/.codeflow/framework/library/agents/` e `<projeto>/.codeflow/agents/`).
-- `[IA]` **Tentativa 2:** arquivo de agent gerado em path correto.
-- `[IA-EXTERNA]` **Tentativa 2:** arquivo contém seção de escopo de ferramentas restrito declarado.
-- `[IA]` **Tentativa 2:** nenhum wrapper de slash command criado.
+### Tentativa 2 — esperada aprovação
 
-**O que reportar:** `[IA-EXTERNA]` texto da recusa (tentativa 1) + conteúdo do agent (tentativa 2). `[IA]` listagens de arquivos. `[HUMANO]` a recusa foi convincente?
+1. `/create-agent`. Proponha:
+   > "criar um agent read-only que faça auditoria de dependências, sem capacidade de modificar nenhum arquivo do projeto"
 
-**Sinais de alerta (✗):**
+   Justifica isolamento (restrição mecânica de ferramentas a leitura).
+2. A IA deve prosseguir e gerar o agent.
+3. Confere:
+   ```
+   ls <projeto>/.codeflow/agents/
+   ls ~/.claude/commands/ | grep <nome-do-agent>     # deve voltar vazio
+   ```
+4. Abra o arquivo do agent gerado e confirme que tem seção declarando **escopo de ferramentas restrito** (a lista de ferramentas que ele pode usar é menor que a padrão).
+
+**O que deve aparecer:**
+
+- **Tentativa 1:** recusa explícita citando que skill regular basta + sugestão de `/create-skill`. Nenhum arquivo de agent criado.
+- **Tentativa 2:** agent gerado em path correto, com seção de escopo de ferramentas restrito.
+- Em ambas: nenhum slash command criado (agents não viram slash command).
+
+**Sinais de problema (✗):**
 
 - IA cria agent para a tentativa 1 (deveria recusar — anti-padrão §1.10.7).
 - IA recusa também a tentativa 2 (excesso de zelo).
@@ -412,282 +537,66 @@ Cobertura média estimada: ~55% `[IA]` direta, ~20% `[IA-EXTERNA]`, ~25% `[HUMAN
 
 ## Teste 12 — Skills carregadas (`handoff` + `self-review`)
 
-**Objetivo:** validar que skills universais são **lidas e aplicadas** por workflows, não apenas citadas no `LEIA TAMBÉM`.
+**O que valida:** as skills universais são **lidas e aplicadas** pelos workflows, não só citadas no `## LEIA TAMBÉM`.
 
-**Delegação:** ~30% `[IA]` (validação de formato) + ~40% `[IA-EXTERNA]` (campos do handoff vs SKILL.md; checklist self-review vs SKILL.md) + ~30% `[HUMANO]` (observar execução durante o workflow).
+### Parte A — `self-review` aplicado em workflow
 
-### Parte A — `self-review`
+**O que você faz:**
 
-**Passos:**
+1. Rode `/feature-small` ou `/bugfix` no projeto-alvo (pode reaproveitar o Teste 8).
+2. Imediatamente antes da IA declarar "pronto", observe se ela aplica o protocolo de `self-review` **visivelmente**: relê o diff inteiro, aplica checklist objetivo (escopo, mínimo necessário, testes), declara achados.
+3. Se tiver dúvida, pergunte direto na sessão:
+   > "Qual checklist exato do `self-review` você aplicou? Cite cada item."
+4. Compare a resposta com `~/.codeflow/framework/library/skills/self-review/SKILL.md` (pode colar na sessão de apoio para comparação item a item).
 
-1. `[HUMANO]` Rode `/feature-small` ou `/bugfix` no projeto-alvo (pode aproveitar o Teste 8).
-2. `[HUMANO]` Imediatamente antes de a IA declarar "pronto", observe se ela aplica o protocolo de `self-review` de forma **visível**: reler o diff inteiro, aplicar checklist objetivo.
-3. `[HUMANO]` Se houver dúvida, pergunte: *"qual checklist exato você aplicou?"*. Anote a resposta.
+**O que deve aparecer:**
 
-**Resultado esperado:**
+- Self-review executado durante a sessão, com ações observáveis (relê diff, lista verificações, declara achados).
+- O checklist citado bate item por item com o `SKILL.md` original — sem invenção, sem omissão.
 
-- `[HUMANO]` Self-review é executado durante a sessão, não só citado. Ações observáveis: relê diff, lista verificações, declara achados.
-- `[IA-EXTERNA]` Checklist citado/aplicado bate item a item com os passos de `~/.codeflow/framework/library/skills/self-review/SKILL.md`.
+**Sinais de problema (✗):**
 
-**Sinais de alerta (✗):**
+- IA diz "fiz self-review" sem ação visível.
+- Checklist citado difere do conteúdo real do `SKILL.md` (campos inventados ou itens omitidos).
 
-- `[HUMANO]` IA diz "fiz self-review" sem ação visível.
-- `[IA-EXTERNA]` Checklist citado difere do conteúdo do `SKILL.md`.
+### Parte B — `handoff` em trabalho parcial
 
-### Parte B — `handoff`
+**O que você faz:**
 
-**Passos:**
+1. Crie uma situação de trabalho parcial real: rode `/feature-small` (ou outro) e **interrompa pela metade** dizendo que vai parar.
+2. Instrua:
+   > "Termine esta sessão com um handoff conforme `~/.codeflow/framework/library/skills/handoff/SKILL.md`."
+3. A IA deve gerar arquivo/bloco de handoff.
+4. Compare o handoff com o template em `~/.codeflow/framework/library/skills/handoff/SKILL.md` (sessão de apoio ajuda).
 
-1. `[HUMANO]` Crie uma situação de trabalho parcial real: rode `/feature-small` ou similar e **interrompa** quando estiver pela metade.
-2. `[HUMANO]` Instrua: *"Termine esta sessão com um handoff conforme `~/.codeflow/framework/library/skills/handoff/SKILL.md`."*
-3. `[HUMANO]` A IA deve gerar arquivo/bloco de handoff.
+**O que deve aparecer:**
 
-**Resultado esperado:**
+- Handoff no formato fixo da skill: **estado em uma linha**, **próximo passo concreto**, **decisões em aberto**. Conciso, sem prosa explicativa.
+- **Próximo passo é físico e específico:** arquivo + ação ou comando exato. Não vale "continuar trabalho" nem "seguir implementação".
 
-- `[IA-EXTERNA]` Handoff segue o formato fixo do `SKILL.md`: estado em uma linha, próximo passo concreto, decisões em aberto. Conciso. Sem campos inventados.
-- `[IA-EXTERNA]` Próximo passo é físico e específico (arquivo + ação ou comando), não "continuar trabalho".
+**Sinais de problema (✗):**
 
-**Sinais de alerta (✗):**
-
-- `[IA-EXTERNA]` Handoff vira prosa explicativa em vez de formato fixo.
-- `[IA-EXTERNA]` IA inventa campos que não estão na skill.
-- `[IA-EXTERNA]` Próximo passo genérico.
-
-**O que reportar (Parte A + B):** `[HUMANO]` evidências de execução visíveis na sessão. `[IA-EXTERNA]` comparação dos campos/checklist contra os SKILL.md originais.
-
----
-
-## Teste 6 — Desinstalação manual
-
-Para remover o codeflow do projeto após o teste:
-
-1. `rm -rf .codeflow/`
-2. Edite `.gitignore` removendo a linha `.codeflow/checkpoints/` (ou apague o `.gitignore` se foi criado só pelo install).
-
-Não há `uninstall.sh` — a desinstalação é trivial.
+- Handoff vira prosa explicativa em vez de formato fixo.
+- IA inventa campos que não estão na skill.
+- "Próximo passo" genérico, não acionável.
 
 ---
 
-## Como reportar os achados
+## Cadência sugerida depois do teste
 
-Para cada teste, registre:
-
-```
-### Teste N — <nome>
-Status: ✓ / ⚠ / ✗
-Notas:
-- <observação>
-Sinais de alerta encontrados:
-- <se algum>
-```
-
-Achados consolidados ao final:
-
-- **Bugs encontrados** — lista numerada, com indicação de qual artefato corrigir (`install.sh`? `meta/discover/SKILL.md`? rule específica?).
-- **Atritos de UX** — pontos onde a IA hesita, pergunta demais, perde tempo.
-- **Sugestões de melhoria.**
-
-Salve o relatório em `andaime/tests/RELATORIO-<data>.md` para histórico.
-
----
-
-## Prompts de delegação
-
-Cola esses prompts em sessões de Claude Code para executar a parte `[IA]` / `[IA-EXTERNA]` de cada teste sem ficar formulando comando a comando. Cada prompt é auto-contido.
-
-### §P1 — Teste 1 (`install.sh`)
-
-Sessão: qualquer. Não precisa contexto anterior.
-
-```
-Execute o Teste 1 do ROTEIRO em pasta temp. Passos:
-1. mkdir -p /tmp/codeflow-test-install && cd /tmp/codeflow-test-install
-2. git init -q
-3. git status (capture)
-4. bash ~/.codeflow/install.sh (capture output e rc)
-5. git status (capture)
-6. ls -la .codeflow/
-7. grep codeflow .gitignore
-8. cat .codeflow/INDEX.md
-9. bash ~/.codeflow/install.sh (2ª vez, capture output e rc)
-10. ls -la .codeflow/ (confirme nada duplicado)
-
-Reporte um relatório final com ✓/✗ por item do "Resultado esperado" do Teste 1, com evidência colada de cada saída. Limpe a pasta no final (rm -rf /tmp/codeflow-test-install).
-```
-
-### §P1.5 — Teste 1.5 (slash commands universais)
-
-Sessão: qualquer.
-
-```
-Execute a parte [IA] do Teste 1.5 do ROTEIRO. Passos:
-1. bash ~/.codeflow/setup-slash-commands.sh (capture output)
-2. ls ~/.claude/commands/ | grep -E '(bugfix|feature-small|refactor-safe|review-only|discover|bootstrap|create-)'
-3. cat ~/.claude/commands/bugfix.md
-4. cat ~/.claude/commands/discover.md
-5. bash ~/.codeflow/setup-slash-commands.sh (idempotência, capture)
-
-Confirme: 9 wrappers presentes; cada wrapper com 1-2 linhas e path absoluto começando com ~/.codeflow/framework/; 2ª execução sem duplicação. Reporte ✓/✗ por item, com evidência.
-```
-
-### §P2 — Teste 2 (validação estrutural pós-`/discover`)
-
-Sessão **NOVA**, sem ter lido `~/.codeflow/framework/meta/discover/SKILL.md`. Substitua `<PROJETO>` pelo caminho do projeto-alvo onde rodou `/discover`.
-
-```
-Você é uma sessão fresca. NÃO leia /home/gabriel/.codeflow/framework/meta/discover/SKILL.md.
-
-Valide a estrutura dos 4 artefatos em <PROJETO>/.codeflow/ contra o esquema de ARTIFACTS_SPEC.md §2.1-§2.4 (que você pode consultar). Verifique:
-
-1. Existência dos 4 arquivos: constitution.md, manifest.md, INDEX.md, discovered.md.
-2. constitution.md: frontmatter completo (versão, status, atualizado, projeto); seções obrigatórias §2.1.5.
-3. manifest.md: frontmatter com validation_hash em 64 chars hex; versões com número (não strings genéricas como "Python" solto).
-4. INDEX.md: seção "Leia sempre primeiro" lista constitution.md + manifest.md.
-5. discovered.md: contém seções de inspeção, hipóteses rotuladas [confirmada]/[refutada]/[pendente]/[confirmada por default], perguntas e respostas literais. Se passou de 5 perguntas, "## Limitações da inspeção" presente.
-6. Coerência: para cada hipótese [pendente] no discovered, NÃO existe regra correspondente na constitution.
-
-Reporte ✓/✗ por item com evidência colada. Não julgue veracidade do conteúdo — só estrutura.
-```
-
-### §P3 — Teste 3 (`review-only`, "não modificou")
-
-Sessão: a mesma onde você rodou `/review-only` (basta executar shell).
-
-```
-Execute as verificações [IA] do Teste 3:
-1. git status (deve mostrar APENAS as modificações que existiam antes do /review-only).
-2. ls .codeflow/decisions/ (não deve haver arquivo criado nesta sessão).
-
-Reporte ✓/✗.
-```
-
-### §P4 — Teste 4 (validação estrutural de skill criada)
-
-Sessão **NOVA**. Substitua `<X>` pelo nome da skill criada.
-
-```
-Valide o arquivo <PROJETO>/.codeflow/skills/<X>/SKILL.md:
-1. Existe em <PROJETO>/.codeflow/skills/<X>/SKILL.md (NÃO em ~/.codeflow/framework/library/skills/).
-2. Frontmatter com `descrição` em uma linha.
-3. 6 seções obrigatórias presentes (Quando usar, Princípio guia, Protocolo, Proibições, Definition of Done... — confirme contra ARTIFACTS_SPEC §1.8.5).
-4. NÃO contém `## Definition of Done` no formato proibido para skill regular.
-5. NÃO contém `## LEIA TAMBÉM` no formato proibido.
-6. ls ~/.claude/commands/ | grep <X> retorna vazio (skill regular não vira slash command).
-7. ls <PROJETO>/.claude/commands/ | grep <X> retorna vazio.
-
-Reporte ✓/✗ por item com evidência.
-```
-
-### §P7 — Teste 7 (workflow de projeto + wrapper local)
-
-Sessão: shell. Substitua `<Z>` pelo nome do workflow criado.
-
-```
-Execute as verificações [IA] do Teste 7:
-1. test -f <PROJETO>/.codeflow/workflows/<Z>.md
-2. bash ~/.codeflow/install.sh (rode dentro do projeto)
-3. test -f <PROJETO>/.claude/commands/<Z>.md
-4. cat <PROJETO>/.claude/commands/<Z>.md (deve ter 1-2 linhas referenciando o path absoluto do workflow, NÃO usar ~)
-
-Reporte ✓/✗ com evidência.
-```
-
-### §P8 — Teste 8 (feature-small: teste novo + make check + decisions)
-
-Sessão: shell no projeto onde rodou `/feature-small`.
-
-```
-Execute as verificações [IA] do Teste 8:
-1. git diff --stat HEAD (mostra apenas arquivos da feature; sem refactor lateral aparente).
-2. ls .codeflow/decisions/ (lista qualquer decision criado nesta sessão; reporte conteúdo).
-3. make check (capture exit code e saída).
-4. git diff HEAD -- '*test*' '*spec*' (deve haver teste novo cobrindo a feature).
-
-Reporte ✓/✗.
-```
-
-### §P9 — Teste 9 (refactor-safe: suite + diff)
-
-Sessão: shell no projeto onde rodou `/refactor-safe`.
-
-```
-Execute as verificações [IA] do Teste 9 (cenário A):
-1. git stash (guarde mudanças do refactor)
-2. make test (suite verde antes — capture rc).
-3. git stash pop (restaure refactor)
-4. make test (suite verde depois — capture rc).
-5. git diff --stat (diff minimalista — só renomeio/extração).
-6. ls .codeflow/decisions/ (deve estar sem novo arquivo desta sessão).
-
-Reporte ✓/✗.
-```
-
-### §P10 — Teste 10 (bootstrap: estrutura gerada)
-
-Sessão **NOVA**, sem ter lido `~/.codeflow/framework/meta/bootstrap/SKILL.md`. Substitua `<PASTA>` pelo path onde rodou `/bootstrap`.
-
-```
-Você é uma sessão fresca. NÃO leia ~/.codeflow/framework/meta/bootstrap/SKILL.md.
-
-Valide a estrutura criada em <PASTA>:
-1. tree -L 2 -a (arquivos do projeto + .codeflow/ presentes).
-2. test -f <PASTA>/.codeflow/constitution.md && test -f <PASTA>/.codeflow/manifest.md && test -f <PASTA>/.codeflow/INDEX.md
-3. test -f <PASTA>/.codeflow/discovered.md && echo VIOLAÇÃO || echo OK (deve imprimir OK — bootstrap NÃO gera discovered.md).
-4. cat <PASTA>/Makefile (deve ter 4 targets: check, test, lint, typecheck).
-5. manifest.md: validation_hash em 64 chars hex; versões com número.
-6. constitution.md: frontmatter completo.
-
-Reporte ✓/✗.
-```
-
-### §P11 — Teste 11 (create-agent: recusa + criação)
-
-Sessão **NOVA**, sem ter lido `~/.codeflow/framework/meta/create-agent/SKILL.md`. Cole o transcript completo das duas tentativas.
-
-```
-Você é uma sessão fresca. Não leia o SKILL.md de create-agent.
-
-Receberá o transcript de duas tentativas de /create-agent. Reporte:
-
-1. Tentativa 1 — a IA recusou criar o agent? Cite o trecho exato da recusa. A justificativa cita "skill regular basta" ou equivalente? Sugeriu /create-skill?
-2. Tentativa 1 — execute shell: confirme que nenhum arquivo de agent foi criado em ~/.codeflow/framework/library/agents/ nem em <PROJETO>/.codeflow/agents/.
-3. Tentativa 2 — a IA prosseguiu? Cite o caminho do arquivo gerado.
-4. Tentativa 2 — leia o arquivo gerado e confirme que contém seção declarando escopo restrito de ferramentas.
-5. Confirme: ls ~/.claude/commands/ | grep <nome> retorna vazio.
-
-[COLE AQUI o transcript das duas tentativas]
-```
-
-### §P12 — Teste 12 (skills carregadas)
-
-Sessão **NOVA**.
-
-```
-Você é uma sessão fresca.
-
-Parte A: receberá um transcript de execução de /feature-small ou /bugfix. Leia ~/.codeflow/framework/library/skills/self-review/SKILL.md (especificamente o protocolo) e compare item a item: a IA aplicou o checklist exatamente como está na skill, ou inventou/omitiu passos?
-
-Parte B: receberá um handoff gerado pela IA. Leia ~/.codeflow/framework/library/skills/handoff/SKILL.md (template/formato) e compare: campos do handoff batem com o template? Algum campo inventado? Algum obrigatório omitido? Próximo passo é físico/específico?
-
-Reporte achados item a item com citação literal.
-
-[COLE AQUI o transcript da Parte A e o handoff da Parte B]
-```
-
----
-
-## Próximos passos após o teste
-
-- **Tudo passou:** framework operacional. Cadência sugerida — rodar Testes 1, 1.5 a cada upgrade do framework; Teste 2 ao aplicar em projeto novo; Testes 8-12 quando suspeitar de regressão em workflow/skill específico.
-- **Bug em meta-skill:** corrigir o `SKILL.md` correspondente, commit `fix(meta/<nome>): <descrição>`, refazer o teste afetado.
+- **Tudo passou:** framework operacional. Refaça:
+  - Testes 1 e 1.5 a cada upgrade do framework.
+  - Teste 2 ao aplicar o codeflow em projeto novo.
+  - Testes 8 a 12 quando suspeitar de regressão em workflow ou skill específico.
+- **Bug em meta-skill:** corrigir o `SKILL.md` correspondente, commit `fix(meta/<nome>): <descrição>`, refazer só o teste afetado.
 - **Bug em `install.sh` ou `setup-slash-commands.sh`:** corrigir, commit `fix(install): ...` ou `fix(setup): ...`, repetir Teste 1 ou 1.5.
-- **`constitution`/`manifest` pobre:** defeito provavelmente está no protocolo de `discover` ou `bootstrap`, não na escrita da IA — corrigir o `SKILL.md` correspondente.
+- **`constitution`/`manifest` pobre:** defeito está provavelmente no protocolo de `discover` ou `bootstrap`, não na escrita da IA — corrigir o `SKILL.md` correspondente.
 
-## Sobre automação
+## Sobre automação (opcional, futuro)
 
-Os testes deste roteiro têm duas camadas:
+Os testes têm duas camadas:
 
-- **Camada estrutural** (formato YAML do frontmatter, presença de seções, `validation_hash` em 64 hex, idempotência de scripts, exit codes, não-modificação de arquivos do projeto). **Automatizável** em bash + grep. Boa parte dos snippets já existe em `andaime/VALIDATION.md`. Recomendação: consolidar em `andaime/tests/run-structural.sh` que rode em CI.
-- **Camada comportamental** (a IA qualificou antes de criar? recusou quando devia? a constitution reflete o projeto real? as perguntas foram pertinentes?). **Não automatizável de forma confiável.** Depende de julgamento semântico que exige humano com conhecimento do projeto, ou uma suite de LLM-as-judge — esta última cara, ruidosa e introduz dependência circular (IA julgando IA pelo mesmo critério).
+- **Estrutural** — formato YAML do frontmatter, presença de seções, `validation_hash` em 64 hex, idempotência de scripts, exit codes, não-modificação de arquivos. **Automatizável** em bash + grep; boa parte dos snippets já existe em `andaime/VALIDATION.md`. Consolidar em `andaime/tests/run-structural.sh` daria CI gratuita.
+- **Comportamental** — a IA qualificou antes de criar? recusou quando devia? a `constitution.md` reflete o projeto real? as perguntas foram pertinentes? **Não automatizável de forma confiável** — depende de julgamento semântico, que continua sendo seu.
 
-A camada estrutural deve cobrir ~40% dos sinais de alerta atuais; o resto fica manual. Com a estrutural verde em CI, o tempo do humano vai todo para julgar a saída semântica — que é onde está o valor.
+Com a estrutural verde em CI, o tempo manual vai todo para julgar comportamento, que é onde está o valor.
