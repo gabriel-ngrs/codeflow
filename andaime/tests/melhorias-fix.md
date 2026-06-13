@@ -8,7 +8,7 @@ atualizado: 2026-06-13
 
 Registro vivo de bugs, atritos de UX e melhorias detectadas enquanto o ROTEIRO é executado. Cada entrada referencia o teste onde surgiu, o artefato a corrigir, e a ação proposta.
 
-> **Status 2026-06-13:** as 8 entradas abaixo foram **resolvidas** nos artefatos do framework. Cada uma traz uma linha `**Resolução:**` com o que mudou. Re-testes pendentes (rodam em projeto-alvo, sessão separada): **T11** `/create-agent` (re-rodar T1 da recusa, agora que #7 foi corrigido) e **T12** `handoff`+`self-review`.
+> **Status 2026-06-13:** as 8 entradas abaixo foram **resolvidas** nos artefatos do framework (cada uma traz uma linha `**Resolução:**`). Os re-testes comportamentais **T11 e T12 foram re-executados em sessão fresca (repo `/tmp` descartável) e passaram** — ver notas no ROTEIRO.
 
 Formato:
 
@@ -118,7 +118,7 @@ Formato:
 
 ### 7. `/create-agent` não recusa quando uma skill bastaria — "read-only ⇒ isolamento mecânico" racionaliza qualquer tarefa de revisão/auditoria ✅ resolvido (2026-06-13)
 
-- **Resolução:** `create-agent/SKILL.md` Princípio guia + Passo 1 ganharam o teste de contraste (read-only conveniência → skill; read-only necessidade mecânica → agent) com as duas condições obrigatórias (separável em lote **E** ferramenta de mutação tentadora a excluir) e a tabela "checklist de revisão → recusar" vs "auditoria de deps → aprovar". `ARTIFACTS_SPEC.md` §1.10.7 reforçado. **Pendente:** re-rodar T11 T1 no koryn-ai para confirmar a recusa.
+- **Resolução:** `create-agent/SKILL.md` Princípio guia + Passo 1 ganharam o teste de contraste (read-only conveniência → skill; read-only necessidade mecânica → agent) com as duas condições obrigatórias (separável em lote **E** ferramenta de mutação tentadora a excluir) e a tabela "checklist de revisão → recusar" vs "auditoria de deps → aprovar". `ARTIFACTS_SPEC.md` §1.10.7 reforçado. **Re-teste 2026-06-13 (sessão fresca, `/tmp`): T1 agora recusa o checklist e redireciona para `/create-skill`; T2 aprova a auditoria com `Bash` excluído. ✓**
 
 - **Origem:** Teste 11 Tentativa 1 (2026-06-05, projeto koryn-ai — proposta "agent que aplica nosso checklist de revisão de código")
 - **Artefato afetado:** `framework/meta/create-agent/SKILL.md` (Passo 1 — Qualificar a necessidade) e `andaime/ARTIFACTS_SPEC.md` §1.10.7 (anti-padrão "Agent que duplica skill").
