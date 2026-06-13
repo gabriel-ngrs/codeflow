@@ -9,13 +9,15 @@ granularidade: detalhado
 
 # Meta-skill: discover
 
+> **Specs de runtime:** as referências a `ARTIFACTS_SPEC.md §x` (templates e validação) e a `SPEC.md §x` ao longo deste protocolo apontam para `~/.codeflow/framework/core/ARTIFACTS_SPEC.md` e `~/.codeflow/framework/core/SPEC.md`. Leia os templates literais de lá — não parafraseie de memória.
+
 ## Quando usar
 
 Usuário invoca `/discover` em um projeto **existente** que ainda não tem `.codeflow/` populado (ou que precisa reaprender do zero). A meta-skill inspeciona o projeto, conduz entrevista qualificada, e gera os quatro artefatos iniciais: `constitution.md`, `manifest.md`, `INDEX.md` e `discovered.md`.
 
 ## Princípio guia
 
-Descobrir vem antes de assumir. A inspeção silenciosa precede qualquer pergunta — perguntas só são feitas para resolver ambiguidades reais que a inspeção não consegue resolver. **Orientação: até cinco perguntas.** Não é limite duro: quando passar de cinco, a IA emite aviso ao usuário ("já fiz 5 perguntas; isso geralmente indica que a inspeção foi superficial — posso continuar perguntando, ou prefere que eu reinspecione antes?") e aguarda decisão antes da próxima pergunta. Passar de cinco com justificativa registrada em `## Limitações da inspeção` é aceitável (projetos genuinamente complexos existem); passar sem justificativa é débito técnico.
+Descobrir vem antes de assumir. A inspeção silenciosa precede qualquer pergunta — perguntas só são feitas para resolver ambiguidades reais que a inspeção não consegue resolver. **Orientação: no mínimo cinco perguntas, sem teto.** Cinco é piso, não meta de corte: a entrevista existe para garantir cobertura, não para terminar rápido. Se a inspeção parece ter resolvido tudo com menos de cinco ambiguidades, isso geralmente indica que a inspeção foi rasa — aprofunde a inspeção ou eleve mais hipóteses a confirmar antes de declarar a entrevista suficiente. Não há limite superior; a partir de dez perguntas a IA faz uma pausa de sanidade (descrita na Fase 2) para checar fadiga do usuário e oferecer fechar com hipóteses `[pendente]`, mas pode seguir perguntando se ainda houver ambiguidade real.
 
 ## Protocolo
 
@@ -28,14 +30,15 @@ Descobrir vem antes de assumir. A inspeção silenciosa precede qualquer pergunt
 - Formar hipóteses explícitas sobre: stack, padrão arquitetural, regras invariantes aparentes, áreas sensíveis. Rotular cada hipótese como `confirmada-pela-inspeção`, `precisa-confirmação` ou `precisa-pergunta`.
 - Gravar checkpoint ao fim da fase (`SPEC.md` §6.6).
 
-### Fase 2 — Entrevista qualificada (orientação: até cinco perguntas)
+### Fase 2 — Entrevista qualificada (orientação: no mínimo cinco perguntas, sem teto)
 
-- Selecionar as perguntas mais informativas dentre as hipóteses `precisa-pergunta`. Priorizar inspeção mais profunda sobre perguntar — perguntar é o caminho caro.
+- Selecionar as perguntas mais informativas dentre as hipóteses `precisa-pergunta`. Priorizar inspeção mais profunda sobre perguntar — perguntar é o caminho caro, mas cobertura insuficiente é pior.
+- **Piso de cinco perguntas:** mire em pelo menos cinco perguntas substantivas. Se você acha que menos de cinco bastam, trate isso como sinal de que a inspeção não foi fundo o bastante — reinspecione ou eleve mais hipóteses a confirmar antes de encurtar a entrevista. Não há teto: projetos com vários domínios, multi-tenancy, muitas migrations ou muitos serviços justificam dez ou mais perguntas.
 - Para cada pergunta: apresentar a hipótese, o que a inspeção encontrou, e a pergunta concreta com resposta binária ou enumerada quando possível.
 - Pergunta ao usuário, aguardar resposta antes de prosseguir para a próxima.
 - Registrar cada resposta literalmente — será incluída em `discovered.md`.
-- **Aviso obrigatório ao chegar à 5ª pergunta:** antes de fazer a 6ª, exibir ao usuário a mensagem `"Já fiz 5 perguntas — isso geralmente indica que a inspeção foi superficial. Posso continuar perguntando (registrando a justificativa no discovered.md ## Limitações da inspeção), reinspecionar áreas específicas para tentar inferir sem perguntar, ou seguir para Fase 3 com as hipóteses restantes como [pendente]."`. Aguardar decisão antes de continuar.
-- Se o usuário escolher continuar perguntando: registrar a justificativa explícita (passada pelo usuário ou inferida pela IA) em `## Limitações da inspeção` do discovered.md.
+- **Pausa de sanidade ao chegar à 10ª pergunta:** antes de fazer a 11ª, exibir ao usuário a mensagem `"Já fiz 10 perguntas. Posso continuar perguntando (registrando a justificativa no discovered.md ## Limitações da inspeção), reinspecionar áreas específicas para tentar inferir sem perguntar, ou seguir para Fase 3 com as hipóteses restantes como [pendente]."`. Aguardar decisão antes de continuar. Esta pausa é sobre fadiga e ponto de parada — não é um corte: se há ambiguidade real, seguir perguntando é o esperado.
+- Se o usuário escolher continuar perguntando além de dez: registrar a justificativa explícita (passada pelo usuário ou inferida pela IA) em `## Limitações da inspeção` do discovered.md.
 - Apresentar resumo das hipóteses confirmadas e refutadas, e **aguardar confirmação** do usuário antes de avançar para Fase 3. Esta pausa é obrigatória.
 - Gravar checkpoint imediatamente antes da confirmação (`SPEC.md` §6.6.1).
 
@@ -47,10 +50,10 @@ O usuário nem sempre tem uma resposta clara. Aceitar literalmente as quatro var
 |---|---|
 | `não sei` / `não tenho preferência` / `passa` | Hipótese vai para `discovered.md` como `[pendente]`. **NÃO** gerar regra correspondente em `constitution.md`. Adicionar ao `## Limitações da inspeção` (do discovered) como item a resolver em `/discover --refresh` futuro. |
 | `o que você recomenda?` | Apresentar 2 ou 3 opções (A/B/C) com trade-offs sucintos baseados na inspeção. Aguardar escolha. A opção escolhida vira `[confirmada]`. Se o usuário pedir mais detalhe sobre alguma, **não conta como pergunta nova** — é continuação da mesma. |
-| `usa o padrão` / `o que for mais comum` | Aplicar o default inferido pela inspeção (ou padrão idiomático da stack quando inspeção é inconclusiva). Marcar como `[confirmada por default]` no discovered, citando explicitamente qual default foi aplicado. |
+| `usa o padrão` / `o que for mais comum` | Aplicar o default inferido pela inspeção (ou padrão idiomático da stack quando inspeção é inconclusiva). Rotular `[confirmada]` no discovered (rótulo literal — **não** escrever `[confirmada por default]`) e citar no **texto** da hipótese qual default foi aplicado e por quê. |
 | `depois eu decido` | Hipótese vai para `discovered.md` como `[pendente]`. Adicionar ao `## Lacunas conhecidas` do discovered como decisão futura. **NÃO** gerar regra em constitution. |
 
-Cada uma dessas respostas **encerra a pergunta atual**. A IA segue para a próxima pergunta planejada (ou para o aviso de 5ª pergunta, se for o caso), sem retornar à mesma hipótese na mesma sessão.
+Cada uma dessas respostas **encerra a pergunta atual**. A IA segue para a próxima pergunta planejada (ou para a pausa de sanidade da 10ª pergunta, se for o caso), sem retornar à mesma hipótese na mesma sessão.
 
 ### Fase 3 — Geração de constitution + manifest + INDEX
 
@@ -119,8 +122,10 @@ Para cada um dos três arquivos gerados:
 
 **Seções obrigatórias, nesta ordem literal e sem numeração:**
 1. `## O que foi inspecionado` — lista cronológica (no mínimo três itens).
-2. `## Hipóteses formadas` — cada hipótese começa com rótulo **literal entre colchetes**: `[confirmada]`, `[refutada]` ou `[pendente]`. Não usar variantes como `confirmada-pela-inspeção`, `confirmada pelo usuário`, etc. — registrar a origem da confirmação no texto da hipótese, mas o rótulo de estado entre colchetes é vinculante.
-3. `## Perguntas feitas ao usuário e respostas` — todas as perguntas feitas, cada uma com resposta declarada. Orientação de cinco; quando passar, registrar justificativa em `## Limitações da inspeção` (`SPEC.md` §4.4.2; `ARTIFACTS_SPEC.md` §2.4.6 regra 6).
+2. `## Hipóteses formadas` — cada hipótese começa com rótulo **literal entre colchetes**: exatamente `[confirmada]`, `[refutada]` ou `[pendente]` — três valores, nenhum outro. A origem da confirmação (inspeção, usuário, default) vai no **texto** da hipótese, **nunca dentro dos colchetes**. As etiquetas de trabalho da Fase 1 (`confirmada-pela-inspeção`, `precisa-confirmação`, `precisa-pergunta`) são internas e **não** vão para o discovered — mapeie cada uma para o rótulo literal ao escrever.
+   - **Forma correta:** `[confirmada] Multi-tenancy via header X-Tenant-ID (confirmada pelo usuário na pergunta 3).` · `[confirmada] Pydantic em entrada e saída de endpoint (default idiomático aplicado — usuário respondeu "usa o padrão").` · `[pendente] Estratégia de cache — usuário respondeu "depois eu decido".`
+   - **Forma incorreta (proibida):** `[confirmada por usuário]` · `[confirmada — divergente da memória local]` · `[confirmada pela inspeção]` · `[confirmada por default]` · `[pendente de decisão]`. Qualquer texto dentro dos colchetes além das três palavras literais é desvio de schema.
+3. `## Perguntas feitas ao usuário e respostas` — todas as perguntas feitas, cada uma com resposta declarada. Mínimo de cinco; ao passar de dez, registrar justificativa em `## Limitações da inspeção` (`SPEC.md` §4.4.2; `ARTIFACTS_SPEC.md` §2.4.6 regra 6).
 4. `## Áreas marcadas como "não tocar"` — caminhos concretos do projeto ou literal `Nenhuma.`.
 5. `## Artefatos gerados a partir deste discovered` — cita ao menos `constitution.md`, `manifest.md`, `INDEX.md`.
 
@@ -135,7 +140,8 @@ Seções extras (anexos, padrões qualitativos, lacunas) só são permitidas con
 
 ## Proibições durante esta meta-skill
 
-- Não pular o aviso ao chegar à 5ª pergunta. Continuar para a 6ª sem exibir a mensagem e aguardar decisão do usuário viola o protocolo.
+- Não encerrar a entrevista abaixo de cinco perguntas alegando que a inspeção resolveu tudo, sem antes reinspecionar ou elevar mais hipóteses a confirmar. Cinco é piso.
+- Não pular a pausa de sanidade ao chegar à 10ª pergunta. Continuar para a 11ª sem exibir a mensagem e aguardar decisão do usuário viola o protocolo.
 - Não pular a Fase 1 (inspeção silenciosa). Perguntar sem inspecionar viola o princípio guia.
 - Não reformular a mesma pergunta após uma resposta de incerteza (`não sei`, `passa`, `depois eu decido`) na mesma sessão. Hipótese vai para `[pendente]` e segue.
 - Não gerar regra em `constitution.md` a partir de hipótese `[pendente]`. Constitution só ganha regra quando o usuário confirmou.

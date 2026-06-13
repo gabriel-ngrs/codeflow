@@ -9,6 +9,8 @@ granularidade: médio
 
 # Meta-skill: create-agent
 
+> **Specs de runtime:** as referências a `ARTIFACTS_SPEC.md §x` (template e validação) e a `SPEC.md §x` ao longo deste protocolo apontam para `~/.codeflow/framework/core/ARTIFACTS_SPEC.md` e `~/.codeflow/framework/core/SPEC.md`. Leia o template literal de lá — não parafraseie de memória.
+
 ## Quando usar
 
 Usuário invoca `/create-agent` quando identifica necessidade de isolar uma sub-tarefa em contexto próprio com restrição mecânica de ferramentas. A meta-skill conduz a entrevista, gera o arquivo no formato correto e o salva no caminho apropriado.
@@ -17,13 +19,28 @@ Usuário invoca `/create-agent` quando identifica necessidade de isolar uma sub-
 
 Agent é mais caro de operar do que skill e justificável apenas quando a sub-tarefa exige garantia mecânica de isolamento ou restrição de ferramentas. Disciplina não basta — o agent restringe na camada da ferramenta de IA. Se skill regular bastaria, recusar e redirecionar.
 
+**Cuidado com a armadilha do read-only.** Quase toda tarefa de revisão ou auditoria "fica melhor" read-only — mas *desejável* não é *necessário*. Restrição read-only por **conveniência** (uma skill que diz "apenas revise, não edite" resolveria com disciplina) **não** justifica agent. Restrição read-only por **necessidade mecânica** (existe uma ferramenta de mutação concretamente tentadora que precisa ser removida na camada da ferramenta) justifica. O viés default desta meta-skill é **recusar** — só prosseguir quando o teste de contraste do Passo 1 passa de forma inequívoca.
+
 ## Protocolo
 
 ### Passo 1 — Qualificar a necessidade (justificar isolamento)
-- Perguntar: a sub-tarefa exige garantia mecânica de não-modificação ou de não-acesso a alguma capacidade?
-- Perguntar: a sub-tarefa precisa rodar em contexto isolado (sem ver o resto da conversa do workflow chamador)?
-- Se nenhuma das duas é "sim", **recusar** a criação e redirecionar para criar skill regular (`ARTIFACTS_SPEC.md` §1.10.7 anti-padrão "Agent que duplica skill").
-- Se a justificativa de isolamento ou restrição não for concreta (ex: "para garantir qualidade" não é justificativa), recusar.
+
+**Teste de contraste (aplicar antes de qualquer outra coisa):** pergunte-se *"a versão skill desta tarefa seria insegura ou impraticável?"* Se uma skill com a instrução "apenas observe/revise, não modifique" resolveria com disciplina, **recuse** e redirecione para `/create-skill` — read-only por conveniência não justifica agent.
+
+Só prosseguir quando **as duas** condições abaixo forem verdadeiras (ambas, não uma):
+1. **Separável em lote com saída autocontida** — a tarefa roda de ponta a ponta sozinha e entrega um veredito/relatório fechado, não um passo inline dentro do workflow chamador (que já tem o diff e o contexto na mão).
+2. **Ferramenta de mutação concretamente tentadora** — existe uma capacidade específica (ex.: `Bash` capaz de `pip install`, regenerar lockfile, rodar migração) cuja tentação de "consertar enquanto audita" é real e precisa ser **removida na camada da ferramenta**, porque disciplina ("não rode isso") não cobre bem. Excluir *uma ferramenta inteira* é a marca do isolamento genuíno.
+
+Se qualquer uma das duas falhar, **recusar** e redirecionar para criar skill regular (`ARTIFACTS_SPEC.md` §1.10.7 anti-padrão "Agent que duplica skill"). "Para garantir qualidade", "para não modificar por engano" ou "para ficar isolado" **não** são justificativas — disciplina cobre todas.
+
+**Dois casos quase idênticos na superfície, decisões opostas:**
+
+| Proposta | Decisão | Por quê |
+|---|---|---|
+| "Agent que aplica nosso checklist de revisão de código" | **Recusar → skill** | Read-only é *desejável*, não *necessário*. Roda inline no workflow que já tem o diff. Não há ferramenta de mutação tentadora além da disciplina "não edite". Uma skill "apenas revise" resolve. |
+| "Agent read-only de auditoria de dependências, sem poder modificar arquivos" | **Aprovar → agent** | Separável em lote com saída autocontida **E** a tentação concreta de "consertar enquanto audita" (`pip install`, regenerar lockfile) exige excluir `Bash` por inteiro — restrição que disciplina não cobre. |
+
+Ambas são "read-only". O que decide **não** é o read-only — é o teste de contraste acima. Se você se pegar fabricando uma justificativa de isolamento para uma tarefa de revisão ("um revisor que pode editar anula a revisão"), pare: isso vale para *toda* revisão e é exatamente o sinal de que uma skill basta.
 
 ### Passo 2 — Identificar escopo
 - Perguntar: o agent é específico de stack ou domínio deste projeto?

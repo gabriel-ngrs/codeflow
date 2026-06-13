@@ -9,6 +9,8 @@ granularidade: detalhado
 
 # Meta-skill: bootstrap
 
+> **Specs de runtime:** as referências a `ARTIFACTS_SPEC.md §x` (templates e validação) e a `SPEC.md §x` ao longo deste protocolo apontam para `~/.codeflow/framework/core/ARTIFACTS_SPEC.md` e `~/.codeflow/framework/core/SPEC.md`. Leia os templates literais de lá — não parafraseie de memória.
+
 ## Quando usar
 
 Usuário invoca `/bootstrap` quando quer criar um projeto **novo** a partir de uma ideia, sem código pré-existente. A meta-skill conduz coleta de requisitos, decide stack e estrutura, gera o esqueleto do projeto e os artefatos iniciais do `.codeflow/` (`constitution.md`, `manifest.md`, `INDEX.md`). Não gera `discovered.md` — não há projeto pré-existente a descobrir (`ARTIFACTS_SPEC.md` §2.4.1).
@@ -48,7 +50,7 @@ Projeto novo nasce com decisões mínimas explícitas: propósito, stack, padrã
 ### Fase 4 — Geração de artefatos do `.codeflow/`
 
 - Gerar `<projeto>/.codeflow/constitution.md` aplicando o template de `ARTIFACTS_SPEC.md` §2.2.5. Incluir princípios derivados das restrições e decisões das Fases 1 e 2.
-- Gerar `<projeto>/.codeflow/manifest.md` aplicando o template de `ARTIFACTS_SPEC.md` §2.3.5. Incluir: stack decidida, comandos make, padrões arquiteturais, arquivos críticos para freshness.
+- Gerar `<projeto>/.codeflow/manifest.md` aplicando o template de `ARTIFACTS_SPEC.md` §2.3.5. Incluir: stack decidida, comandos make, padrões arquiteturais, arquivos críticos para freshness. **A quarta seção é `## Padrões definidos`, não `## Padrões detectados`** (`ARTIFACTS_SPEC.md` §2.3.3 item 4): bootstrap não inspeciona código, então os padrões são metas decididas na Fase 2 — usar verbos prospectivos ("a estabelecer", "definido como meta"), nunca afirmar que uma estrutura foi "detectada" ou "estabelecida" quando os arquivos ainda não existem. Registrar em `## Notas de inspeção` que os padrões são prospectivos.
 - Gerar `<projeto>/.codeflow/INDEX.md` aplicando o template de `ARTIFACTS_SPEC.md` §2.1.5. Listar `constitution.md` e `manifest.md` em `## Leia sempre primeiro`. **Não** referenciar `discovered.md` — bootstrap não o gera.
 - Aplicar `## Validação pós-geração` em cada arquivo antes de avançar.
 - Gravar checkpoint ao fim da fase.
@@ -57,6 +59,7 @@ Projeto novo nasce com decisões mínimas explícitas: propósito, stack, padrã
 
 - Apresentar ao usuário o resumo: árvore de pastas criadas, arquivos gerados (raiz + `.codeflow/`), próximos passos sugeridos.
 - Sugerir comandos imediatos: `git init` no projeto, primeiro commit, instalar dependências da stack.
+- **Avisar sobre entrypoints prospectivos:** se o manifest de stack declara um entrypoint que aponta para módulo ainda inexistente (ex.: `[project.scripts] tsconv = "tsconv.cli:main"` com `cli.py` a ser criado por uma feature futura), avisar explicitamente que `pip install -e` (ou equivalente) criará um console-script **quebrado** até a primeira feature materializar esse módulo. Não é erro do esqueleto — é consequência honesta de o entrypoint preceder o código —, mas o usuário precisa saber. Isso soma-se ao já conhecido `pytest exit 5` (nenhum teste coletado) num projeto recém-criado.
 - Aguardar resposta do usuário. Aplicar ajustes solicitados, re-rodar validação. Após confirmação final, encerrar.
 
 ## Proibições durante esta meta-skill
@@ -93,6 +96,7 @@ Nenhum arquivo é criado em `~/.codeflow/` por esta meta-skill.
 - Aplicar `ARTIFACTS_SPEC.md` §2.1.6 a `INDEX.md`.
 - Aplicar `ARTIFACTS_SPEC.md` §2.2.6 a `constitution.md`.
 - Aplicar `ARTIFACTS_SPEC.md` §2.3.6 a `manifest.md`.
+- Verificar que a quarta seção do `manifest.md` é `## Padrões definidos` (não `## Padrões detectados`) e usa verbos prospectivos — nenhuma afirmação de que estrutura foi "detectada"/"estabelecida" com arquivos que ainda não existem.
 - Verificar que `INDEX.md` **não** referencia `discovered.md` (bootstrap não o gera).
 - Verificar que `Makefile` tem os quatro targets canônicos (`check`, `test`, `lint`, `typecheck`).
 - Verificar que `<projeto>/.codeflow/checkpoints/` está listado no `.gitignore` do projeto.

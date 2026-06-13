@@ -10,6 +10,8 @@ politica_falhas: padrão
 
 # Workflow: refactor-safe
 
+> **Spec de runtime:** a referência a `SPEC.md §x` neste workflow aponta para `~/.codeflow/framework/core/SPEC.md`.
+
 ## Quando usar
 Refatorar código existente sem alterar comportamento observável. Há cobertura de testes suficiente para detectar regressão e o objetivo é melhorar legibilidade, dividir função grande, renomear identificadores ou extrair abstração já justificada.
 
@@ -37,6 +39,7 @@ Conferir `.codeflow/manifest.md` para confirmar comando de teste padrão. Se a �
 - Identificar testes que cobrem a área a ser refatorada.
 - Executar `make check` antes de qualquer mudança e registrar o resultado de referência.
 - Gate: todos os testes relevantes passam antes do refactor. Se algum já falha, parar — refactor-safe exige base verde.
+- **Gate de cobertura (duro, sem override verbal):** se a área não tem cobertura suficiente para detectar regressão, há **só** dois caminhos: (a) adicionar testes via `/feature-small` ou `/bugfix` e retomar; (b) cancelar. **Confirmação verbal não destrava o gate** — não oferecer "aceitar o risco e seguir mesmo sem testes" como opção. Refatorar sem cobertura exige uma decision arquitetural dedicada registrada **antes** da invocação, não cabe dentro deste workflow (constitution universal, `## Política de falhas` → "Gates duros não admitem override conversacional"). Ao bater no gate, emitir `PARADO` com as opções (a)/(b) apenas.
 
 ### Passo 2 — Identificar refatoração
 - Declarar por escrito o tipo de mudança (extrair função, renomear, dividir, mover, inlining).

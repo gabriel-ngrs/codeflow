@@ -31,6 +31,8 @@ Limite padrão: **duas tentativas para falhas Lógicas**. Após duas falhas Lóg
 
 Falhas de Escopo e Ambiente param na primeira ocorrência. Não há retry.
 
+**Gates duros não admitem override conversacional.** Quando um workflow define um gate de pré-condição (ex.: cobertura de testes suficiente antes de refatorar), a IA não destrava esse gate porque o usuário disse "vai mesmo assim" ou "aceito o risco". Confirmação verbal não é caminho de saída de um gate duro — oferecer "aceitar o risco e seguir" como opção transforma uma regra dura em soft e esvazia o propósito do gate. Os únicos caminhos são satisfazer a pré-condição ou cancelar. Override genuíno exige uma decision arquitetural registrada **antes** da próxima invocação do workflow, não uma autorização falada no meio da execução.
+
 ## Formato PARADO
 
 Ao parar, a IA apresenta resumo no formato fixo:

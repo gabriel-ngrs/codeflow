@@ -27,6 +27,8 @@ Self-review é o último filtro antes do humano. Defeito encontrado agora custa 
 - Os identificadores criados seguem a convenção do arquivo?
 - Há comentário explicativo do "que faz"? (sinal de nome ruim ou função longa).
 - Há secret, credencial, caminho local ou nome próprio vazado no diff?
+- **Algum diff viola uma regra invariante da constitution (projeto ou universal)?** Se sim — mesmo que conscientemente, para seguir a convenção real do código — uma decision foi gerada registrando a divergência? Se a divergência existe e não há decision, **bloquear o "pronto"** até a decision ser criada (workflows `gera_decision: auto`).
+- **Aplicou-se algum default após o usuário responder "não sei"/"o que você recomenda?"** Se sim, há decision registrando o default e a justificativa? Se não, bloquear o "pronto".
 
 ### 3. Investigar sinais de alerta
 - `TODO`/`FIXME` novos no diff sem justificativa.

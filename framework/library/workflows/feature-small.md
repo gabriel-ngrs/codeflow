@@ -10,6 +10,8 @@ politica_falhas: padrão
 
 # Workflow: feature-small
 
+> **Spec de runtime:** a referência a `SPEC.md §x` neste workflow aponta para `~/.codeflow/framework/core/SPEC.md`.
+
 ## Quando usar
 Adicionar feature nova de escopo limitado a poucos arquivos, com interface clara e sem dependência de decisão arquitetural maior. Pré-requisito: o usuário consegue declarar a feature em uma frase e identificar onde ela entra no código existente.
 
@@ -60,7 +62,10 @@ Se a feature toca áreas com decisions arquivadas (auth, payments, schema, integ
 
 ### Passo 6 — Resumir e (se aplicável) gerar decision
 - Apresentar resumo final no formato fixo de cinco seções.
-- Se a feature introduziu padrão novo, dependência nova, ou escolha entre alternativas relevantes, gerar decision em `.codeflow/decisions/`.
+- **Gatilhos de decision (`gera_decision: auto`) — gerar decision em `.codeflow/decisions/` quando qualquer um ocorrer:**
+  1. A feature introduziu padrão novo, dependência nova, ou escolha entre alternativas relevantes.
+  2. **Default após incerteza do usuário:** a IA fez uma pergunta, o usuário respondeu `não sei` / `o que você recomenda?` / `usa o padrão`, e a IA aplicou um default. Registrar o default escolhido e por que esse — para que futuros leitores entendam a escolha que ficou no código.
+  3. **Divergência consciente da constitution:** a implementação contraria uma regra invariante da constitution (do projeto ou universal) — seja para seguir a convenção real do código, seja por trade-off técnico. Registrar: qual regra, qual divergência, por quê, e qual débito fica aberto (corrigir a constitution ou corrigir o código). É o caso canônico "constitution vs. convenção real do código": sem decision, alguém reescreve o código pela constitution meses depois e quebra o padrão real, sem entender por quê.
 
 ## Definition of Done
 - [ ] Escopo confirmado e cabe em poucos arquivos.
@@ -69,7 +74,7 @@ Se a feature toca áreas com decisions arquivadas (auth, payments, schema, integ
 - [ ] Testes do comportamento novo presentes e passando.
 - [ ] `make check` retornou zero.
 - [ ] Self-review aplicado.
-- [ ] Decision gerada se aplicável (gera_decision: auto).
+- [ ] Decision gerada se aplicável (gera_decision: auto) — incluindo default após "não sei" do usuário e divergência consciente da constitution.
 
 ## Resumo final
 Apresentar nas cinco seções fixas do `SPEC.md` §5.6.4.

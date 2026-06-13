@@ -10,6 +10,8 @@ politica_falhas: padrão
 
 # Workflow: bugfix
 
+> **Spec de runtime:** a referência a `SPEC.md §x` neste workflow aponta para `~/.codeflow/framework/core/SPEC.md`.
+
 ## Quando usar
 Corrigir bug reproduzível em código existente. Há sintoma observável, hipótese inicial possível, e escopo da correção é limitado a poucos arquivos. Pré-requisito: bug pode ser reproduzido localmente ou via teste.
 
@@ -59,7 +61,10 @@ Se o bug toca em áreas com decisions arquivadas (auth, payments, schema), consu
 
 ### Passo 6 — Resumir e (se aplicável) gerar decision
 - Apresentar resumo final no formato fixo de cinco seções.
-- Se o fix envolveu mudança não-trivial (não foi typo, não foi off-by-one isolado), gerar decision em `.codeflow/decisions/`.
+- **Gatilhos de decision (`gera_decision: auto`) — gerar decision em `.codeflow/decisions/` quando qualquer um ocorrer:**
+  1. O fix envolveu mudança não-trivial (não foi typo, não foi off-by-one isolado).
+  2. **Default após incerteza do usuário:** a IA fez uma pergunta (ex.: qual status code), o usuário respondeu `não sei` / `o que você recomenda?` / `usa o padrão`, e a IA aplicou um default. Registrar o default escolhido e por que esse (e não outro) — para que futuros leitores entendam a escolha que ficou no código. Vale mesmo quando o default "restaura o HEAD" ou "alinha à constitution": registrar é o comportamento esperado, não opcional.
+  3. **Divergência consciente da constitution:** a implementação contraria uma regra invariante da constitution (do projeto ou universal) — seja para seguir a convenção real do código, seja por trade-off técnico. Registrar: qual regra, qual divergência, por quê, e qual débito fica aberto (corrigir a constitution ou corrigir o código). Sem decision, o conflito fica silenciado.
 
 ## Definition of Done
 - [ ] Bug reproduzido no Passo 1.
@@ -68,7 +73,7 @@ Se o bug toca em áreas com decisions arquivadas (auth, payments, schema), consu
 - [ ] `make check` retornou zero.
 - [ ] Diff dentro do escopo declarado.
 - [ ] Self-review aplicado.
-- [ ] Decision gerada se aplicável (gera_decision: auto).
+- [ ] Decision gerada se aplicável (gera_decision: auto) — incluindo default após "não sei" do usuário e divergência consciente da constitution.
 
 ## Resumo final
 Apresentar nas cinco seções fixas do `SPEC.md` §5.6.4.
