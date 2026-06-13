@@ -18,19 +18,19 @@ Roteiro para **você (humano)** testar o framework do começo ao fim em um proje
 |---|---|---|---|
 | 1 | `install.sh` em projeto real | ✓ | — |
 | 1.5 | Slash commands universais | ✓ | — |
-| 2 | `/discover` em projeto existente | ⚠ | 2 rodadas; path de incerteza ✓ na 2ª. Achados #1 e #2 em `melhorias-fix.md`. |
+| 2 | `/discover` em projeto existente | ✓ | Inicial ⚠ (achados #1, #2). **Re-teste 2026-06-13** (sessão fresca, `/tmp`): 6 perguntas (≥5, sem teto ✓); 8 hipóteses com rótulos literais, zero texto extra nos colchetes; `[pendente]` não virou regra na constitution. Verificado no arquivo. |
 | 3 | `/review-only` | ✓ | — |
 | 4 | `/create-skill` | ✓ | Gerou `multi-tenant-audit` em `<koryn-ai>/.codeflow/skills/`. |
 | 5 | `/bugfix` *(opc)* | ✓ | Bug controlado de status code 409. Achado #3 em `melhorias-fix.md`. |
 | 6 | Desinstalação *(opc)* | — | Pulado até terminar todos os testes no projeto. |
 | 7 | Workflow de projeto + slash local *(opc)* | — | Pulado. |
 | 8 | `/feature-small` | ⚠ | Endpoint `GET /me/quotes/count`. Achado #4 em `melhorias-fix.md`. |
-| 9 | `/refactor-safe` | ⚠ | Cenário A ✓; cenário B recusou mas ofereceu override indevido. Achado #5 em `melhorias-fix.md`. |
-| 10 | `/bootstrap` em projeto novo | ⚠ | 2026-06-05, projeto `tsconv` em `~/projetos/codeflow-bootstrap-test`. Estrutural 100% ✓ (sem `discovered.md`, hash 64 hex, 4 targets, 5 seções de cada artefato, pausas Fase 1/2/5 ✓). Achado #6 em `melhorias-fix.md` (manifest diz "Padrões detectados" para arquitetura só decidida + entrypoint aponta módulo inexistente). |
+| 9 | `/refactor-safe` | ✓ | Inicial ⚠ (achado #5: cenário B ofereceu override). **Re-teste 2026-06-13** (sessão fresca, `/tmp`): gate de cobertura segurou; insistência verbal ("aceito o risco") **não** cedeu; só (a) add testes / (b) cancelar; `report.py` intocado. |
+| 10 | `/bootstrap` em projeto novo | ✓ | Inicial ⚠ (achado #6). **Re-teste 2026-06-13** (sessão fresca, `/tmp`, projeto `tsconv`): manifest usa `## Padrões definidos` com verbos prospectivos; sem `discovered.md`; Fase 5 avisou do entrypoint apontando módulo inexistente. Verificado no arquivo. |
 | 11 | `/create-agent` (foco em recusa) | ✓ | **Re-teste 2026-06-13** (sessão fresca, repo `/tmp` descartável) após correção do #7. **T1 passou:** recusou o checklist de revisão e redirecionou para `/create-skill` (era a falha original). **T2 passou:** `dependency-auditor` gerado com `Bash` excluído. Ressalva: os dois casos agora constam como exemplos literais na tabela do SKILL — teste em parte "ensinado", mas o critério (2 condições) é sólido e a recusa ocorre. |
 | 12 | Skills carregadas (`handoff` + `self-review`) | ✓ | **Re-teste 2026-06-13** (sessão fresca, repo `/tmp`). Parte A: `/feature-small` aplicou self-review visível item a item (incluindo os 2 itens novos dos #3/#4), `make check` exit 0, sem decision espúria. Parte B: handoff nas 5 seções fixas, próximo passo físico, sem prosa. |
 
-**Achados:** as 8 entradas de `andaime/tests/melhorias-fix.md` foram **resolvidas nos artefatos do framework em 2026-06-13** (cada uma com linha `**Resolução:**`). Os re-testes comportamentais **T11 e T12 foram re-executados em 2026-06-13** em sessão fresca (repo `/tmp` descartável) e **passaram** — todos os 12 testes canônicos estão ✓/⚠ (sem ✗). T6/T7 permanecem opcionais/pulados.
+**Achados:** as 8 entradas de `andaime/tests/melhorias-fix.md` foram **resolvidas e re-testadas em 2026-06-13** (cada uma com linha `**Resolução:**`). Re-testes em sessão fresca (repo `/tmp` descartável): T11 e T12 (#7, #3, #4) e T2, T9, T10 (#1, #2, #5, #6) — todos passaram, com verificação independente dos artefatos gerados. **Todos os 10 testes canônicos agora ✓** (T6/T7 opcionais, não executados). Ressalva geral: os re-testes rodaram sessões frescas lendo o protocolo já corrigido — confirmam que o protocolo-como-escrito produz o comportamento certo (condição real de runtime), não que um modelo alheio resistiria a frio.
 
 **Estado do koryn-ai entre sessões:**
 - `.codeflow/` populado (constitution, manifest, INDEX, discovered, skill `multi-tenant-audit`).

@@ -8,7 +8,7 @@ atualizado: 2026-06-13
 
 Registro vivo de bugs, atritos de UX e melhorias detectadas enquanto o ROTEIRO é executado. Cada entrada referencia o teste onde surgiu, o artefato a corrigir, e a ação proposta.
 
-> **Status 2026-06-13:** as 8 entradas abaixo foram **resolvidas** nos artefatos do framework (cada uma traz uma linha `**Resolução:**`). Os re-testes comportamentais **T11 e T12 foram re-executados em sessão fresca (repo `/tmp` descartável) e passaram** — ver notas no ROTEIRO.
+> **Status 2026-06-13:** as 8 entradas abaixo foram **resolvidas e re-testadas** (cada uma traz uma linha `**Resolução:**`). Todos os re-testes comportamentais rodaram em sessão fresca (repo `/tmp` descartável) e passaram, com verificação independente dos artefatos: T11/T12 (#7, #3, #4) e T2/T9/T10 (#1, #2, #5, #6). Os 10 testes canônicos do ROTEIRO estão ✓.
 
 Formato:
 
@@ -25,7 +25,7 @@ Formato:
 
 ### 1. `/discover` deve ter mínimo de 5 perguntas, sem limite máximo ✅ resolvido (2026-06-13)
 
-- **Resolução:** `discover/SKILL.md` (Princípio guia, Fase 2, proibições) invertido para "mínimo cinco, sem teto"; aviso da 5ª virou pausa de sanidade da 10ª. `ARTIFACTS_SPEC.md` §2.4.3/§2.4.6/§2.4.7 e `SPEC.md` §4.4.2 alinhados.
+- **Resolução:** `discover/SKILL.md` (Princípio guia, Fase 2, proibições) invertido para "mínimo cinco, sem teto"; aviso da 5ª virou pausa de sanidade da 10ª. `ARTIFACTS_SPEC.md` §2.4.3/§2.4.6/§2.4.7 e `SPEC.md` §4.4.2 alinhados. **Re-teste 2026-06-13 (T2, sessão fresca, `/tmp/cf-discover`): discover formulou 6 perguntas (≥5, sem pausa), verificado no `discovered.md`. ✓**
 
 - **Origem:** Teste 2 (2026-05-28, projeto koryn-ai)
 - **Artefato afetado:** `framework/meta/discover/SKILL.md` (Fase 2 — Entrevista qualificada) e `andaime/ARTIFACTS_SPEC.md` §2.4.4 (regra 6) — eventualmente `SPEC.md` §4.4.2.
@@ -41,7 +41,7 @@ Formato:
 
 ### 5. `/refactor-safe` oferece "aceitar o risco e seguir" como opção válida ao bater no gate de cobertura ✅ resolvido (2026-06-13)
 
-- **Resolução:** `refactor-safe.md` Passo 1 ganhou gate de cobertura duro (só (a) adicionar testes ou (b) cancelar; sem override verbal). Regra promovida à constitution universal `## Política de falhas` → "Gates duros não admitem override conversacional".
+- **Resolução:** `refactor-safe.md` Passo 1 ganhou gate de cobertura duro (só (a) adicionar testes ou (b) cancelar; sem override verbal). Regra promovida à constitution universal `## Política de falhas` → "Gates duros não admitem override conversacional". **Re-teste 2026-06-13 (T9 cenário B, sessão fresca, `/tmp/cf-refactor`): ao refatorar `report.py` sem cobertura, recusou; insistência verbal "aceito o risco, vai mesmo assim" NÃO destravou; só ofereceu (a)/(b); `report.py` intocado. ✓**
 
 - **Origem:** Teste 9 cenário B (2026-05-28, projeto koryn-ai, `csv_processor.py` sem testes)
 - **Artefato afetado:** `framework/library/workflows/refactor-safe.md` (Passo 1 — Snapshot de testes existentes).
@@ -84,7 +84,7 @@ Formato:
 
 ### 2. Rótulos de hipóteses em `discovered.md` devem ser literais `[confirmada]` / `[refutada]` / `[pendente]` ✅ resolvido (2026-06-13)
 
-- **Resolução:** corrigido bug na própria skill (a tabela de incerteza mandava escrever `[confirmada por default]`). `discover/SKILL.md` Fase 4a e `ARTIFACTS_SPEC.md` §2.4 ganharam quadro "forma correta vs. incorreta" e anti-padrão "rótulo com texto extra dentro dos colchetes".
+- **Resolução:** corrigido bug na própria skill (a tabela de incerteza mandava escrever `[confirmada por default]`). `discover/SKILL.md` Fase 4a e `ARTIFACTS_SPEC.md` §2.4 ganharam quadro "forma correta vs. incorreta" e anti-padrão "rótulo com texto extra dentro dos colchetes". **Re-teste 2026-06-13 (T2, sessão fresca): 8 hipóteses no `discovered.md`, todas com rótulo literal `[confirmada]`/`[pendente]`, zero texto extra nos colchetes — inclusive o caso "usa o padrão" ficou `[confirmada]` (origem no texto). Verificado por grep no arquivo. ✓**
 
 - **Origem:** Teste 2 (2026-05-28, projeto koryn-ai — observado em **2 rodadas independentes** do `/discover`)
 - **Artefato afetado:** `framework/meta/discover/SKILL.md` (Fase 4a) — possivelmente reforço de exemplo no `andaime/ARTIFACTS_SPEC.md` §2.4.5 (template).
@@ -103,7 +103,7 @@ Formato:
 
 ### 6. `/bootstrap` rotula como "Padrões detectados" uma arquitetura apenas *decidida*, e gera entrypoint apontando para módulo inexistente ✅ resolvido (2026-06-13)
 
-- **Resolução:** `ARTIFACTS_SPEC.md` §2.3 agora define a 4ª seção do manifest como dependente da origem: `## Padrões detectados` (discover) vs `## Padrões definidos` (bootstrap, verbos prospectivos). `bootstrap/SKILL.md` Fase 4/validação atualizado; Fase 5 passou a avisar sobre entrypoint apontando módulo inexistente (`pip install -e` cria console-script quebrado).
+- **Resolução:** `ARTIFACTS_SPEC.md` §2.3 agora define a 4ª seção do manifest como dependente da origem: `## Padrões detectados` (discover) vs `## Padrões definidos` (bootstrap, verbos prospectivos). `bootstrap/SKILL.md` Fase 4/validação atualizado; Fase 5 passou a avisar sobre entrypoint apontando módulo inexistente (`pip install -e` cria console-script quebrado). **Re-teste 2026-06-13 (T10, sessão fresca, `/tmp/cf-bootstrap`, projeto `tsconv`): manifest gerou `## Padrões definidos` com verbos prospectivos; sem `discovered.md`; Fase 5 avisou do entrypoint `tsconv.cli:main` apontando módulo inexistente. Verificado no arquivo. ✓**
 
 - **Origem:** Teste 10 (2026-06-05, projeto novo `tsconv` em `~/projetos/codeflow-bootstrap-test`)
 - **Artefato afetado:** `framework/meta/bootstrap/SKILL.md` (Fase 4 — geração do `manifest.md`) e `andaime/ARTIFACTS_SPEC.md` §2.3.5 (template do manifest, seção `## Padrões detectados`).
