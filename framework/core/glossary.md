@@ -6,6 +6,8 @@ atualizado: 2026-05-23
 
 # Glossário do codeflow
 
+> **Specs:** `SPEC.md` e `ARTIFACTS_SPEC.md`, citados aqui e nos artefatos do framework, vivem em `~/.codeflow/framework/core/` (contratos normativos de runtime).
+
 ## Termos centrais
 
 ### Agent

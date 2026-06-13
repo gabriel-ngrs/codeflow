@@ -10,6 +10,8 @@ politica_falhas: padrão
 
 # Workflow: review-only
 
+> **Spec de runtime:** a referência a `SPEC.md §x` neste workflow aponta para `~/.codeflow/framework/core/SPEC.md`.
+
 ## Quando usar
 Revisar diff produzido pelo usuário ou por outra sessão da IA, sem modificar código.
 

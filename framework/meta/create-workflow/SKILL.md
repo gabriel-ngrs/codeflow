@@ -9,6 +9,8 @@ granularidade: médio
 
 # Meta-skill: create-workflow
 
+> **Specs de runtime:** as referências a `ARTIFACTS_SPEC.md §x` (templates e validação) e a `SPEC.md §x` ao longo deste protocolo apontam para `~/.codeflow/framework/core/ARTIFACTS_SPEC.md` e `~/.codeflow/framework/core/SPEC.md`. Leia o template literal de lá — não parafraseie de memória.
+
 ## Quando usar
 
 Usuário invoca `/create-workflow` quando identifica necessidade de novo workflow universal ou de projeto. A meta-skill conduz a entrevista, gera o arquivo no formato correto e o salva no caminho apropriado.

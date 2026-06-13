@@ -4,7 +4,7 @@ status: estável
 atualizado: 2026-05-20
 documento: ARTIFACTS_SPEC.md
 projeto: codeflow
-localização: ~/Projetos/codeflow/andaime/ARTIFACTS_SPEC.md
+localização: framework/core/ARTIFACTS_SPEC.md (instalado em ~/.codeflow/framework/core/ARTIFACTS_SPEC.md)
 audiência principal: Claude Code (construtor do framework)
 audiência secundária: mantenedor do framework
 ---
@@ -1637,7 +1637,7 @@ Workflow chamador (tipicamente `feature-small` ou `bugfix`) invoca o agent ao te
 
 #### 1.10.7 Anti-padrões
 
-- **Agent que duplica skill.** Se a sub-tarefa pode ser realizada com disciplina (sem exigir restrição mecânica de ferramentas), use skill, não agent. Agent é mais caro de operar e justificável apenas quando isolamento importa.
+- **Agent que duplica skill.** Se a sub-tarefa pode ser realizada com disciplina (sem exigir restrição mecânica de ferramentas), use skill, não agent. Agent é mais caro de operar e justificável apenas quando isolamento importa. **Restrição read-only desejável ≠ restrição read-only necessária.** Quase toda revisão/auditoria "fica melhor" read-only — mas se a disciplina "apenas revise, não edite" basta, é skill. Agent só quando a tarefa é separável em lote com saída autocontida **E** existe uma ferramenta de mutação concretamente tentadora (ex.: `Bash` capaz de `pip install`/migração) que precisa ser removida na camada da ferramenta. Fabricar justificativa de isolamento para uma tarefa de revisão ("revisor que edita anula a revisão") é o sinal clássico de que uma skill bastaria — esse argumento vale para *toda* revisão.
 - **`## Ferramentas permitidas` como declaração negativa.** "Tudo exceto Edit" é proibido. Sempre lista positiva fechada.
 - **System prompt em prosa fora de bloco de código.** O prompt é literal, vai no system prompt da ferramenta — bloco de código preserva fidelidade.
 - **`## Como invocar` genérico.** "O workflow chama o agent quando precisar." Não é instrução. Sempre passos concretos com inputs e outputs identificados.
@@ -1960,7 +1960,7 @@ Descrever **fatos** sobre o projeto: stack identificada, comandos make canônico
 1. `# Manifest do projeto: <nome>` — título único.
 2. `## Stack identificada` — espelha a stack da constitution, mas com versões exatas detectadas (não apenas "Python", mas `Python 3.11.5`).
 3. `## Comandos make canônicos` — mapeamento dos targets canônicos (`check`, `test`, `lint`, `typecheck`) para os comandos efetivos. Targets ausentes são marcados como `[—]`.
-4. `## Padrões detectados` — convenções inferidas pela inspeção (estrutura de pastas, padrão de testes, formato de imports).
+4. `## Padrões detectados` (gerado por `discover`) **ou** `## Padrões definidos` (gerado por `bootstrap`) — convenções arquiteturais do projeto. O título depende da origem: em `discover` os padrões são **inferidos pela inspeção** de código existente (factual — o que foi observado); em `bootstrap` não há código a inspecionar, então os padrões são **definidos prospectivamente** nas decisões da Fase 2, com verbos prospectivos ("a estabelecer", "definido como meta", "núcleo a separar de I/O"). Usar `detectados` num projeto recém-criado por bootstrap é enganoso — nada foi detectado.
 5. `## Arquivos críticos para freshness` — lista de arquivos cujo hash é computado em `validation_hash`. Permite a IA recalcular e verificar.
 6. `## Notas de inspeção` — observações livres do `discover` sobre o projeto: o que foi inspecionado, hipóteses formadas, pontos a confirmar com o usuário.
 
@@ -1968,7 +1968,7 @@ Descrever **fatos** sobre o projeto: stack identificada, comandos make canônico
 
 - `validation_hash` é SHA-256 hexadecimal, 64 caracteres.
 - `## Comandos make canônicos` cobre os quatro targets mínimos (`check`, `test`, `lint`, `typecheck`) do `SPEC.md` §3.10, mesmo quando alguns são `[—]`.
-- `## Padrões detectados` é factual: o que foi observado, não o que deveria existir. Regras prescritivas vivem na constitution.
+- A seção de padrões (`## Padrões detectados` em `discover`; `## Padrões definidos` em `bootstrap`) é descritiva, não prescritiva: registra convenções (observadas ou adotadas), não regras a obedecer. Regras prescritivas vivem na constitution.
 
 **Fórmula canônica de `validation_hash`:**
 
@@ -1984,7 +1984,7 @@ Regras de aplicação:
 
 #### 2.3.4 Schema opcional
 
-- Sub-seções `### <categoria>` em `## Padrões detectados` agrupando por tema (testes, imports, naming, estrutura).
+- Sub-seções `### <categoria>` na seção de padrões (`## Padrões detectados` / `## Padrões definidos`) agrupando por tema (testes, imports, naming, estrutura).
 - Seção `## Targets make estendidos` listando targets úteis além dos canônicos (ex: `make migrate`, `make seed`).
 - Seção `## Limitações conhecidas` declarando o que `discover` não conseguiu inferir e precisa de confirmação manual do usuário.
 
@@ -2044,17 +2044,29 @@ Hash `validation_hash` é computado sobre os arquivos abaixo, na ordem:
 - Pasta `legacy/` na raiz não foi inspecionada (marcada como "não tocar" pelo usuário).
 ```
 
+O exemplo acima é de `discover` (projeto existente). Em `bootstrap`, a quarta seção troca de título e usa verbos prospectivos, porque nada foi inspecionado:
+
+```markdown
+## Padrões definidos
+
+- **Núcleo puro a separar de I/O:** lógica de conversão isolada em módulo próprio, sem dependência de CLI — a estabelecer quando a primeira feature for implementada.
+- **Padrão de testes (meta):** um arquivo de teste por módulo público, espelhando a estrutura de `src/`.
+- **Formato de imports (meta):** imports absolutos a partir da raiz do pacote.
+```
+
+E `## Notas de inspeção` em bootstrap registra que os padrões são prospectivos (ex.: "Projeto criado por `/bootstrap` em 2026-06-05; padrões acima são metas decididas na Fase 2, ainda não materializadas em código.").
+
 #### 2.3.6 Regras de validação
 
 1. Frontmatter presente, com `last_validated` em formato ISO, `validation_hash` em hexadecimal de 64 caracteres, `projeto` não-vazio.
 2. Título no formato `# Manifest do projeto: <nome>`, correspondendo ao `projeto` do frontmatter.
-3. As seis seções obrigatórias presentes na ordem listada em §2.3.3.
+3. As seis seções obrigatórias presentes na ordem listada em §2.3.3. A quarta é `## Padrões detectados` quando gerada por `discover` e `## Padrões definidos` quando gerada por `bootstrap` (conferir contra a meta-skill registrada em `## Notas de inspeção`).
 4. `## Stack identificada` lista versões específicas (números) quando aplicável, não apenas nomes.
 5. `## Comandos make canônicos` cobre os quatro targets do `SPEC.md` §3.10, mesmo que com status `[—]`.
 6. `## Arquivos críticos para freshness` lista pelo menos o Makefile e o manifest principal de stack do projeto.
 7. `validation_hash` recalculado a partir dos arquivos listados em `## Arquivos críticos para freshness` bate com o registrado no frontmatter (verificação dinâmica feita por workflows).
-8. `## Padrões detectados` contém ao menos três bullets factuais.
-9. Nenhuma regra prescritiva em `## Padrões detectados`. Manifest descreve, não prescreve.
+8. A seção de padrões (`## Padrões detectados` / `## Padrões definidos`) contém ao menos três bullets. Em `discover` são factuais (observados); em `bootstrap` são prospectivos (metas decididas na Fase 2).
+9. Nenhuma regra prescritiva na seção de padrões. Manifest descreve (ou define metas), não prescreve regras — essas vivem na constitution.
 10. `## Notas de inspeção` registra data de inspeção e meta-skill que gerou (`discover` ou `bootstrap`).
 
 #### 2.3.7 Anti-padrões
@@ -2094,8 +2106,8 @@ Workflows não consultam discovered diretamente em fluxo normal. Discovered é r
 
 1. `# Discovered: snapshot de <data>` — título único.
 2. `## O que foi inspecionado` — lista de arquivos, pastas e configurações que `discover` examinou. Ordem cronológica de inspeção.
-3. `## Hipóteses formadas` — interpretações que `discover` fez a partir da inspeção. Cada hipótese rotulada como `confirmada`, `refutada` ou `pendente`.
-4. `## Perguntas feitas ao usuário e respostas` — diálogo estruturado com a resposta de cada pergunta. Orientação: até cinco perguntas (`SPEC.md` §4.4.2); sem limite duro — quando ultrapassar, registrar a justificativa em `## Limitações da inspeção`.
+3. `## Hipóteses formadas` — interpretações que `discover` fez a partir da inspeção. Cada hipótese começa com rótulo **literal entre colchetes**: exatamente `[confirmada]`, `[refutada]` ou `[pendente]` — três valores, nenhum outro. A origem da confirmação (inspeção, usuário, default) vai no **texto**, nunca dentro dos colchetes. Proibido: `[confirmada por usuário]`, `[confirmada pela inspeção]`, `[confirmada por default]`, `[confirmada — divergente da memória]`, `[pendente de decisão]` — qualquer texto além das três palavras literais é desvio de schema.
+4. `## Perguntas feitas ao usuário e respostas` — diálogo estruturado com a resposta de cada pergunta. Orientação: **no mínimo cinco perguntas, sem teto** (`SPEC.md` §4.4.2); cinco é piso, não corte. Ao passar de dez, registrar a justificativa em `## Limitações da inspeção`.
 5. `## Áreas marcadas como "não tocar"` — lista de pastas ou arquivos que o usuário declarou explicitamente como fora de escopo para workflows.
 6. `## Artefatos gerados a partir deste discovered` — lista de outros artefatos criados por `discover` nesta execução: constitution.md, manifest.md, INDEX.md.
 
@@ -2160,14 +2172,23 @@ superseded_by: null
 - `.codeflow/INDEX.md` — versão 1.0
 ```
 
+**Rótulos de hipótese — forma correta vs. incorreta** (desvio recorrente em execuções reais):
+
+| Correto (rótulo literal; origem no texto) | Incorreto (origem dentro dos colchetes) |
+|---|---|
+| `[confirmada] ... (confirmada pelo usuário na pergunta 3).` | `[confirmada por usuário]` |
+| `[confirmada] ... (default idiomático aplicado).` | `[confirmada por default]` |
+| `[confirmada] ... (divergente da memória local; confirmada na inspeção).` | `[confirmada — divergente da memória local]` |
+| `[pendente] ... — usuário respondeu "depois eu decido".` | `[pendente de decisão]` |
+
 #### 2.4.6 Regras de validação
 
 1. Frontmatter presente, com `data_inspeção` em formato ISO, `meta_skill: discover`, `superseded_by` em `null` ou nome de arquivo discovered mais recente.
 2. Título no formato `# Discovered: snapshot de <data>`, com data correspondendo ao `data_inspeção`.
 3. As seis seções obrigatórias presentes na ordem listada em §2.4.3.
 4. `## O que foi inspecionado` lista pelo menos três itens (sem inspeção mínima, não há base para hipóteses).
-5. `## Hipóteses formadas` contém ao menos uma hipótese, cada uma com rótulo explícito `[confirmada]`, `[refutada]` ou `[pendente]`.
-6. `## Perguntas feitas ao usuário e respostas` registra todas as perguntas feitas, sem limite duro. Quando passar de cinco perguntas, deve existir entrada em `## Limitações da inspeção` justificando (ex: "projeto excepcionalmente complexo na fronteira backend/IA, exigiu duas perguntas extras sobre cache").
+5. `## Hipóteses formadas` contém ao menos uma hipótese, cada uma com rótulo **exatamente** `[confirmada]`, `[refutada]` ou `[pendente]` — sem texto extra dentro dos colchetes. Origem da confirmação vai no texto.
+6. `## Perguntas feitas ao usuário e respostas` registra todas as perguntas feitas. Mínimo de cinco, sem teto. Quando passar de **dez** perguntas, deve existir entrada em `## Limitações da inspeção` justificando (ex: "projeto excepcionalmente complexo na fronteira backend/IA, exigiu várias perguntas extras sobre cache e multi-tenancy"). Menos de cinco perguntas sem nota de inspeção aprofundada em `## Limitações da inspeção` é sinal de entrevista rasa.
 7. Cada pergunta tem resposta correspondente declarada.
 8. `## Áreas marcadas como "não tocar"` lista caminhos concretos ou texto literal `Nenhuma.` quando o usuário não declarou nenhuma.
 9. `## Artefatos gerados a partir deste discovered` cita pelo menos `constitution.md`, `manifest.md`, `INDEX.md`.
@@ -2177,7 +2198,9 @@ superseded_by: null
 
 - **Atualizar discovered.md depois de gerado.** Conforme `SPEC.md` §4.7.1, discovered é snapshot. Atualizações vêm via novo snapshot datado.
 - **Hipóteses sem rótulo de estado.** Sem `[confirmada]`/`[refutada]`/`[pendente]`, a hipótese fica ambígua e perde valor histórico.
-- **Mais de cinco perguntas sem justificativa.** Cinco continua sendo orientação (não limite duro): inspeção profunda quase sempre cobre o suficiente. Quando ultrapassar, registrar a razão em `## Limitações da inspeção` — sem justificativa, é sinal de inspeção superficial e o discovered fica em débito técnico.
+- **Rótulo com texto extra dentro dos colchetes.** `[confirmada por usuário]`, `[confirmada por default]`, `[confirmada — divergente da memória]` violam o schema: o rótulo é uma das três palavras literais e nada mais. A origem da confirmação vai no texto da hipótese, fora dos colchetes.
+- **Menos de cinco perguntas.** Cinco é piso, não meta de corte. Encerrar a entrevista com menos de cinco perguntas — alegando que a inspeção resolveu tudo — geralmente indica entrevista rasa, sobretudo em projetos maduros. Aprofundar a inspeção ou elevar mais hipóteses a confirmar antes de fechar.
+- **Mais de dez perguntas sem justificativa.** Não há teto duro, mas ao passar de dez perguntas registrar a razão em `## Limitações da inspeção` — projetos genuinamente complexos justificam, e a justificativa preserva o valor histórico do snapshot.
 - **Conteúdo prescritivo em discovered.** Discovered registra o que foi descoberto, não o que deve ser feito. Prescrições vivem na constitution gerada a partir do discovered.
 - **Misturar inspeção e perguntas em ordem caótica.** Cada seção tem propósito específico; misturar quebra a função histórica do snapshot.
 - **Discovered como base de leitura recorrente.** Workflows leem manifest e constitution, não discovered. Discovered é referência arqueológica; consultas frequentes indicam que algo está faltando no manifest.

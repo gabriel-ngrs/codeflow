@@ -4,7 +4,7 @@ status: estável
 atualizado: 2026-05-20
 documento: SPEC.md
 projeto: codeflow
-localização: ~/Projetos/codeflow/andaime/SPEC.md
+localização: framework/core/SPEC.md (instalado em ~/.codeflow/framework/core/SPEC.md)
 audiência principal: Claude Code (e qualquer IA) que vai construir o framework
 audiência secundária: desenvolvedores que querem entender o framework profundamente
 ---
@@ -178,6 +178,8 @@ Esta localização contém **tudo que é universal** ao framework.
 │   │   ├── constitution.md         ← princípios universais
 │   │   ├── glossary.md             ← vocabulário oficial
 │   │   ├── EVOLUTION.md            ← política de evolução do framework
+│   │   ├── SPEC.md                 ← especificação normativa (runtime)
+│   │   ├── ARTIFACTS_SPEC.md       ← schemas/templates dos artefatos (runtime)
 │   │   └── rules/                  ← módulos temáticos opcionais
 │   │       ├── code-quality.md
 │   │       ├── testing.md
@@ -205,11 +207,10 @@ Esta localização contém **tudo que é universal** ao framework.
 │
 ├── andaime/                        ← documentos de construção (histórico)
 │   ├── README.md
-│   ├── SPEC.md
-│   ├── ARTIFACTS_SPEC.md
 │   ├── BUILD_PLAN.md
 │   ├── VALIDATION.md
-│   └── PROMPTS.md
+│   ├── PROMPTS.md
+│   └── EXECUTION_LOG.md
 │
 ├── install.sh                      ← script de instalação em projeto-alvo
 └── README.md                       ← manual de uso geral
@@ -692,7 +693,7 @@ Meta-skills sempre são universais. Não existem versões específicas de projet
 
 O framework é entregue com cinco meta-skills:
 
-**`discover`:** aprende um projeto existente. Conduz inspeção silenciosa, formula hipóteses, conduz entrevista qualificada (orientação: até cinco perguntas; sem limite duro — quando passar de cinco, emite aviso ao usuário de que inspeção pode estar superficial e aguarda decisão antes de continuar), gera os artefatos iniciais (INDEX.md, constitution.md, manifest.md, discovered.md). Granularidade detalhada.
+**`discover`:** aprende um projeto existente. Conduz inspeção silenciosa, formula hipóteses, conduz entrevista qualificada (orientação: no mínimo cinco perguntas, sem teto — cinco é piso para garantir cobertura, não corte rápido; ao passar de dez, faz pausa de sanidade sobre fadiga do usuário e aguarda decisão antes de continuar), gera os artefatos iniciais (INDEX.md, constitution.md, manifest.md, discovered.md). Granularidade detalhada.
 
 **`bootstrap`:** cria um projeto novo a partir de uma ideia. Conduz conversa estruturada (escopo, stack, padrão arquitetural, regras), gera estrutura de pastas, configs iniciais, Makefile, e os artefatos do codeflow. Granularidade detalhada.
 
@@ -1568,7 +1569,7 @@ Esta seção define os termos do codeflow com precisão. Em caso de ambiguidade 
 
 **Agent:** definição de subagente com escopo de ferramentas restrito. Não é a IA em si — é uma instância especializada da IA com permissões limitadas. Mora em `framework/library/agents/` (universal) ou `.codeflow/agents/` (projeto). Diferente de "agent" no sentido de Cursor ou Claude Code, que se refere à própria IA.
 
-**Andaime:** os cinco documentos descartáveis usados para construir o framework (SPEC.md, ARTIFACTS_SPEC.md, BUILD_PLAN.md, VALIDATION.md, PROMPTS.md). Vivem em `~/Projetos/codeflow/andaime/`. Mantidos por histórico mesmo após construção concluída.
+**Andaime:** os documentos de construção do framework (BUILD_PLAN.md, VALIDATION.md, PROMPTS.md, EXECUTION_LOG.md). Vivem em `andaime/`. Mantidos por histórico mesmo após construção concluída. Os contratos normativos `SPEC.md` e `ARTIFACTS_SPEC.md` foram promovidos para `framework/core/` por serem lidos em runtime pelas meta-skills e workflows — não são andaime.
 
 **Artefato:** arquivo gerado pelo codeflow durante o uso, que vive em `.codeflow/` do projeto. Inclui: INDEX.md, constitution.md, manifest.md, discovered.md, decisions/*, checkpoints/*. Diferente de "conteúdo do framework" (que vive em `~/.codeflow/` e não é artefato).
 

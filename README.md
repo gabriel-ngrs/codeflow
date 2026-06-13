@@ -46,19 +46,20 @@ em nenhum outro arquivo do projeto.
 
 ## Estrutura do framework
 
-A árvore completa está descrita em `andaime/SPEC.md` §2.2. Em alto nível:
+A árvore completa está descrita em `framework/core/SPEC.md` §2.2. Em alto nível:
 
-- `framework/core/` — constitution, glossary, EVOLUTION, rules universais.
+- `framework/core/` — constitution, glossary, EVOLUTION, rules universais e os
+  contratos normativos de runtime (`SPEC.md`, `ARTIFACTS_SPEC.md`).
 - `framework/meta/` — meta-skills (`discover`, `bootstrap`, `create-*`).
 - `framework/library/` — skills e workflows universais seed.
-- `andaime/` — documentos de construção (SPEC, ARTIFACTS_SPEC, BUILD_PLAN,
-  VALIDATION, PROMPTS).
+- `andaime/` — documentos de construção (BUILD_PLAN, VALIDATION, PROMPTS,
+  EXECUTION_LOG). Não fazem parte do framework instalado.
 - `install.sh` — script de instalação em projeto-alvo.
 
 ## Documentação detalhada
 
-- `andaime/SPEC.md` — fonte da verdade sobre arquitetura e decisões.
-- `andaime/ARTIFACTS_SPEC.md` — formato exato de cada arquivo do framework.
+- `framework/core/SPEC.md` — fonte da verdade sobre arquitetura e decisões.
+- `framework/core/ARTIFACTS_SPEC.md` — formato exato de cada arquivo do framework.
 - `andaime/BUILD_PLAN.md` — como o framework foi construído, etapa por etapa.
 
 ## Como evoluir o framework
