@@ -64,7 +64,7 @@ Arquivos do core são `~/.codeflow/framework/core/constitution.md`, `~/.codeflow
 
 **Processo:**
 
-1. Abrir proposta em `andaime/` ou em decision dedicada, descrevendo a mudança e o motivo.
+1. Abrir proposta em decision dedicada (`.codeflow/decisions/`), descrevendo a mudança e o motivo.
 2. Aguardar 30 dias com a proposta visível.
 3. Aplicar a mudança no arquivo do core, com bump major.
 4. Registrar entrada em `## Histórico de evoluções aplicadas` (quando esta seção existir).

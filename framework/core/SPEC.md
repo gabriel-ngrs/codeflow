@@ -5,8 +5,8 @@ atualizado: 2026-05-20
 documento: SPEC.md
 projeto: codeflow
 localização: framework/core/SPEC.md (instalado em ~/.codeflow/framework/core/SPEC.md)
-audiência principal: Claude Code (e qualquer IA) que vai construir o framework
-audiência secundária: desenvolvedores que querem entender o framework profundamente
+audiência principal: Claude Code (e qualquer IA) que executa as meta-skills e workflows do framework (contrato normativo de runtime)
+audiência secundária: desenvolvedores que mantêm/evoluem o framework
 ---
 
 # SPEC.md — Especificação completa do codeflow
@@ -204,13 +204,6 @@ Esta localização contém **tudo que é universal** ao framework.
 │           ├── feature-small.md
 │           ├── refactor-safe.md
 │           └── review-only.md
-│
-├── andaime/                        ← documentos de construção (histórico)
-│   ├── README.md
-│   ├── BUILD_PLAN.md
-│   ├── VALIDATION.md
-│   ├── PROMPTS.md
-│   └── EXECUTION_LOG.md
 │
 ├── install.sh                      ← script de instalação em projeto-alvo
 └── README.md                       ← manual de uso geral
@@ -1569,7 +1562,7 @@ Esta seção define os termos do codeflow com precisão. Em caso de ambiguidade 
 
 **Agent:** definição de subagente com escopo de ferramentas restrito. Não é a IA em si — é uma instância especializada da IA com permissões limitadas. Mora em `framework/library/agents/` (universal) ou `.codeflow/agents/` (projeto). Diferente de "agent" no sentido de Cursor ou Claude Code, que se refere à própria IA.
 
-**Andaime:** os documentos de construção do framework (BUILD_PLAN.md, VALIDATION.md, PROMPTS.md, EXECUTION_LOG.md). Vivem em `andaime/`. Mantidos por histórico mesmo após construção concluída. Os contratos normativos `SPEC.md` e `ARTIFACTS_SPEC.md` foram promovidos para `framework/core/` por serem lidos em runtime pelas meta-skills e workflows — não são andaime.
+**Andaime:** termo histórico — eram os documentos de construção do framework (BUILD_PLAN, PROMPTS, EXECUTION_LOG, VALIDATION) que viviam em `andaime/`. Removidos do working tree após a construção concluída (preservados no histórico do git). Os contratos normativos `SPEC.md` e `ARTIFACTS_SPEC.md` foram promovidos para `framework/core/` (são lidos em runtime); as checagens estruturais de cada artefato vivem nas regras de validação `§x.6` do `ARTIFACTS_SPEC.md`.
 
 **Artefato:** arquivo gerado pelo codeflow durante o uso, que vive em `.codeflow/` do projeto. Inclui: INDEX.md, constitution.md, manifest.md, discovered.md, decisions/*, checkpoints/*. Diferente de "conteúdo do framework" (que vive em `~/.codeflow/` e não é artefato).
 
@@ -1713,7 +1706,7 @@ O codeflow analisou o framework `.devmind` (do projeto ritmly) e identificou os 
 
 **Numeração formal (FEAT-XXXX, ADR-XXXX, QA-XXXX, BRAINSTORM-XXXX):** exige registro centralizado de números. Codeflow usa nomes descritivos com data, igualmente informativo, sem overhead.
 
-**11+ subpastas no nível raiz:** amplitude estrutural sustentada por equipe full-time. Codeflow começa com 3 (framework/, andaime/, mais o que for necessário) e cresce sob demanda.
+**11+ subpastas no nível raiz:** amplitude estrutural sustentada por equipe full-time. Codeflow começa enxuto (`framework/` e o que for necessário) e cresce sob demanda.
 
 **Reconsiderar quando:** caso a caso, se o codeflow crescer a ponto de algum desses elementos se justificar. Improvável no horizonte previsível.
 
@@ -1729,10 +1722,7 @@ O codeflow analisou o framework `.devmind` (do projeto ritmly) e identificou os 
 
 ## Fim do SPEC.md
 
-Este documento descreve o codeflow como produto final. Toda decisão registrada aqui é vinculante durante a construção. Mudanças na especificação durante a construção devem ser refletidas neste documento antes de implementadas em código.
+Este documento descreve o codeflow como produto. É contrato normativo de runtime: as meta-skills e workflows o leem em execução. Mudanças na especificação devem ser refletidas aqui antes de propagadas aos demais artefatos do framework, seguindo `framework/core/EVOLUTION.md`.
 
-**Próximos documentos do andaime:**
-- `ARTIFACTS_SPEC.md` — schemas detalhados de cada artefato com exemplos preenchidos.
-- `BUILD_PLAN.md` — ordem de construção etapa por etapa.
-- `VALIDATION.md` — checklist de validação por etapa.
-- `PROMPTS.md` — prompts prontos para invocar cada etapa no Claude Code.
+**Documentos relacionados:**
+- `framework/core/ARTIFACTS_SPEC.md` — schemas detalhados de cada artefato com exemplos preenchidos, incluindo as regras de validação `§x.6` (base para automação de CI estrutural).

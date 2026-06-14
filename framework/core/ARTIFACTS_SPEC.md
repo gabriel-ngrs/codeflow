@@ -5,7 +5,7 @@ atualizado: 2026-05-20
 documento: ARTIFACTS_SPEC.md
 projeto: codeflow
 localização: framework/core/ARTIFACTS_SPEC.md (instalado em ~/.codeflow/framework/core/ARTIFACTS_SPEC.md)
-audiência principal: Claude Code (construtor do framework)
+audiência principal: Claude Code (e qualquer IA) que executa as meta-skills e gera/valida artefatos (contrato normativo de runtime)
 audiência secundária: mantenedor do framework
 ---
 
@@ -13,7 +13,7 @@ audiência secundária: mantenedor do framework
 
 > Este documento define o **formato exato** de cada arquivo gerado ou consumido pelo codeflow. Para cada arquivo: schema obrigatório, schema opcional, exemplo preenchido realista, regras de validação e anti-padrões.
 >
-> **Hierarquia de autoridade.** Em caso de conflito com o `SPEC.md`, o SPEC vence. Em caso de conflito com qualquer outro documento do andaime (`BUILD_PLAN.md`, `VALIDATION.md`, `PROMPTS.md`), este documento vence.
+> **Hierarquia de autoridade.** Em caso de conflito com o `SPEC.md`, o SPEC vence. Qualquer automação de validação estrutural deriva deste documento (regras `§x.6`), não o contrário.
 
 ---
 
@@ -81,7 +81,7 @@ Regras de bump conforme `SPEC.md` §6.1:
 - **Major (`1.0 → 2.0`):** alteração de comportamento existente ou remoção de capacidade.
 - **Sem bump:** correção de typo, clarificação, reformatação que não altera comportamento.
 
-Toda criação inicial de arquivo começa em `1.0` com `status: estável` — exceto quando o `BUILD_PLAN.md` instruir explicitamente `experimental`.
+Toda criação inicial de arquivo começa em `1.0` com `status: estável` — salvo instrução explícita em contrário para marcar `experimental`.
 
 ### 0.4 Idioma e nomenclatura
 
@@ -158,7 +158,7 @@ Cada subseção da Parte 1 e da Parte 2 segue rigorosamente a mesma estrutura, n
 
 **5. Exemplo preenchido.** Uma instância completa e realista do arquivo, em bloco de código markdown. Realista significa: conteúdo coerente, não-trivial, que poderia existir num projeto real. O Claude Code usa este exemplo como referência ao gerar análogos durante a construção.
 
-**6. Regras de validação.** Checks objetivos que devem passar após o arquivo ser gerado. Cada check é verificável programaticamente (via grep, parsing simples, ou inspeção visual estruturada). Esta seção é a fonte primária para o `VALIDATION.md`.
+**6. Regras de validação.** Checks objetivos que devem passar após o arquivo ser gerado. Cada check é verificável programaticamente (via grep, parsing simples, ou inspeção visual estruturada). Esta seção é a fonte primária para qualquer automação de validação estrutural (ex.: um futuro `run-structural.sh`).
 
 **7. Anti-padrões.** Lista do que **não fazer** ao criar o arquivo. Captura armadilhas previsíveis de geração assistida por IA: invenção de campos, copy-paste de outros tipos de arquivo, prosa onde deveria ser estrutura, generalização vazia.
 
@@ -2543,7 +2543,7 @@ status: em_progresso
 
 ## Parte 3 — Regras transversais de validação
 
-Esta parte consolida as verificações que se aplicam a **qualquer arquivo do codeflow**, independentemente de tipo. Servem como camada base de validação antes (ou em paralelo) das regras específicas de cada artefato declaradas nas Partes 1 e 2. O `VALIDATION.md` (próximo documento do andaime) referencia esta parte como fonte primária da camada base.
+Esta parte consolida as verificações que se aplicam a **qualquer arquivo do codeflow**, independentemente de tipo. Servem como camada base de validação antes (ou em paralelo) das regras específicas de cada artefato declaradas nas Partes 1 e 2. Qualquer automação de validação estrutural usa esta parte como fonte primária da camada base.
 
 A ordem das regras segue da mais geral (forma) para a mais específica (conteúdo).
 
@@ -2626,7 +2626,7 @@ Verificações que cruzam múltiplos arquivos. Mais caras computacionalmente; ap
 36. **Sem caminhos absolutos hardcoded** fora dos casos documentados em §3.4. Verificar com `grep -E '^/|/home/|/Users/'`.
 37. **Sem referências a ferramentas de IA específicas embutidas em conteúdo neutro.** "Claude Code", "Cursor" só aparecem em contexto explicitamente comparativo (glossary, EVOLUTION). Workflows, skills, constitution: agnósticos.
 38. **Sem TODO, FIXME, XXX em arquivos do framework ou artefatos.** Esses marcadores indicam trabalho incompleto; toda criação chega completa ou não chega.
-39. **Sem comentários HTML (`<!-- -->`) com instruções para humanos.** Markdown do framework é lido por IA; comentários HTML viram ruído. Notas para humanos vão em arquivos do andaime (`SPEC.md`, este documento), não em conteúdo entregue do framework.
+39. **Sem comentários HTML (`<!-- -->`) com instruções para humanos.** Markdown do framework é lido por IA; comentários HTML viram ruído. Notas para humanos vão na prosa dos specs (`SPEC.md`, este documento), não em conteúdo entregue do framework.
 
 ---
 

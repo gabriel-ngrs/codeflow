@@ -52,15 +52,13 @@ A árvore completa está descrita em `framework/core/SPEC.md` §2.2. Em alto ní
   contratos normativos de runtime (`SPEC.md`, `ARTIFACTS_SPEC.md`).
 - `framework/meta/` — meta-skills (`discover`, `bootstrap`, `create-*`).
 - `framework/library/` — skills e workflows universais seed.
-- `andaime/` — documentos de construção (BUILD_PLAN, VALIDATION, PROMPTS,
-  EXECUTION_LOG). Não fazem parte do framework instalado.
 - `install.sh` — script de instalação em projeto-alvo.
 
 ## Documentação detalhada
 
 - `framework/core/SPEC.md` — fonte da verdade sobre arquitetura e decisões.
 - `framework/core/ARTIFACTS_SPEC.md` — formato exato de cada arquivo do framework.
-- `andaime/BUILD_PLAN.md` — como o framework foi construído, etapa por etapa.
+- `framework/core/EVOLUTION.md` — política de evolução do framework.
 
 ## Como evoluir o framework
 
