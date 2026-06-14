@@ -58,7 +58,7 @@ Ancorar a spec na realidade do repositório: o que já existe e deve ser reusado
 1. Mapear a arquitetura relevante: camadas, ports/adapters, módulos, convenções de nomes e rotas, ferramentas (consultar `.codeflow/manifest.md` e o código).
 2. Localizar **seams existentes** que a necessidade deve plugar (precedentes, enums extensíveis, tabelas genéricas, registries) — o "molde de referência" mais próximo já implementado.
 3. Levantar ADRs, rules e decisions que restringem a solução (segurança, isolamento de tenant, RBAC, LGPD, migrations — o que se aplicar).
-4. Construir o **mapa NOVO vs. REUSADO vs. REMOVIDO**: o que a spec constrói, o que reusa sem duplicar, o que (se algo) remove.
+4. Construir o **mapa NOVO vs. REUSADO vs. REMOVIDO**: o que a spec constrói, o que reusa sem duplicar, o que (se algo) remove. **Confirmar no repo** que todo caminho citado como REUSADO/alterado realmente existe — não citar caminho inventado.
 5. Anotar os **princípios invioláveis** que a spec deve declarar (derivados das rules/ADRs, não inventados).
 
 ### Checkpoint
@@ -85,11 +85,11 @@ Escrever a spec final — **um único documento autoexecutável** — no formato
 
 ### Ações
 1. Decompor a abordagem técnica (§4) em **fases ordenadas e executáveis**: cada fase entrega um incremento testável, declara seus arquivos/passos/testes/critério de conclusão e respeita as dependências (uma fase não pressupõe trabalho de uma fase posterior). Granularidade-alvo: 3 a 8 fases; fase grande demais para um agente executar de uma vez deve ser subdividida.
-2. Criar a subpasta da spec `.codeflow/specs/<slug>/` (uma subpasta por spec) e escrever dentro dela **o único arquivo** `SPEC_<NAME>.md`, seguindo **exatamente** o esqueleto abaixo (formato `.devgabriel` do agendia, **com** o "Plano de desenvolvimento por fases" detalhado; a DoD tem gate por etapa). Nenhum outro arquivo é criado.
+2. Criar a subpasta da spec `.codeflow/specs/<slug>/` (uma subpasta por spec) e escrever dentro dela **o único arquivo** `SPEC_<NAME>.md`, seguindo **exatamente** o esqueleto abaixo (padrão de qualidade das specs `.devgabriel` do agendia, gravado em `.codeflow/specs/`, **com** o "Plano de desenvolvimento por fases" detalhado; a DoD tem gate por etapa). Nenhum outro arquivo é criado.
 
    ```markdown
    ---
-   id: <FEAT-XXXX ou null>        # opcional; só se o projeto usa numeração
+   id: <FEAT-XXXX | null>
    slug: <slug>
    title: "<título descritivo longo>"
    type: feature | refactor | infra | ...
@@ -97,6 +97,10 @@ Escrever a spec final — **um único documento autoexecutável** — no formato
    priority: P0|P1|P2|P3
    size: S|M|L|XL
    risk_level: GREEN|YELLOW|RED
+   risk_score: <0-25 | null>
+   refine_mode: SHALLOW|DEEP
+   estimated_effort: "<≈Xh / ~Y P-D | null>"
+   wave: <single | multi | null>
    domain: backend|frontend|infra|...
    bounded_context: <contexto>
    cross_context: [<outros contextos>]
@@ -104,8 +108,14 @@ Escrever a spec final — **um único documento autoexecutável** — no formato
    updated_at: <AAAA-MM-DD>
    owner: <owner>
    linked_adr: [<ADRs aplicáveis>]
+   linked_feat: [<FEATs relacionadas>]
    depends_on: []
    blocks: []
+   related_bugs: []
+   quality_gate:
+     scorer: pattern
+     threshold: 3
+     passed: false
    ---
 
    # <ID — título curto>
@@ -141,16 +151,19 @@ Escrever a spec final — **um único documento autoexecutável** — no formato
    > regressão). Ordem obrigatória; não iniciar a Fase N+1 sem o critério de
    > conclusão da Fase N verde.
 
-   ### Fase 1 — <nome> *(esforço ≈Xh)*
+   ### Fase 1 — <nome> *(tamanho S/M/L; esforço ≈Xh — estimativa grosseira, opcional)*
    - **Objetivo:** o incremento que esta fase entrega.
    - **Depende de:** fases anteriores / pré-requisitos (ou "nenhuma").
-   - **Arquivos novos:** caminhos. **Arquivos alterados:** caminhos.
+   - **Arquivos novos:** caminhos. **Arquivos alterados:** caminhos (que existem no repo).
    - **Passos:** 1) … 2) … — instruções acionáveis o bastante para executar sem
      reabrir decisões (decisões já estão em §4 e §8).
    - **Testes:** o que provar, mapeado aos AC-N relevantes.
+   - **Escopo travado / violações BLOQUEANTES:** o que esta fase NÃO pode fazer
+     (atalhos, anti-padrões, quebras de princípio) — vira os achados bloqueantes
+     do avaliador.
    - **Critério de conclusão (gate):** condição verificável de pronto.
 
-   ### Fase 2 — <nome> *(esforço ≈Xh)*
+   ### Fase 2 — <nome> *(tamanho S/M/L; esforço ≈Xh opcional)*
    (mesma estrutura; repetir por fase — alvo 3 a 8 fases.)
 
    ## 6. Riscos
@@ -168,7 +181,7 @@ Escrever a spec final — **um único documento autoexecutável** — no formato
    segurança/PII, sem regressão). Cada item objetivo e verificável.
    ```
 
-3. Validar a spec gerada com a skill `self-review`: cada FR tem AC; cada princípio inviolável vem de uma rule/ADR real; **cada fase de §5 é executável isoladamente** (tem arquivos, passos, testes e critério de conclusão) e respeita as dependências; segredos/PII não aparecem em exemplos.
+3. Validar a spec gerada com a skill `self-review`: cada FR tem AC; cada princípio inviolável vem de uma rule/ADR real; **cada fase de §5 é executável isoladamente** (tem arquivos, passos, testes, escopo travado e critério de conclusão), respeita as dependências e **só cita caminhos que existem no repo**; segredos/PII não aparecem em exemplos.
 4. Apresentar o resumo final e, com a spec aprovada, deletar os checkpoints da execução. As decisões de escopo e Open Questions já ficam registradas **dentro da própria spec** (§8); este workflow não gera artefato separado.
 
 ### Checkpoint
@@ -188,8 +201,8 @@ Estado final persistido no único artefato versionável (`.codeflow/specs/<slug>
 - [ ] Codebase sondado; mapa NOVO/REUSADO/REMOVIDO e princípios invioláveis derivados do código real (Fase 2).
 - [ ] Open Questions materiais resolvidas pelo owner ou registradas como abertas (Fase 3).
 - [ ] Subpasta própria `.codeflow/specs/<slug>/` criada, contendo **só** `SPEC_<NAME>.md` (documento único).
-- [ ] A spec contém o "Plano de desenvolvimento por fases" (3–8 fases), cada fase executável isoladamente por um agente — com arquivos, passos, testes e critério de conclusão — e a DoD da spec tem gate por etapa.
-- [ ] Cada FR tem ao menos um AC correspondente; cada princípio rastreia a uma rule/ADR.
+- [ ] A spec contém o "Plano de desenvolvimento por fases" (3–8 fases), cada fase executável isoladamente por um agente — com arquivos, passos, testes, escopo travado/violações bloqueantes e critério de conclusão — e a DoD da spec tem gate por etapa.
+- [ ] Cada FR tem ao menos um AC correspondente; cada princípio rastreia a uma rule/ADR; cada caminho citado existe no repo.
 - [ ] `self-review` aplicado à spec.
 - [ ] Checkpoints da execução deletados (workflow concluído com sucesso).
 
