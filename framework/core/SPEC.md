@@ -1,7 +1,7 @@
 ---
-versão: 1.1
+versão: 2.0
 status: estável
-atualizado: 2026-05-20
+atualizado: 2026-06-15
 documento: SPEC.md
 projeto: codeflow
 localização: framework/core/SPEC.md (instalado em ~/.codeflow/framework/core/SPEC.md)
@@ -129,7 +129,7 @@ Concretamente:
 
 Estas anti-definições são tão importantes quanto as definições positivas. Cada uma corresponde a uma armadilha real que o codeflow evita.
 
-**Não é um runtime.** Não tem CLI própria, daemon, máquina de estados, ou orquestrador. A inteligência vive nos arquivos markdown; a execução vive na IA que os lê.
+**Não é um runtime.** Não tem CLI própria, daemon, processo em execução, ou orquestrador. A inteligência vive nos arquivos markdown; a execução vive na IA que os lê. (O pipeline de spec define uma **máquina de estados da fase** em `ARTIFACTS_SPEC.md` §2.11, mas ela é **declarativa**: a IA *deriva* o estado de cada fase lendo o frontmatter dos artefatos — não há processo rodando, daemon, nem orquestrador. Estado computado a partir de arquivos, não estado mantido por um motor.)
 
 **Não é um produto SaaS.** Não tem servidor, dashboard, telemetria centralizada, ou backend. É um conjunto de arquivos numa pasta.
 
@@ -180,11 +180,13 @@ Esta localização contém **tudo que é universal** ao framework.
 │   │   ├── EVOLUTION.md            ← política de evolução do framework
 │   │   ├── SPEC.md                 ← especificação normativa (runtime)
 │   │   ├── ARTIFACTS_SPEC.md       ← schemas/templates dos artefatos (runtime)
-│   │   └── rules/                  ← módulos temáticos opcionais
-│   │       ├── code-quality.md
-│   │       ├── testing.md
-│   │       ├── security.md
-│   │       └── naming.md
+│   │   ├── rules/                  ← módulos temáticos opcionais
+│   │   │   ├── code-quality.md
+│   │   │   ├── testing.md
+│   │   │   ├── security.md
+│   │   │   └── naming.md
+│   │   └── scripts/                ← validadores read-only em bash
+│   │       └── run-structural.sh   ← gate estrutural da §5 da spec
 │   │
 │   ├── meta/                       ← skills que criam outras coisas
 │   │   ├── discover/SKILL.md       ← aprende projeto existente
@@ -196,14 +198,14 @@ Esta localização contém **tudo que é universal** ao framework.
 │   └── library/                    ← biblioteca viva (seeds + extensões)
 │       ├── skills/                 ← skills universais (planas)
 │       │   ├── debug-protocol/SKILL.md
-│       │   ├── handoff/SKILL.md
 │       │   └── self-review/SKILL.md
 │       │
 │       └── workflows/              ← workflows universais (planos)
 │           ├── bugfix.md
-│           ├── feature-small.md
-│           ├── refactor-safe.md
-│           └── review-only.md
+│           ├── create-spec.md          ← pipeline de spec: cria a spec executável
+│           ├── execute-spec-phase.md   ← pipeline de spec: executa uma fase
+│           ├── evaluate-spec-phase.md  ← pipeline de spec: avalia uma fase (chat zerado)
+│           └── spec-status.md          ← pipeline de spec: progresso das fases
 │
 ├── install.sh                      ← script de instalação em projeto-alvo
 └── README.md                       ← manual de uso geral
@@ -231,6 +233,11 @@ seu-projeto/
 │   │
 │   ├── checkpoints/                ← estado intermediário (efêmero)
 │   │   └── <workflow>-<timestamp>.md
+│   │
+│   ├── specs/                      ← specs e artefatos de fase (pipeline de spec)
+│   │   └── <slug>/
+│   │       ├── SPEC_<NAME>.md       ← a spec, criada por /create-spec
+│   │       └── artefatos/           ← FASE-<id>-<slug>-EXECUCAO.md e -AVALIACAO.md
 │   │
 │   ├── workflows/                  ← workflows específicos deste projeto
 │   └── skills/                     ← skills específicas deste projeto
@@ -313,7 +320,7 @@ Formato de cada decisão:
 - Não usar Python, Node.js, Go, Rust, ou qualquer linguagem compilada/interpretada além de bash.
 - Não usar `jq`, `yq`, ou utilitários não-nativos que exigem instalação separada.
 - Não criar binários, daemons, ou processos em background.
-- Não criar máquina de estados, orquestrador, ou runtime próprio.
+- Não criar orquestrador ou runtime próprio em execução. (A máquina de estados da fase do pipeline de spec — `ARTIFACTS_SPEC.md` §2.11 — é declarativa: a IA deriva o estado lendo arquivos. Não é um motor em execução, e por isso não viola esta anti-decisão. O único auxiliar mecânico é `run-structural.sh`, um validador read-only em bash.)
 
 ### 3.2 Idioma: pt-BR
 
@@ -324,7 +331,7 @@ Formato de cada decisão:
 **Implicações:**
 - README, SKILL.md, workflows, constitution: tudo em pt-BR.
 - Mensagens de scripts bash (echo, error messages): pt-BR.
-- Nomes de arquivos e pastas: kebab-case em inglês (ex: `debug-protocol`, `feature-small`) por convenção técnica, mas conteúdo dentro deles em pt-BR.
+- Nomes de arquivos e pastas: kebab-case em inglês (ex: `debug-protocol`, `create-spec`) por convenção técnica, mas conteúdo dentro deles em pt-BR.
 - Glossário oficial em pt-BR.
 
 **Anti-decisão:**
@@ -375,7 +382,7 @@ Formato de cada decisão:
 **Justificativa:** Esta organização escala bem: universais ficam fáceis de listar e gerenciar (sem prefixos artificiais), específicos ficam isolados em "ilhas" por projeto. Promover uma skill de projeto para universal é trivial (`git mv`). A separação entre origem e escopo é clara.
 
 **Implicações:**
-- Workflows seed iniciais (bugfix, feature-small, refactor-safe, review-only) vivem em `framework/library/workflows/`.
+- Workflows universais (bugfix e o pipeline de spec — create-spec, execute-spec-phase, evaluate-spec-phase, spec-status) vivem em `framework/library/workflows/`.
 - Quando um projeto precisa de workflow específico, é criado em `.codeflow/workflows/` do projeto via `/create-workflow`.
 - Quando um workflow específico se prova útil em múltiplos projetos, é promovido manualmente para `framework/library/workflows/`.
 
@@ -386,7 +393,7 @@ Formato de cada decisão:
 
 ### 3.6 Invocação: slash commands disparados pelo usuário
 
-**Decisão:** Workflows são invocados exclusivamente pelo usuário, via slash commands nativos da ferramenta de IA (`/bugfix`, `/feature-small`, etc.). A IA nunca escolhe workflow sozinha.
+**Decisão:** Workflows são invocados exclusivamente pelo usuário, via slash commands nativos da ferramenta de IA (`/bugfix`, `/create-spec`, etc.). A IA nunca escolhe workflow sozinha.
 
 **Justificativa:** Disciplinar a IA exige tirar dela a decisão de "qual processo seguir". O usuário, ao invocar um workflow, está explicitamente declarando o tipo de tarefa e ativando o protocolo correspondente. Slash commands existem nativamente em Claude Code, Codex, Cursor — não inventamos mecanismo novo. O nome do arquivo do workflow é o nome do comando.
 
@@ -575,9 +582,9 @@ Workflows específicos de projeto **sobrescrevem** universais de mesmo nome. Se 
 
 Workflows têm tamanho proporcional à complexidade da tarefa. Três categorias:
 
-**Magro (~20-30 linhas):** uma ação clara, sem decisões intermediárias. Exemplos: `review-only`, `format-check`.
+**Magro (~20-30 linhas):** uma ação clara, sem decisões intermediárias. Exemplo: `spec-status`.
 
-**Médio (~60-100 linhas):** sequência de passos com validações entre eles. Exemplos: `bugfix`, `feature-small`, `refactor-safe`.
+**Médio (~60-100 linhas):** sequência de passos com validações entre eles. Exemplos: `bugfix`, `execute-spec-phase`, `evaluate-spec-phase`.
 
 **Detalhado (~150-300 linhas):** conversa estruturada com o usuário, múltiplas decisões abertas. Exemplos: `bootstrap`, `discover`.
 
@@ -626,6 +633,19 @@ Workflows usam **referências explícitas** para puxar contexto. A IA é instru�
 
 Workflows **não copiam** conteúdo de constitution ou skills. Apenas referenciam. Isso evita duplicação e propaga atualizações automaticamente.
 
+#### 4.2.5 O pipeline de spec
+
+A maioria dos workflows é **independente**: uma invocação resolve a tarefa inteira. O **pipeline de spec** é a exceção — uma família de quatro workflows que operam em conjunto sobre um mesmo artefato (a **spec**) e a executam de forma incremental:
+
+- **`/create-spec`** (detalhado) — sonda o repositório e produz **um único documento autoexecutável** (`SPEC_<NAME>.md`) com requisitos, abordagem técnica e um **plano de desenvolvimento por fases** (§5). Vive numa branch de trabalho `spec/<slug>`.
+- **`/execute-spec-phase`** (médio) — executa **uma fase por vez** (TDD, escopo fechado), commita e grava o relatório `FASE-<id>-<slug>-EXECUCAO.md` com frontmatter machine-readable.
+- **`/evaluate-spec-phase`** (médio) — avalia a fase **em chat zerado independente**, sem confiar no relatório: verifica tudo contra o código real e emite um **veredito** (`APROVADO`/`RESSALVAS`/`REPROVADO`). Só `APROVADO` conclui a fase.
+- **`/spec-status`** (magro) — read-only; deriva o estado de cada fase e aponta o próximo passo.
+
+**Por que isto não vira um runtime.** Os quatro workflows não compartilham um processo: cada um roda numa sessão de IA separada e se comunica com os outros **apenas por arquivos versionados** (a spec, os relatórios `EXECUCAO`/`AVALIACAO` e seus frontmatters). O estado de cada fase (pendente / aguardando avaliação / reprovada / concluída) é **derivado** desses arquivos pela IA segundo a **máquina de estados da fase** (`ARTIFACTS_SPEC.md` §2.11) — uma definição declarativa, não um motor em execução. O único auxiliar mecânico é `run-structural.sh`, um validador read-only em bash que checa a forma da §5 (`ARTIFACTS_SPEC.md` §2.8.6) antes de qualquer classificação. Isso preserva a anti-decisão de §1.4 e §3.1: a inteligência continua nos arquivos markdown e a execução, na IA que os lê.
+
+Os schemas exatos de cada artefato do pipeline estão em `ARTIFACTS_SPEC.md` §2.8–§2.11; o vocabulário (spec, fase, track/wave, veredito, gate estrutural, máquina de estados) está no `glossary.md`.
+
 ### 4.3 Skills
 
 Uma **skill** é um arquivo markdown que encapsula uma capacidade discreta e reutilizável. Diferente de workflow (que é processo), skill é capacidade.
@@ -639,11 +659,9 @@ Cada skill vive em sua **própria pasta**, contendo no mínimo o arquivo `SKILL.
 
 #### 4.3.2 Skills seed do framework
 
-O framework é entregue com três skills universais iniciais:
+O framework é entregue com duas skills universais:
 
 **`debug-protocol`:** protocolo anti-loop para debug. Define: reproduzir antes de hipotetizar, uma hipótese por vez, máximo 3 tentativas, parar e reportar se 3 falham. Carregada por workflows tipo `bugfix`.
-
-**`handoff`:** protocolo de passagem de bastão entre sessões. Define como a IA registra estado antes de auto-compactação ou quebra de sessão. Carregada por workflows detalhados.
 
 **`self-review`:** checklist objetivo que a IA aplica antes de marcar tarefa como concluída. Inclui: diff dentro do escopo? estilo consistente? riscos identificados? Carregada por todos os workflows que modificam código.
 
@@ -715,7 +733,7 @@ Um **agent** (no contexto do codeflow) é uma definição de subagente com escop
 
 #### 4.5.2 Propósito
 
-Agents são usados quando um workflow precisa isolar uma sub-tarefa em contexto próprio. Exemplo: workflow `feature-small` pode delegar a parte de "revisar diff antes de commitar" a um agent `code-reviewer` com escopo restrito (só pode ler, não escrever).
+Agents são usados quando um workflow precisa isolar uma sub-tarefa em contexto próprio. Exemplo: um workflow pode delegar uma auditoria de dependências a um agent read-only com escopo restrito (Read e Grep, sem Bash — para que não possa rodar `pip install` nem regenerar o lockfile enquanto audita).
 
 #### 4.5.3 Estrutura obrigatória
 
@@ -768,8 +786,8 @@ Workflows declaram quais rules carregam em "LEIA TAMBÉM". Não toda rule é car
 
 Exemplos:
 - Workflow `bugfix` carrega `code-quality.md` e `testing.md`.
-- Workflow `refactor-safe` carrega `code-quality.md` e `naming.md`.
-- Workflow `review-only` carrega `code-quality.md`, `testing.md`, e `security.md`.
+- Workflow `create-spec` carrega `code-quality.md` e `naming.md`.
+- Workflow `evaluate-spec-phase` carrega `code-quality.md`, `testing.md`, e `security.md`.
 
 #### 4.6.5 Relação com constitution
 
@@ -798,6 +816,12 @@ Existem sete tipos de artefatos no codeflow:
 **`decisions/INDEX.md`:** índice navegável de todas as decisões. Atualizado automaticamente toda vez que uma decision nova é gerada. Permite a IA filtrar decisões por tag, data, ou status sem carregar todos os arquivos.
 
 **`checkpoints/<workflow>-<timestamp>.md`:** estado intermediário de workflows detalhados em execução. Gerado automaticamente entre passos longos. Efêmero — deletado ao fim do workflow bem-sucedido. Vai para `.gitignore`.
+
+**`specs/<slug>/SPEC_<NAME>.md`:** a spec — documento único autoexecutável gerado por `/create-spec`, com requisitos, abordagem técnica e plano de fases (§5). Versionada na branch de trabalho `spec/<slug>`. É artefato de ciclo de vida (`status: draft|active|done`).
+
+**`specs/<slug>/artefatos/FASE-<id>-<slug>-EXECUCAO.md`:** relatório de execução de uma fase, gerado por `/execute-spec-phase`, com frontmatter machine-readable (`tentativa`, `reprovacoes`, `range` de commits) e evidências.
+
+**`specs/<slug>/artefatos/FASE-<id>-<slug>-AVALIACAO.md`:** avaliação independente de uma fase, gerada por `/evaluate-spec-phase` em chat zerado, com scorecard e `veredito` (`APROVADO`/`RESSALVAS`/`REPROVADO`). Estado da fase deriva do par EXECUCAO+AVALIACAO (`ARTIFACTS_SPEC.md` §2.11).
 
 #### 4.7.2 Regras universais de artefatos
 
@@ -846,7 +870,7 @@ A ordem listada acima é **orientativa, não estrita**. Workflows podem agrupar 
 
 ### 5.2 Anatomia de um workflow magro (~20-30 linhas)
 
-Workflows magros são usados quando a IA executa **uma ação clara sem decisões intermediárias**. Exemplo canônico: `review-only`.
+Workflows magros são usados quando a IA executa **uma ação clara sem decisões intermediárias**. Exemplo canônico: `spec-status`.
 
 **Estrutura obrigatória:**
 
@@ -894,7 +918,7 @@ usa_checkpoints: no
 
 ### 5.3 Anatomia de um workflow médio (~60-100 linhas)
 
-Workflows médios são usados para **sequências de passos com validações intermediárias**. Exemplos canônicos: `bugfix`, `feature-small`, `refactor-safe`.
+Workflows médios são usados para **sequências de passos com validações intermediárias**. Exemplos canônicos: `bugfix`, `execute-spec-phase`, `evaluate-spec-phase`.
 
 **Estrutura obrigatória:**
 
@@ -903,7 +927,7 @@ Workflows médios são usados para **sequências de passos com validações inte
 versão: 1.0
 status: estável
 granularidade: médio
-gera_decision: yes (ou no para refactor-safe)
+gera_decision: auto (ou no — ex.: execute-spec-phase)
 usa_checkpoints: no
 politica_falhas: padrão (ou override declarado)
 ---
@@ -1237,7 +1261,7 @@ Decisões significativas são gravadas em `.codeflow/decisions/`. Uma decisão p
 
 Workflows declaram em seu cabeçalho:
 - `gera_decision: yes` → sempre gera ao concluir.
-- `gera_decision: no` → nunca gera (ex: review-only, refactor-safe).
+- `gera_decision: no` → nunca gera (ex: spec-status, create-spec, execute-spec-phase).
 - `gera_decision: auto` → IA decide com base na natureza da tarefa (ex: bugfix de typo não gera; bugfix com mudança arquitetural gera).
 
 #### 6.5.2 Formato
@@ -1450,7 +1474,7 @@ Cada princípio é uma lente de revisão: ao construir ou modificar qualquer ele
 - O README do framework usa o vocabulário oficial do glossary.
 - As meta-skills (`discover`, `bootstrap`) seguem o protocolo de uma skill detalhada — são exemplos vivos de boa skill.
 - A constitution universal segue suas próprias regras (curta, densa, imperativa).
-- Os workflows seed (bugfix, feature-small) são exemplares — qualquer dúvida sobre "como escrever workflow bom" se resolve consultando-os.
+- Os workflows universais (bugfix, create-spec) são exemplares — qualquer dúvida sobre "como escrever workflow bom" se resolve consultando-os.
 - A política de evolução (EVOLUTION.md) é respeitada pelo próprio mantenedor ao evoluir o framework.
 
 **Como verificar:** ler qualquer arquivo do framework e identificar se ele viola alguma regra que o próprio framework declara. Se viola, corrigir.
@@ -1522,12 +1546,12 @@ Esta seção declara explicitamente o universo de mudanças que workflows podem 
 - Arquivos em `.codeflow/` do projeto (artefatos, decisions, checkpoints).
 - Código do projeto **relevante à tarefa** (`.py`, `.ts`, `.go`, etc., conforme escopo do workflow).
 - Arquivos de teste correspondentes às mudanças de código.
-- Arquivos de documentação **se a tarefa é documentação** (ex: workflow `/feature-small` pode atualizar README se feature é visível ao usuário).
+- Arquivos de documentação **se a tarefa é documentação** (ex: uma fase de spec ou um `/bugfix` pode atualizar README se a mudança é visível ao usuário).
 
 **Podem alterar com aviso explícito:**
 
 - Manifest do projeto (`package.json`, `pyproject.toml`) — apenas se tarefa exige nova dependência, e apenas após confirmação do usuário.
-- Migrations de banco — apenas em workflows específicos (`/feature-small` tocando schema, ou `/db-migration` quando criado).
+- Migrations de banco — apenas em workflows específicos (uma fase de spec tocando schema, ou `/db-migration` quando criado).
 - Makefile — apenas se `/discover` ou `/bootstrap` propõem, e usuário aprova.
 
 **Apenas em `/bootstrap` (projeto novo):**

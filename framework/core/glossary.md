@@ -1,7 +1,7 @@
 ---
-versão: 1.0
+versão: 1.1
 status: estável
-atualizado: 2026-05-23
+atualizado: 2026-06-15
 ---
 
 # Glossário do codeflow
@@ -15,7 +15,7 @@ atualizado: 2026-05-23
 - **Definição:** definição de subagente da ferramenta de IA com escopo de ferramentas restrito, invocado por **workflow** para isolar sub-tarefa em contexto próprio.
 - **Onde mora:** `~/.codeflow/framework/library/agents/<nome>.md` (universal) ou `<projeto>/.codeflow/agents/<nome>.md` (projeto).
 - **O que NÃO é:** não é a IA inteira. Não é skill. Ver `## Termos com colisão entre ferramentas` para distinção do uso em outras ferramentas.
-- **Exemplo concreto:** o agent `code-reviewer` tem ferramentas Read e Grep mas não Edit nem Bash; o workflow `feature-small` delega a ele a revisão final do diff.
+- **Exemplo concreto:** um agent de auditoria de dependências read-only tem Read e Grep mas não Bash, para que não possa rodar `pip install` nem regenerar o lockfile enquanto audita; um workflow o invoca para a checagem antes do commit. Nenhum agent universal acompanha o framework — agents nascem por projeto, via `/create-agent`.
 
 ### Artefato
 
@@ -43,7 +43,7 @@ atualizado: 2026-05-23
 - **Definição:** **artefato** permanente que registra decisões tomadas durante **workflow** significativo, com header estruturado.
 - **Onde mora:** `<projeto>/.codeflow/decisions/<data>-<titulo>.md`. Versionado no git do projeto.
 - **O que NÃO é:** não é checkpoint. Decisão é permanente; checkpoint é efêmero. Não é ADR formal — é registro leve, sem cerimônia.
-- **Exemplo concreto:** ao terminar `/feature-small` com mudança de schema, a IA gera `2026-05-17-schema-users-table.md` com a escolha e a alternativa rejeitada.
+- **Exemplo concreto:** ao terminar um `/bugfix` cujo fix alterou o schema, a IA gera `2026-05-17-schema-users-table.md` com a escolha e a alternativa rejeitada.
 
 ### Discovered
 
@@ -100,6 +100,66 @@ atualizado: 2026-05-23
 - **Onde mora:** fora do framework e do `.codeflow/` do projeto — em `~/.claude/commands/` (gerado por `setup-slash-commands.sh`) ou `<projeto>/.claude/commands/` (gerado por `install.sh`).
 - **O que NÃO é:** não é workflow nem skill. Não duplica conteúdo do arquivo referenciado. Não tem lógica própria.
 - **Referência canônica:** `SPEC.md` §3.6.1 (decisão) e `ARTIFACTS_SPEC.md` §1.11 (schema).
+
+## Termos do pipeline de spec
+
+O pipeline de spec é a cadeia `/create-spec` → `/execute-spec-phase` → `/evaluate-spec-phase` (com `/spec-status` para visão de progresso). Os termos abaixo são específicos dele; o vocabulário central acima continua valendo.
+
+### Spec
+
+- **Definição:** documento único e autoexecutável (`SPEC_<NAME>.md`) gerado por `/create-spec`, ancorado na sondagem do repositório. Contém problema, requisitos (FR/NFR), critérios de aceite, abordagem técnica e o **plano de desenvolvimento por fases** (§5).
+- **Onde mora:** `<projeto>/.codeflow/specs/<slug>/SPEC_<NAME>.md`, versionado na branch de trabalho `spec/<slug>`.
+- **O que NÃO é:** não é decision. Decision é registro leve de uma escolha pontual; a spec é o plano completo e executável. As decisões de escopo da spec ficam dentro dela (§4 e §8), não em artefato separado.
+- **Referência canônica:** `ARTIFACTS_SPEC.md` §2.8.
+
+### Fase
+
+- **Definição:** unidade executável e avaliável de uma spec, declarada na §5, com `id` canônico, `slug`, dependências por `id`, arquivos, passos, testes e critério de conclusão. Uma fase entrega um incremento testável.
+- **Onde mora:** descrita na §5 da spec; sua execução e avaliação geram artefatos em `<projeto>/.codeflow/specs/<slug>/artefatos/`.
+- **O que NÃO é:** não é passo de workflow. Passo é interno a uma sessão; fase é incremento com artefatos próprios (`EXECUCAO`/`AVALIACAO`), executado uma por vez em chats separados.
+- **Referência canônica:** `ARTIFACTS_SPEC.md` §2.8.6 (estrutura) e §2.11 (estados).
+
+### Track e wave
+
+- **Definição:** `wave` é o modo da spec — `single` (um track só) ou `multi` (tracks paralelos com dependência cruzada). `track` é o agrupador de fases num fluxo paralelo.
+- **Onde mora:** `wave` no frontmatter da spec; o track aparece no `id` da fase. Single-track usa `id` inteiro (`1`, `2`); multi-track usa `<TRACK>.<n>` (`A.1`, `B.2`).
+- **O que NÃO é:** track não é fase. É um cabeçalho de agrupamento (`### Track A — …`) que não conta na contagem de 3–8 fases por track.
+- **Referência canônica:** `ARTIFACTS_SPEC.md` §2.8.6.
+
+### Execução de fase
+
+- **Definição:** relatório `FASE-<id>-<slug>-EXECUCAO.md` gerado por `/execute-spec-phase` ao implementar (ou refazer) uma fase, com frontmatter machine-readable (`fase`, `tentativa`, `reprovacoes`, `sha_inicial`, `sha_final`, `range`) e corpo com evidências.
+- **Onde mora:** `<projeto>/.codeflow/specs/<slug>/artefatos/`. Versionado, mas é artefato de ciclo de vida (sem `versão`/`atualizado`; usa `status: executado|rework`).
+- **O que NÃO é:** não é a fonte de verdade da avaliação. O avaliador o trata como ponto de partida e confere tudo contra o código real.
+- **Referência canônica:** `ARTIFACTS_SPEC.md` §2.9.
+
+### Avaliação de fase
+
+- **Definição:** relatório `FASE-<id>-<slug>-AVALIACAO.md` gerado por `/evaluate-spec-phase`, **sempre em chat zerado e independente**, com scorecard ponderado, achados (BLOQUEANTE/IMPORTANTE/SUGESTÃO) e veredito machine-readable.
+- **Onde mora:** `<projeto>/.codeflow/specs/<slug>/artefatos/`. Usa `veredito` no lugar de `status`.
+- **O que NÃO é:** não é auto-revisão. A independência (chat separado, não confiar no relatório) é o motivo de existir do workflow.
+- **Referência canônica:** `ARTIFACTS_SPEC.md` §2.10.
+
+### Veredito
+
+- **Definição:** resultado da avaliação de uma fase: `APROVADO`, `RESSALVAS` ou `REPROVADO`, decidido por precedência estrita **`REPROVADO` > `RESSALVAS` > `APROVADO`**. Só `APROVADO` conclui a fase; `RESSALVAS` e `REPROVADO` devolvem ao rework.
+- **Onde mora:** campo `veredito` no frontmatter do `FASE-*-AVALIACAO.md`.
+- **O que NÃO é:** `RESSALVAS` não é aprovação condicional — neste pipeline nunca fecha uma fase nem libera a seguinte.
+- **Referência canônica:** `ARTIFACTS_SPEC.md` §2.10.3 (cascata de veredito).
+
+### Gate estrutural
+
+- **Definição:** validação **determinística** da §5 da spec, rodada por `run-structural.sh` antes de qualquer classificação de fases: `id`s únicos, heading `### Fase <id>` igual ao bullet `id`, todo `id` em "Depende de" existente, grafo acíclico, 3–8 fases por track, `slug` em kebab-case e `wave` coerente com o formato de `id`.
+- **Onde mora:** `~/.codeflow/framework/core/scripts/run-structural.sh`; consumido por `/execute-spec-phase`, `/evaluate-spec-phase` e `/spec-status`.
+- **O que NÃO é:** não é avaliação de qualidade. Só valida a forma da §5; mérito do código é da avaliação de fase.
+- **Referência canônica:** `ARTIFACTS_SPEC.md` §2.8.6.
+
+### Máquina de estados da fase
+
+- **Definição:** definição canônica de como cada fase deriva **um único** estado — **pendente**, **aguardando avaliação**, **reprovada** ou **concluída** — a partir do frontmatter dos artefatos `EXECUCAO`+`AVALIACAO` (pareados pela `tentativa`), com elegibilidade por dependências concluídas e teto de reprovações.
+- **Onde mora:** definida em `ARTIFACTS_SPEC.md` §2.11; consumida (não redefinida) por `/execute-spec-phase`, `/evaluate-spec-phase` e `/spec-status`.
+- **O que NÃO é:** não é um runtime nem orquestrador. É uma derivação de estado a partir de arquivos, calculada pela IA ao ler os artefatos — não há processo em execução.
+- **Referência canônica:** `ARTIFACTS_SPEC.md` §2.11.
 
 ## Distinções importantes
 

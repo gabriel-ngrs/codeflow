@@ -1,5 +1,5 @@
 ---
-versão: 1.6
+versão: 1.7
 status: estável
 atualizado: 2026-06-15
 documento: ARTIFACTS_SPEC.md
@@ -93,7 +93,7 @@ Toda criação inicial de arquivo começa em `1.0` com `status: estável` — sa
 
 - **Conteúdo:** sempre pt-BR. Inclui títulos, descrições, comentários em bash, mensagens de echo, exemplos.
 - **Termos técnicos consagrados:** mantidos em inglês (`commit`, `diff`, `workflow`, `pull request`, `branch`, `merge`).
-- **Nomes de arquivos e pastas:** kebab-case em inglês (`debug-protocol`, `feature-small`, `code-quality.md`).
+- **Nomes de arquivos e pastas:** kebab-case em inglês (`debug-protocol`, `create-spec`, `code-quality.md`).
 - **Nomes em frontmatter (chaves):** podem ser em pt-BR com acentos quando isso melhora a legibilidade (`versão`, `atualizado`, `descrição`, `é_meta_skill`, `data_inspeção`, `última_atualização`, `relaciona-com`). Quando o termo é técnico consagrado em inglês, manter em inglês com snake_case (`gera_decision`, `usa_checkpoints`). Exigência: consistência interna por tipo de artefato — uma vez escolhida a forma de uma chave, todos os artefatos do mesmo tipo a usam de modo idêntico.
 - **Nomes de seções markdown:** pt-BR em prosa natural (`## Quando usar`, `## Protocolo`, `## Definition of Done` — esta última mantida em inglês por ser termo técnico consagrado, conforme `SPEC.md` §4.2.3 e §5.6).
 
@@ -370,7 +370,7 @@ atualizado: 2026-05-17
 - **Definição:** definição de subagente da ferramenta de IA com escopo de ferramentas restrito, invocado por **workflow** para isolar sub-tarefa em contexto próprio.
 - **Onde mora:** `~/.codeflow/framework/library/agents/<nome>.md` (universal) ou `<projeto>/.codeflow/agents/<nome>.md` (projeto).
 - **O que NÃO é:** não é a IA inteira. Não é skill. Ver `## Termos com colisão entre ferramentas` para distinção do uso em outras ferramentas.
-- **Exemplo concreto:** o agent `code-reviewer` tem ferramentas Read e Grep mas não Edit nem Bash; o workflow `feature-small` delega a ele a revisão final do diff.
+- **Exemplo concreto:** um agent de auditoria de dependências read-only tem Read e Grep mas não Bash, para que não possa rodar `pip install` nem regenerar o lockfile enquanto audita; um workflow o invoca para a checagem antes do commit. Nenhum agent universal acompanha o framework — agents nascem por projeto, via `/create-agent`.
 
 ### Artefato
 
@@ -398,7 +398,7 @@ atualizado: 2026-05-17
 - **Definição:** **artefato** permanente que registra decisões tomadas durante **workflow** significativo, com header estruturado.
 - **Onde mora:** `<projeto>/.codeflow/decisions/<data>-<titulo>.md`. Versionado no git do projeto.
 - **O que NÃO é:** não é checkpoint. Decisão é permanente; checkpoint é efêmero. Não é ADR formal — é registro leve, sem cerimônia.
-- **Exemplo concreto:** ao terminar `/feature-small` com mudança de schema, a IA gera `2026-05-17-schema-users-table.md` com a escolha e a alternativa rejeitada.
+- **Exemplo concreto:** ao terminar um `/bugfix` cujo fix alterou o schema, a IA gera `2026-05-17-schema-users-table.md` com a escolha e a alternativa rejeitada.
 
 ### Discovered
 
@@ -453,7 +453,7 @@ atualizado: 2026-05-17
 
 ### Workflow vs Skill
 
-Workflow é processo — define **o quê** fazer, em que ordem, com que validações. Skill é capacidade — define **como** fazer uma coisa bem (formar hipótese, registrar handoff, fazer self-review). Workflows referenciam skills em sua seção "LEIA TAMBÉM"; skills nunca referenciam workflows.
+Workflow é processo — define **o quê** fazer, em que ordem, com que validações. Skill é capacidade — define **como** fazer uma coisa bem (formar hipótese, fazer self-review). Workflows referenciam skills em sua seção "LEIA TAMBÉM"; skills nunca referenciam workflows.
 
 ### Agent vs Skill
 
@@ -774,7 +774,7 @@ Workflows devem carregar esta rule quando a tarefa envolve criação ou modifica
 
 Duas localizações possíveis:
 
-- **Universal:** `~/.codeflow/framework/library/workflows/<nome>.md`. Workflows seed magros entregues no escopo inicial: `review-only` (e potencialmente `format-check`, citado em `SPEC.md` §4.2.2 como exemplo).
+- **Universal:** `~/.codeflow/framework/library/workflows/<nome>.md`. Workflow magro universal entregue: `spec-status` (visão de progresso de uma spec).
 - **Projeto:** `<projeto>/.codeflow/workflows/<nome>.md`. Criado quando o projeto precisa de variante específica.
 
 Workflow de projeto sobrescreve universal de mesmo nome (`SPEC.md` §4.2.1).
@@ -818,7 +818,7 @@ Critério canônico (`SPEC.md` §4.2.2): "a IA pode fazer sem perguntar?" → wo
 
 #### 1.5.5 Exemplo preenchido
 
-Exemplo: `review-only.md` (workflow universal seed).
+Exemplo (ilustrativo) de um workflow magro de revisão de diff — não é mais entregue como seed, mas serve de molde de forma:
 
 ```markdown
 ---
@@ -837,7 +837,7 @@ politica_falhas: padrão
 Revisar diff produzido pelo usuário ou por outra sessão da IA, sem modificar código.
 
 ## Quando NÃO usar
-- Para aplicar correções → use `/bugfix` ou `/refactor-safe`.
+- Para aplicar correções → use `/bugfix`.
 
 ## LEIA TAMBÉM
 - ~/.codeflow/framework/core/constitution.md
@@ -890,7 +890,7 @@ Apresentar nas cinco seções fixas do `SPEC.md` §5.6.4.
 
 Duas localizações possíveis:
 
-- **Universal:** `~/.codeflow/framework/library/workflows/<nome>.md`. Workflows seed médios entregues no escopo inicial: `bugfix`, `feature-small`, `refactor-safe` (`SPEC.md` §4.2.2 e §3.5).
+- **Universal:** `~/.codeflow/framework/library/workflows/<nome>.md`. Workflows médios universais entregues: `bugfix`, `execute-spec-phase`, `evaluate-spec-phase` (`SPEC.md` §4.2.2 e §4.2.5).
 - **Projeto:** `<projeto>/.codeflow/workflows/<nome>.md`. Criado quando o projeto precisa de variante.
 
 Workflow de projeto sobrescreve universal de mesmo nome.
@@ -955,8 +955,7 @@ politica_falhas: padrão
 Corrigir bug reproduzível em código existente. Há sintoma observável, hipótese inicial possível, e escopo da correção é limitado a poucos arquivos. Pré-requisito: bug pode ser reproduzido localmente ou via teste.
 
 ## Quando NÃO usar
-- Para feature nova → use `/feature-small`.
-- Para refatoração sem bug → use `/refactor-safe`.
+- Para feature nova ou refatoração sem bug → resolver ad hoc em chat; se o escopo for grande o bastante para exigir plano, usar `/create-spec`.
 - Para investigar comportamento incerto (não há sintoma claro) → discutir em chat antes de invocar workflow.
 
 ## LEIA TAMBÉM
@@ -1122,7 +1121,6 @@ Aplicar mudança de schema no banco do projeto: criar tabela, alterar coluna, re
 - ~/.codeflow/framework/core/rules/code-quality.md
 - ~/.codeflow/framework/core/rules/testing.md
 - ~/.codeflow/framework/core/rules/security.md
-- ~/.codeflow/framework/library/skills/handoff/SKILL.md
 - ~/.codeflow/framework/library/skills/self-review/SKILL.md
 - .codeflow/INDEX.md
 - .codeflow/constitution.md
@@ -1230,7 +1228,7 @@ Apresentar nas cinco seções fixas do `SPEC.md` §5.6.4.
 
 Duas localizações possíveis, sempre em pasta com nome da skill em kebab-case:
 
-- **Universal:** `~/.codeflow/framework/library/skills/<nome>/SKILL.md`. Skills seed entregues no escopo inicial: `debug-protocol`, `handoff`, `self-review` (`SPEC.md` §4.3.2).
+- **Universal:** `~/.codeflow/framework/library/skills/<nome>/SKILL.md`. Skills universais entregues: `debug-protocol`, `self-review` (`SPEC.md` §4.3.2).
 - **Projeto:** `<projeto>/.codeflow/skills/<nome>/SKILL.md`. Criada sob demanda quando uma capacidade é específica do projeto.
 
 A pasta da skill contém **no mínimo** `SKILL.md`. Pode conter arquivos auxiliares (templates, scripts, exemplos) referenciados pelo `SKILL.md` (`SPEC.md` §4.3.1).
@@ -1260,7 +1258,7 @@ Skills nunca são invocadas diretamente por slash command. São carregadas pela 
 
 - Skill é aplicada **dentro** de workflows, nunca invocada isoladamente. O protocolo da skill é um sub-protocolo do passo de workflow que a carrega.
 - `## Princípio guia` é curto (até três frases). Princípio é base filosófica, não tutorial.
-- `## Saídas válidas` declara o **tipo** de saída (ex: "lista numerada de hipóteses testáveis", "arquivo de handoff em formato fixo"), não o conteúdo exato.
+- `## Saídas válidas` declara o **tipo** de saída (ex: "lista numerada de hipóteses testáveis", "relatório de revisão com correções pendentes"), não o conteúdo exato.
 
 #### 1.8.4 Schema opcional
 
@@ -1614,7 +1612,7 @@ Se for solicitado a modificar algo, recuse e explique que está operando como ag
 
 ## Como invocar
 
-Workflow chamador (tipicamente `feature-small` ou `bugfix`) invoca o agent ao terminar a fase de implementação:
+Workflow chamador (tipicamente `bugfix` ou uma fase de spec) invoca o agent ao terminar a fase de implementação:
 
 1. Salvar o diff produzido em arquivo temporário, ou identificá-lo via `git diff`.
 2. Invocar o agent passando: caminho do diff, lista de rules carregadas, constitution efetiva (universal + projeto).
@@ -2263,7 +2261,7 @@ versão: 1.0
 status: estável
 atualizado: 2026-05-17
 data: 2026-05-17
-workflow: feature-small
+workflow: bugfix
 tags: [auth, jwt, security]
 status_decisão: ativa
 supersede: null
@@ -2274,7 +2272,7 @@ relaciona-com: [2026-04-12-escolha-de-jwt-vs-session]
 
 ## Contexto
 
-Durante implementação da feature de logout em múltiplos dispositivos (workflow `feature-small`), identificamos que o TTL atual de access tokens (24 horas) inviabiliza logout efetivo: após logout, o token permanece válido até expirar naturalmente. Discutimos com o usuário a escolha entre reduzir TTL, implementar revocation list, ou ambos.
+Durante a correção de um bug no logout em múltiplos dispositivos (workflow `bugfix`), identificamos que o TTL atual de access tokens (24 horas) inviabiliza logout efetivo: após logout, o token permanece válido até expirar naturalmente. Discutimos com o usuário a escolha entre reduzir TTL, implementar revocation list, ou ambos.
 
 ## Decisões tomadas
 
@@ -2388,7 +2386,7 @@ total_decisions: 4
 
 | Data       | Título                                         | Workflow       | Tags                  | Status     |
 |------------|------------------------------------------------|----------------|-----------------------|------------|
-| 2026-05-17 | TTL de access tokens reduzido para 15 minutos  | feature-small  | auth, jwt, security   | ativa      |
+| 2026-05-17 | TTL de access tokens reduzido para 15 minutos  | bugfix         | auth, jwt, security   | ativa      |
 | 2026-05-03 | Migração de Pydantic v1 para v2                | bugfix         | breaking, deps        | ativa      |
 | 2026-04-12 | Escolha de JWT vs session-based                | bootstrap      | auth, jwt             | ativa      |
 | 2026-03-08 | Adoção de Alembic para migrações               | discover       | schema, migration     | ativa      |

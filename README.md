@@ -1,7 +1,7 @@
 ---
-versão: 1.0
+versão: 1.1
 status: estável
-atualizado: 2026-05-23
+atualizado: 2026-06-15
 ---
 
 # codeflow
@@ -12,8 +12,10 @@ deixando ao projeto-alvo apenas o que é específico dele.
 
 ## Quando usar
 
-Use o codeflow em projetos onde uma IA executa tarefas estruturadas (bugfix,
-feature pequena, revisão, refactor seguro) e você quer respostas consistentes,
+Use o codeflow em projetos onde uma IA executa tarefas estruturadas — correção
+de bug (`/bugfix`) e o pipeline de spec (especificar, executar e avaliar uma
+feature fase a fase, com `/create-spec`, `/execute-spec-phase`,
+`/evaluate-spec-phase` e `/spec-status`) — e você quer respostas consistentes,
 diff mínimo e decisões registradas.
 
 ## Pré-requisitos
@@ -48,8 +50,9 @@ em nenhum outro arquivo do projeto.
 
 A árvore completa está descrita em `framework/core/SPEC.md` §2.2. Em alto nível:
 
-- `framework/core/` — constitution, glossary, EVOLUTION, rules universais e os
-  contratos normativos de runtime (`SPEC.md`, `ARTIFACTS_SPEC.md`).
+- `framework/core/` — constitution, glossary, EVOLUTION, rules universais, os
+  contratos normativos de runtime (`SPEC.md`, `ARTIFACTS_SPEC.md`) e o validador
+  estrutural (`scripts/run-structural.sh`).
 - `framework/meta/` — meta-skills (`discover`, `bootstrap`, `create-*`).
 - `framework/library/` — skills e workflows universais seed.
 - `install.sh` — script de instalação em projeto-alvo.

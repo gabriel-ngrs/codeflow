@@ -16,8 +16,7 @@ politica_falhas: padrão
 Corrigir bug reproduzível em código existente. Há sintoma observável, hipótese inicial possível, e escopo da correção é limitado a poucos arquivos. Pré-requisito: bug pode ser reproduzido localmente ou via teste.
 
 ## Quando NÃO usar
-- Para feature nova → use `/feature-small`.
-- Para refatoração sem bug → use `/refactor-safe`.
+- Para feature nova ou refatoração sem bug → resolver ad hoc em chat; se o escopo for grande o bastante para exigir plano, usar `/create-spec`.
 - Para investigar comportamento incerto (não há sintoma claro) → discutir em chat antes de invocar workflow.
 
 ## LEIA TAMBÉM

@@ -17,13 +17,14 @@ Uma spec nasce de sondagem do código real, não de suposição. Descreve **o qu
 Transformar uma necessidade ou descrição do usuário (ex: "integração WhatsApp via Evolution API") em uma **spec robusta e assertiva** no formato `.devgabriel` do Gabriel, ancorada na arquitetura e nos padrões do repositório atual. Pré-requisitos: o repositório alvo tem `.codeflow/` inicializado (rode `/bootstrap` antes, se não tiver) e o owner está disponível para confirmar escopo e resolver Open Questions durante a execução.
 
 ## Quando NÃO usar
-- Para executar/implementar as fases de uma spec já escrita → este workflow **produz** o documento executável; a execução de cada fase é feita depois (manualmente ou por `/feature-small` por fase).
+- Para executar/implementar as fases de uma spec já escrita → este workflow **produz** o documento executável; a execução de cada fase é feita depois por `/execute-spec-phase` (uma fase por vez, avaliada por `/evaluate-spec-phase`).
 - Para corrigir/ampliar uma spec já escrita sem novas decisões abertas → editar direto, sem workflow.
 - Quando a necessidade é trivial (uma função, um typo de regra) → resolver ad hoc; spec é overhead.
 
 ## LEIA TAMBÉM
 - ~/.codeflow/framework/core/constitution.md
 - ~/.codeflow/framework/core/rules/code-quality.md
+- ~/.codeflow/framework/core/rules/naming.md
 - ~/.codeflow/framework/library/skills/self-review/SKILL.md
 - .codeflow/INDEX.md
 - .codeflow/constitution.md
