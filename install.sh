@@ -61,18 +61,18 @@ if ! git rev-parse --git-dir >/dev/null 2>&1; then
 fi
 print_ok "Diretório atual é repositório git."
 
-# 4. Makefile (apenas aviso)
+# 4. Comandos de validação (apenas informativo)
 if [ -f Makefile ]; then
-  print_ok "Makefile presente."
+  print_ok "Makefile presente (uma forma de embrulhar os comandos de validação)."
 else
-  print_aviso "Makefile ausente. Recomendado para targets canônicos (check, test, lint, typecheck)."
+  print_aviso "Sem Makefile — tudo bem. Os comandos de validação do projeto serão registrados no .codeflow/manifest.md por /discover ou /bootstrap (qualquer ferramenta: npm, pytest, cargo, etc.)."
 fi
 
 echo
 
 # --- Criação da estrutura .codeflow/ ------------------------------------------
 
-mkdir -p .codeflow/decisions .codeflow/checkpoints
+mkdir -p .codeflow/decisions .codeflow/checkpoints .codeflow/specs
 
 # INDEX.md (placeholder, idempotente)
 if [ -f .codeflow/INDEX.md ]; then
@@ -103,6 +103,27 @@ fi
 
 print_ok ".codeflow/decisions/ presente."
 print_ok ".codeflow/checkpoints/ presente."
+print_ok ".codeflow/specs/ presente."
+
+# --- Templates do pipeline de spec (idempotente) ------------------------------
+# Copia os moldes do framework para .codeflow/specs/_TEMPLATES/. São gerenciados
+# pelo framework (re-rodar o install ressincroniza); customização vai na fonte,
+# em ~/.codeflow/framework/library/templates/specs/.
+
+TEMPLATES_SRC="${CODEFLOW_HOME}/framework/library/templates/specs"
+TEMPLATES_DST=".codeflow/specs/_TEMPLATES"
+
+if [ -d "$TEMPLATES_SRC" ] && ls "$TEMPLATES_SRC"/*.md >/dev/null 2>&1; then
+  mkdir -p "$TEMPLATES_DST"
+  n_tpl=0
+  for tpl in "$TEMPLATES_SRC"/*.md; do
+    [ -f "$tpl" ] || continue
+    cp -f "$tpl" "$TEMPLATES_DST/" && n_tpl=$((n_tpl + 1))
+  done
+  print_ok ".codeflow/specs/_TEMPLATES/ sincronizado (${n_tpl} molde(s))."
+else
+  print_aviso "Templates de spec ausentes em ${TEMPLATES_SRC} — pulando (atualize o framework com git pull)."
+fi
 
 # --- .gitignore (idempotente) -------------------------------------------------
 

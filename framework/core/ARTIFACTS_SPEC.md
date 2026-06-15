@@ -1,5 +1,5 @@
 ---
-versão: 1.7
+versão: 2.0
 status: estável
 atualizado: 2026-06-15
 documento: ARTIFACTS_SPEC.md
@@ -114,7 +114,7 @@ Conforme `SPEC.md` §7.2 (T2 — Saída amigável a parsing):
 | `⚠` | Aviso, condição degradada mas não bloqueante | Output de scripts, notas em artefatos |
 | `[ ]` | Item de checklist não marcado | Definition of Done em workflows |
 | `[✓]` | Item de checklist marcado como concluído | Resumo final |
-| `[—]` | Item pulado com justificativa | Resumo final (quando target make ausente) |
+| `[—]` | Item pulado com justificativa | Resumo final (quando um gate de validação não se aplica ao projeto) |
 
 Não usar outros símbolos decorativos (emojis, setas Unicode, asteriscos coloridos) em conteúdo do framework. Exceção: o `✓` ao lado do título "CONCLUÍDO" no resumo final, conforme `SPEC.md` §5.6.4.
 
@@ -416,10 +416,10 @@ atualizado: 2026-05-17
 
 ### Manifest
 
-- **Definição:** arquivo que descreve stack, comandos `make` e padrões detectados do projeto, com header de freshness check.
+- **Definição:** arquivo que descreve stack, comandos de validação e padrões detectados do projeto, com header de freshness check.
 - **Onde mora:** `<projeto>/.codeflow/manifest.md`.
 - **O que NÃO é:** não é constitution. Constitution declara regras; manifest descreve o estado factual do projeto.
-- **Exemplo concreto:** workflows leem `manifest.md` para descobrir que `make check` no projeto X equivale a `pytest && ruff check`.
+- **Exemplo concreto:** workflows leem `manifest.md` para descobrir que, no projeto X, o gate `check` equivale a `ruff check . && mypy . && pytest`.
 
 ### Meta-skill
 
@@ -925,7 +925,7 @@ Critério canônico (`SPEC.md` §4.2.2): "sequência com validações automátic
 
 - Tamanho-alvo aproximado do arquivo: **60 a 100 linhas** conforme `SPEC.md` §5.3. Orientação, não limite duro.
 - Quatro a sete passos no `## Protocolo`. Menos que quatro indica que o workflow deveria ser magro; mais que sete indica que deveria ser detalhado.
-- Pelo menos um passo de validação executando `make check` (ou alternativas conforme manifest do projeto).
+- Pelo menos um passo de validação rodando os comandos de validação do projeto (do manifest, ou inferidos do stack).
 - Sem fases, sem checkpoints, sem perguntas ao usuário durante execução.
 
 #### 1.6.4 Schema opcional
@@ -993,9 +993,9 @@ Se o bug toca em áreas com decisions arquivadas (auth, payments, schema), consu
 - Gate: teste de regressão (Passo 2) passa.
 
 ### Passo 5 — Validar
-- Executar `make check` (ou alternativas conforme `.codeflow/manifest.md`).
+- Rodar os comandos de validação do projeto (do `.codeflow/manifest.md`; se ausente, inferir do stack) — o necessário para provar o fix.
 - Aplicar skill `self-review` no diff produzido.
-- Se `make check` falha: aplicar política de falhas da constitution.
+- Se um comando de validação falha: aplicar política de falhas da constitution.
 
 ### Passo 6 — Resumir e (se aplicável) gerar decision
 - Apresentar resumo final no formato fixo de cinco seções.
@@ -1005,7 +1005,7 @@ Se o bug toca em áreas com decisions arquivadas (auth, payments, schema), consu
 - [ ] Bug reproduzido no Passo 1.
 - [ ] Teste de regressão adicionado e falhando antes do fix.
 - [ ] Teste de regressão passando após o fix.
-- [ ] `make check` retornou zero.
+- [ ] Comandos de validação do projeto retornaram zero (ou `[—]` justificado).
 - [ ] Diff dentro do escopo declarado.
 - [ ] Self-review aplicado.
 - [ ] Decision gerada se aplicável (gera_decision: auto).
@@ -1020,10 +1020,10 @@ Apresentar nas cinco seções fixas do `SPEC.md` §5.6.4.
 2. Tamanho-alvo aproximado do arquivo: 60 a 100 linhas, conforme `SPEC.md` §5.3. Arquivos significativamente fora dessa faixa requerem revisão de granularidade.
 3. As oito seções obrigatórias presentes na ordem listada em §1.6.3.
 4. `## Protocolo` contém entre **quatro e sete** passos `### Passo N — <nome>`.
-5. Pelo menos um passo invoca `make check` ou comando equivalente declarado no manifest.
+5. Pelo menos um passo roda os comandos de validação do projeto (declarados no manifest ou inferidos do stack).
 6. `## LEIA TAMBÉM` contém as quatro entradas obrigatórias (constitution universal, INDEX, constitution de projeto, manifest).
 7. `## Antes de começar` referencia `.codeflow/decisions/INDEX.md` quando o tema do workflow pode tocar decisions.
-8. `## Definition of Done` inclui item de validação executando `make check` (ou marcação `[—]` permitida quando target ausente).
+8. `## Definition of Done` inclui item de validação rodando os comandos do projeto (ou marcação `[—]` permitida quando um gate não se aplica).
 9. Sem seção `## Fase N` ou `## Proibições durante este workflow` (reservadas para detalhados).
 10. Quando `gera_decision: yes` ou `auto`, o protocolo declara explicitamente em qual passo a decision é gerada.
 
@@ -1031,7 +1031,7 @@ Apresentar nas cinco seções fixas do `SPEC.md` §5.6.4.
 
 - **Embutir conversa estruturada com o usuário em workflow médio.** Conversas vão para workflows detalhados (§1.7). Se a tarefa exige perguntar coisas ao usuário durante a execução, escolha a granularidade certa.
 - **Pular `## Antes de começar`.** Decisions ativas existem justamente para evitar repetir erros. Workflows médios que ignoram decisions tornam o registro irrelevante.
-- **Validar sem `make check`.** Conforme `SPEC.md` §3.10, comandos brutos diretos (ex: `pytest tests/`) são proibidos. Sempre via `make`.
+- **Presumir `make check`.** Conforme `SPEC.md` §3.10, o projeto define seus comandos de validação (no manifest); o workflow roda esses, não um `make check` presumido. Inventar um comando que não existe no projeto é o anti-padrão.
 - **Gate ausente entre passos sequenciais.** Cada passo termina em estado verificável; o gate declara o que deve ser verdade antes de avançar.
 - **Lista de `## LEIA TAMBÉM` colada de outro workflow.** Carregar rule irrelevante (ex: `security.md` em refactor puramente cosmético) é ruído de contexto.
 - **`gera_decision: yes` em bugfix de typo.** Decision é registro de **decisão** não-trivial. Para bugs cosméticos, `gera_decision: auto` deixa a IA pular o registro.
@@ -1166,10 +1166,10 @@ Gerar arquivos de migração e código de aplicação adaptado.
 1. Criar arquivo de migração com `up` e `down`.
 2. Adaptar código de aplicação (modelos, queries, types).
 3. Adicionar testes que rodam contra schema novo.
-4. Executar `make check`.
+4. Rodar os comandos de validação do projeto.
 
 ### Checkpoint
-Gravar estado: arquivos criados/modificados, resultado de `make check`.
+Gravar estado: arquivos criados/modificados, resultado da validação do projeto.
 
 ## Fase 4 — Geração de artefatos
 
@@ -1191,7 +1191,7 @@ Registrar a decisão e finalizar.
 - [ ] Proposta `up` e `down` confirmadas pelo usuário (Fase 2).
 - [ ] Arquivos de migração criados com `up` e `down` simétricos.
 - [ ] Testes adaptados e passando.
-- [ ] `make check` retornou zero.
+- [ ] Comandos de validação do projeto retornaram zero (ou `[—]` justificado).
 - [ ] Decision gerada com tags `[schema, migration]`.
 - [ ] Checkpoints da execução deletados (workflow concluído com sucesso).
 
@@ -1912,7 +1912,7 @@ Dependências fluem para dentro: `interfaces` depende de `adapters`, `adapters` 
 
 Itens adicionais ao Definition of Done padrão (constitution universal):
 
-- `make typecheck` retornou zero (mypy strict não permite warnings).
+- `mypy --strict` retornou zero (strict não permite warnings).
 - Toda função nova em `core/` tem teste unitário.
 - Migração Alembic foi gerada e revisada quando há mudança de schema.
 ```
@@ -1949,7 +1949,7 @@ Gerado por `discover` ou `bootstrap`. Atualizado quando a stack do projeto muda 
 
 #### 2.3.2 Propósito
 
-Descrever **fatos** sobre o projeto: stack identificada, comandos make canônicos, padrões detectados. Diferente da constitution (que declara regras), o manifest registra estado factual. Inclui mecanismo de freshness check para detectar obsolescência (`SPEC.md` §6.7.3).
+Descrever **fatos** sobre o projeto: stack identificada, comandos de validação, padrões detectados. Diferente da constitution (que declara regras), o manifest registra estado factual. Inclui mecanismo de freshness check para detectar obsolescência (`SPEC.md` §6.7.3).
 
 #### 2.3.3 Schema obrigatório
 
@@ -1963,7 +1963,7 @@ Descrever **fatos** sobre o projeto: stack identificada, comandos make canônico
 
 1. `# Manifest do projeto: <nome>` — título único.
 2. `## Stack identificada` — espelha a stack da constitution, mas com versões exatas detectadas (não apenas "Python", mas `Python 3.11.5`).
-3. `## Comandos make canônicos` — mapeamento dos targets canônicos (`check`, `test`, `lint`, `typecheck`) para os comandos efetivos. Targets ausentes são marcados como `[—]`.
+3. `## Comandos de validação` — mapeamento de cada gate (`check`, `lint`, `typecheck`, `test`, `security`) para o **comando real** do projeto (qualquer ferramenta: `pytest`, `npm test`, `cargo test`, um alvo `make`, etc.). Gates que não se aplicam ao projeto são marcados como `[—]`. `check` é o agregador que roda a sequência.
 4. `## Padrões detectados` (gerado por `discover`) **ou** `## Padrões definidos` (gerado por `bootstrap`) — convenções arquiteturais do projeto. O título depende da origem: em `discover` os padrões são **inferidos pela inspeção** de código existente (factual — o que foi observado); em `bootstrap` não há código a inspecionar, então os padrões são **definidos prospectivamente** nas decisões da Fase 2, com verbos prospectivos ("a estabelecer", "definido como meta", "núcleo a separar de I/O"). Usar `detectados` num projeto recém-criado por bootstrap é enganoso — nada foi detectado.
 5. `## Arquivos críticos para freshness` — lista de arquivos cujo hash é computado em `validation_hash`. Permite a IA recalcular e verificar.
 6. `## Notas de inspeção` — observações livres do `discover` sobre o projeto: o que foi inspecionado, hipóteses formadas, pontos a confirmar com o usuário.
@@ -1971,7 +1971,7 @@ Descrever **fatos** sobre o projeto: stack identificada, comandos make canônico
 **Restrições adicionais:**
 
 - `validation_hash` é SHA-256 hexadecimal, 64 caracteres.
-- `## Comandos make canônicos` cobre os quatro targets mínimos (`check`, `test`, `lint`, `typecheck`) do `SPEC.md` §3.10, mesmo quando alguns são `[—]`.
+- `## Comandos de validação` cobre os gates de `SPEC.md` §3.10 (`check`, `lint`, `typecheck`, `test`, `security`), mesmo quando alguns são `[—]`.
 - A seção de padrões (`## Padrões detectados` em `discover`; `## Padrões definidos` em `bootstrap`) é descritiva, não prescritiva: registra convenções (observadas ou adotadas), não regras a obedecer. Regras prescritivas vivem na constitution.
 
 **Fórmula canônica de `validation_hash`:**
@@ -1989,7 +1989,7 @@ Regras de aplicação:
 #### 2.3.4 Schema opcional
 
 - Sub-seções `### <categoria>` na seção de padrões (`## Padrões detectados` / `## Padrões definidos`) agrupando por tema (testes, imports, naming, estrutura).
-- Seção `## Targets make estendidos` listando targets úteis além dos canônicos (ex: `make migrate`, `make seed`).
+- Seção `## Comandos auxiliares` listando comandos úteis além dos gates de validação (ex: `migrate`, `seed`, `dev-up`).
 - Seção `## Limitações conhecidas` declarando o que `discover` não conseguiu inferir e precisa de confirmação manual do usuário.
 
 #### 2.3.5 Exemplo preenchido
@@ -2016,14 +2016,15 @@ validation_hash: 7c3b8a9e2f1d4c5b6a8e9f0d1c2b3a4e5f6d7c8b9a0e1f2d3c4b5a6e7f8d9c0
 - **Linter/formatter:** ruff 0.4
 - **Type checker:** mypy 1.10 (strict)
 
-## Comandos make canônicos
+## Comandos de validação
 
-| Target canônico | Comando efetivo                        | Status |
-|-----------------|----------------------------------------|--------|
-| `make check`    | `ruff check . && mypy . && pytest`     | ✓      |
-| `make test`     | `pytest`                               | ✓      |
-| `make lint`     | `ruff check .`                         | ✓      |
-| `make typecheck`| `mypy .`                               | ✓      |
+| Gate        | Comando real do projeto                   | Status |
+|-------------|-------------------------------------------|--------|
+| `check`     | `ruff check . && mypy . && pytest`        | ✓      |
+| `lint`      | `ruff check .`                            | ✓      |
+| `typecheck` | `mypy .`                                  | ✓      |
+| `test`      | `pytest --cov=src --cov-fail-under=85`    | ✓      |
+| `security`  | `bandit -r src && pip-audit`              | ✓      |
 
 ## Padrões detectados
 
@@ -2066,8 +2067,8 @@ E `## Notas de inspeção` em bootstrap registra que os padrões são prospectiv
 2. Título no formato `# Manifest do projeto: <nome>`, correspondendo ao `projeto` do frontmatter.
 3. As seis seções obrigatórias presentes na ordem listada em §2.3.3. A quarta é `## Padrões detectados` quando gerada por `discover` e `## Padrões definidos` quando gerada por `bootstrap` (conferir contra a meta-skill registrada em `## Notas de inspeção`).
 4. `## Stack identificada` lista versões específicas (números) quando aplicável, não apenas nomes.
-5. `## Comandos make canônicos` cobre os quatro targets do `SPEC.md` §3.10, mesmo que com status `[—]`.
-6. `## Arquivos críticos para freshness` lista pelo menos o Makefile e o manifest principal de stack do projeto.
+5. `## Comandos de validação` cobre os gates do `SPEC.md` §3.10 (`check`, `lint`, `typecheck`, `test`, `security`), mesmo que com status `[—]`.
+6. `## Arquivos críticos para freshness` lista pelo menos o manifest principal de stack do projeto (`package.json`, `pyproject.toml`, `go.mod`, etc.) e, quando existir, o `Makefile`.
 7. `validation_hash` recalculado a partir dos arquivos listados em `## Arquivos críticos para freshness` bate com o registrado no frontmatter (verificação dinâmica feita por workflows).
 8. A seção de padrões (`## Padrões detectados` / `## Padrões definidos`) contém ao menos três bullets. Em `discover` são factuais (observados); em `bootstrap` são prospectivos (metas decididas na Fase 2).
 9. Nenhuma regra prescritiva na seção de padrões. Manifest descreve (ou define metas), não prescreve regras — essas vivem na constitution.
@@ -2078,7 +2079,7 @@ E `## Notas de inspeção` em bootstrap registra que os padrões são prospectiv
 - **Manifest com regras prescritivas.** "Funções devem ter type hints" é regra — vai na constitution. "Funções têm type hints (100% de cobertura observada)" é fato — vai aqui.
 - **Hash desatualizado sem aviso.** Workflows que detectam hash divergente devem avisar imediatamente (`SPEC.md` §6.7.3). Ignorar quebra freshness check.
 - **Stack vaga.** "Python e Postgres" não é stack identificada — falta versão e libs. Manifest é fonte de fato; vagueza torna inútil.
-- **Comandos brutos em vez de via make.** Conforme `SPEC.md` §3.10, workflows invocam via `make <target>`. O mapeamento canônico → comando efetivo vive aqui no manifest, mas workflows não usam o comando efetivo diretamente.
+- **Comando de validação inventado.** O manifest registra o comando **real** de cada gate (`SPEC.md` §3.10); workflows usam exatamente esse comando, não um inventado. Quando um gate não tem comando no projeto, é `[—]`, não um palpite.
 - **Misturar inspeção com configuração.** Manifest é resultado de inspeção. Configurações desejadas (que não existem ainda) vivem em decision ou são solicitadas via `/discover --refresh`.
 - **Notas de inspeção como histórico longo.** Notas registram a inspeção atual, não histórico de inspeções anteriores. Reinspeção sobrescreve.
 
@@ -2144,7 +2145,7 @@ superseded_by: null
 
 1. `README.md` — propósito do projeto e instruções de setup.
 2. `pyproject.toml` — dependências, configuração de ruff e mypy.
-3. `Makefile` — targets disponíveis e comandos efetivos.
+3. `Makefile` / scripts de `package.json` — comandos de validação disponíveis e seus efeitos.
 4. Estrutura de pastas (`core/`, `adapters/`, `interfaces/`, `tests/`).
 5. Cinco arquivos representativos de `core/` e três de `adapters/db/`.
 6. Histórico recente de commits (últimos 30 dias) para inferir cadência e estilo.
@@ -2161,7 +2162,7 @@ superseded_by: null
 
 1. **Q:** Confirma que SQLAlchemy é proibido como decisão arquitetural? **R:** Sim. Registrar como regra invariante na constitution.
 2. **Q:** A pasta `legacy/` deve ser inspecionada por workflows? **R:** Não. Marcar como "não tocar" até decisão futura.
-3. **Q:** O Makefile atual cobre `check`, `test`, `lint`, `typecheck`. Falta algum target canônico que deseja adicionar? **R:** Não, está completo.
+3. **Q:** Os comandos de validação atuais cobrem `check`, `lint`, `typecheck`, `test`. Falta algum gate (ex: `security`) que deseja adicionar? **R:** Não, está completo.
 4. **Q:** Áreas adicionais de alto risco além de `adapters/db/`? **R:** Sim, `core/auth/` exige política mais restritiva.
 5. **Q:** Idioma das mensagens ao usuário final é pt-BR. Confirma como regra invariante? **R:** Sim.
 
@@ -2514,7 +2515,7 @@ status: em_progresso
 
 ### Pendências
 
-- Confirmar com o usuário se a seção `## Definition of Done específica` deve incluir `make typecheck` como item obrigatório (mypy strict pode causar fricção em mudanças rápidas).
+- Confirmar com o usuário se a seção `## Definition of Done específica` deve incluir o type-check (`mypy --strict`) como item obrigatório (strict pode causar fricção em mudanças rápidas).
 - Decidir se pasta `legacy/` aparece em `## Áreas de alto risco` ou em seção `## Arquivos e pastas protegidos` (opcional, §2.2.4).
 ```
 
@@ -2546,7 +2547,7 @@ status: em_progresso
 
 #### 2.8.1 Localização
 
-Localização única: `<projeto>/.codeflow/specs/<slug>/SPEC_<NAME>.md`. Uma subpasta por spec; o `<slug>` é o do frontmatter. Gerada e **commitada** por `/create-spec` na **branch de trabalho da spec** `spec/<slug>` — é a fonte de verdade que `/execute-spec-phase` e `/evaluate-spec-phase` (chat zerado) leem nessa branch; uma spec não-commitada ou em branch errada deixa o pipeline sem fonte de verdade. No momento da criação, a subpasta contém **só** este arquivo — a pasta `artefatos/` (§2.9, §2.10) é criada depois por `/execute-spec-phase` na mesma branch.
+Localização única: `<projeto>/.codeflow/specs/<slug>/SPEC_<NAME>.md`. Uma subpasta por spec; o `<slug>` é o do frontmatter. Gerada e **commitada** por `/create-spec` na **branch atual** (o pipeline não cria nem troca de branch; quem gerencia a branch é o owner) — é a fonte de verdade que `/execute-spec-phase` e `/evaluate-spec-phase` (chat zerado) leem **na mesma branch**; uma spec não-commitada deixa o pipeline sem fonte de verdade. No momento da criação, a subpasta contém **só** este arquivo — a pasta `artefatos/` (§2.9, §2.10) é criada depois por `/execute-spec-phase` na mesma branch.
 
 #### 2.8.2 Propósito
 
@@ -2642,7 +2643,7 @@ quality_gate:
 - **Passos:** 1) definir a port … 2) implementar o adapter …
 - **Testes:** contrato da port (AC-1), retry idempotente (AC-3).
 - **Escopo travado / violações BLOQUEANTES:** não chamar a API fora do adapter; não vazar token em log.
-- **Critério de conclusão (gate):** testes da port verdes; `make check` zero.
+- **Critério de conclusão (gate):** testes da port verdes; comandos de validação do projeto zero.
 
 ### Fase B.2 — Webhook de status no hub
 - **id:** `B.2`
@@ -2652,7 +2653,7 @@ quality_gate:
 - **Passos:** 1) … 2) …
 - **Testes:** AC-5.
 - **Escopo travado / violações BLOQUEANTES:** não persistir payload bruto com PII.
-- **Critério de conclusão (gate):** round-trip status verde; `make check` zero.
+- **Critério de conclusão (gate):** round-trip status verde; comandos de validação do projeto zero.
 ```
 
 #### 2.8.6 Regras de validação
@@ -2672,7 +2673,7 @@ quality_gate:
 - **`quality_gate.passed` ou `threshold: 3` legado.** O gate é `phase-evaluator` com threshold 0–10 consumido pelo avaliador; estado de aprovação vive nos artefatos de avaliação (§2.10), não em campo booleano órfão na spec.
 - **Fase sem `id`/`slug`.** Sem eles os nomes de `FASE-*-EXECUCAO.md`/`AVALIACAO.md` divergem entre chats e os artefatos ficam órfãos.
 - **Heading `### Fase 1 —` com `id: A.1`.** O `id` do heading e o do bullet têm de coincidir; heading órfão quebra a coerência do schema.
-- **Spec não-commitada ou em branch errada.** A fonte de verdade vive commitada em `spec/<slug>`; sem isso o executor/avaliador em chat zerado não a encontram.
+- **Spec não-commitada.** A fonte de verdade precisa estar commitada na branch atual; sem isso o executor/avaliador em chat zerado não a encontram.
 - **`status` eterno em `draft`.** O ciclo `draft → active → done` é avançado por `/execute-spec-phase`; uma spec concluída que segue `draft` é defeito de produtor.
 - **`Depende de: fases anteriores`.** Dependência é por `id` explícito; "anteriores" não expressa acoplamento cruzado entre tracks.
 - **Criar `artefatos/` aqui.** A spec nasce sozinha; a pasta de artefatos é da execução.
@@ -2683,7 +2684,7 @@ quality_gate:
 
 #### 2.9.1 Localização
 
-Localização única: `<projeto>/.codeflow/specs/<slug-da-spec>/artefatos/FASE-<id>-<slug-da-fase>-EXECUCAO.md`. `<id>` e `<slug-da-fase>` vêm da §5 da spec (§2.8), reusados verbatim. Gerado e **commitado** por `/execute-spec-phase` na branch de trabalho `spec/<slug>` (a mesma onde o código da fase foi commitado), em **commit separado do código, em cima de `sha_final`** — por isso a ponta da branch é o commit-relatório, não `sha_final` (o avaliador valida por ancestralidade, ver §2.10.1). **Um único arquivo por fase**, sobrescrito a cada tentativa/rework (o histórico cumulativo sobrevive no campo `reprovacoes`, não em arquivos versionados por tentativa).
+Localização única: `<projeto>/.codeflow/specs/<slug-da-spec>/artefatos/FASE-<id>-<slug-da-fase>-EXECUCAO.md`. `<id>` e `<slug-da-fase>` vêm da §5 da spec (§2.8), reusados verbatim. Gerado e **commitado** por `/execute-spec-phase` na **branch atual** (a mesma onde o código da fase foi commitado), em **commit separado do código, em cima de `sha_final`** — por isso a ponta da branch é o commit-relatório, não `sha_final` (o avaliador valida por ancestralidade, ver §2.10.1). **Um único arquivo por fase**, sobrescrito a cada tentativa/rework (o histórico cumulativo sobrevive no campo `reprovacoes`, não em arquivos versionados por tentativa).
 
 #### 2.9.2 Propósito
 
@@ -2705,7 +2706,7 @@ Deixar a fase **pronta para avaliação independente**: declara, de forma machin
 
 **Seções markdown — corpo (após o frontmatter):**
 
-Resumo do que foi feito; tabela de arquivos CRIADOS/ALTERADOS (caminho + propósito); confirmação do REUSO; decisões de design e qualquer desvio da spec/rules com justificativa; comandos rodados + **saídas reais** (`make check` ou `[—]` justificado se ausente); checklist dos ACs/critério de conclusão, cada item com evidência; em rework, o que mudou nesta tentativa; dúvidas para o avaliador.
+Resumo do que foi feito; tabela de arquivos CRIADOS/ALTERADOS (caminho + propósito); confirmação do REUSO; decisões de design e qualquer desvio da spec/rules com justificativa; comandos rodados + **saídas reais** (os comandos de validação do projeto, ou `[—]` justificado se ausente); checklist dos ACs/critério de conclusão, cada item com evidência; em rework, o que mudou nesta tentativa; dúvidas para o avaliador.
 
 **Restrições adicionais:**
 
@@ -2714,7 +2715,7 @@ Resumo do que foi feito; tabela de arquivos CRIADOS/ALTERADOS (caminho + propós
 
 #### 2.9.4 Schema opcional
 
-- Campo `branch` no frontmatter quando a branch de trabalho não segue o default `spec/<slug>`. É **registro/confirmação**, não fonte de descoberta: como o EXECUCAO vive na própria branch, ele não é legível de `main`. A descoberta da branch em chat zerado é por convenção (`spec/<slug>`) ou pelo override do `.codeflow/manifest.md` (ambos legíveis de `main`); o campo só confirma a escolha depois de já se estar na branch.
+- Nenhum campo opcional de frontmatter — o conjunto de §2.9.3 é fechado. (O pipeline trabalha na branch atual; não há campo de branch.) Conteúdo livre adicional vai no **corpo** do relatório, nunca no frontmatter.
 
 #### 2.9.5 Exemplo preenchido
 
@@ -2742,7 +2743,7 @@ Rework da Fase A.1 após avaliação t1 (REPROVADO): token deixava de ser mascar
 | `src/adapters/evolution.py` | ALTERADO | mascarar token no logger; cobrir AC-3 |
 
 ## Comandos
-- `make check` → exit 0 (saída colada abaixo) …
+- `ruff check src/ && mypy src/ && pytest tests/adapters/test_evolution.py` → exit 0 (saída colada abaixo) …
 
 ## Critério de conclusão
 - [✓] AC-1 contrato da port (test_evolution_port.py::test_send)
@@ -2773,7 +2774,7 @@ Rework da Fase A.1 após avaliação t1 (REPROVADO): token deixava de ser mascar
 
 #### 2.10.1 Localização
 
-Localização única: `<projeto>/.codeflow/specs/<slug-da-spec>/artefatos/FASE-<id>-<slug-da-fase>-AVALIACAO.md`. `<id>` e `<slug-da-fase>` vêm do EXECUCAO avaliado (§2.9), reusados verbatim. Gerado e **commitado** por `/evaluate-spec-phase`, em chat zerado, independente do executor, **na ponta da branch de trabalho** (não em detached HEAD — senão o commit da avaliação fica órfão e o pipeline trava). Antes de auditar, o avaliador confirma que os commits do `range` são **ancestrais de HEAD** na branch (`git merge-base --is-ancestor <sha_final> HEAD`); em outra branch (ex: `main`) os artefatos não existem e as verificações rodariam contra a árvore errada. Note que `HEAD ≠ sha_final` no caminho feliz: o relatório de execução é um commit separado **em cima** de `sha_final` (só markdown), então a ponta da branch já contém o código da fase.
+Localização única: `<projeto>/.codeflow/specs/<slug-da-spec>/artefatos/FASE-<id>-<slug-da-fase>-AVALIACAO.md`. `<id>` e `<slug-da-fase>` vêm do EXECUCAO avaliado (§2.9), reusados verbatim. Gerado e **commitado** por `/evaluate-spec-phase`, em chat zerado, independente do executor, **na ponta da branch atual** (a mesma onde o trabalho foi commitado; não em detached HEAD — senão o commit da avaliação fica órfão e o pipeline trava). Antes de auditar, o avaliador confirma que os commits do `range` são **ancestrais de HEAD** na branch (`git merge-base --is-ancestor <sha_final> HEAD`); numa branch sem esses commits (ex: a default) os artefatos não existem e as verificações rodariam contra a árvore errada. Note que `HEAD ≠ sha_final` no caminho feliz: o relatório de execução é um commit separado **em cima** de `sha_final` (só markdown), então a ponta da branch já contém o código da fase.
 
 #### 2.10.2 Propósito
 
@@ -2834,7 +2835,7 @@ APROVADO — score 9.1 ≥ 8.5, zero BLOQUEANTES.
 | Segurança/LGPD | 5 | 3 | `grep token` em logs = 0 (saída colada) |
 
 ## Comandos rodados
-- `make check` → exit 0 …
+- `ruff check src/ && mypy src/ && pytest tests/` → exit 0 …
 ```
 
 #### 2.10.6 Regras de validação

@@ -1,7 +1,7 @@
 ---
-versão: 1.0
+versão: 1.1
 status: estável
-atualizado: 2026-05-23
+atualizado: 2026-06-15
 descrição: Cria um projeto novo a partir de ideia, com estrutura mínima e artefatos do .codeflow/.
 é_meta_skill: yes
 granularidade: detalhado
@@ -17,7 +17,7 @@ Usuário invoca `/bootstrap` quando quer criar um projeto **novo** a partir de u
 
 ## Princípio guia
 
-Projeto novo nasce com decisões mínimas explícitas: propósito, stack, padrão arquitetural, regras invariantes. O bootstrap não tenta antecipar features futuras — entrega o esqueleto suficiente para começar, com Makefile canônico e codeflow integrado. Decisões adiáveis ficam adiadas e documentadas como pendentes.
+Projeto novo nasce com decisões mínimas explícitas: propósito, stack, padrão arquitetural, regras invariantes. O bootstrap não tenta antecipar features futuras — entrega o esqueleto suficiente para começar, com os comandos de validação da stack registrados no manifest e codeflow integrado. Decisões adiáveis ficam adiadas e documentadas como pendentes.
 
 ## Protocolo
 
@@ -33,7 +33,7 @@ Projeto novo nasce com decisões mínimas explícitas: propósito, stack, padrã
 
 - Propor stack concreta (linguagem, versão, gerenciador de pacotes, framework principal se aplicável) compatível com tipo de projeto e restrições da Fase 1.
 - Propor padrão arquitetural inicial (camadas mínimas, organização de pastas).
-- Propor lista de targets do Makefile, mínimo cobrindo `check`, `test`, `lint`, `typecheck`.
+- Propor os comandos de validação da stack (`check`, `lint`, `typecheck`, `test`, `security`) e como embrulhá-los (scripts de `package.json`, um `Makefile`, `justfile`, ou comandos diretos) — a forma idiomática da stack escolhida.
 - Pergunta ao usuário se aprova as propostas. Aceitar contraproposta e iterar até confirmação.
 - Aguardar resposta final do usuário antes de avançar. Esta pausa é obrigatória.
 - Gravar checkpoint ao fim da fase.
@@ -42,7 +42,7 @@ Projeto novo nasce com decisões mínimas explícitas: propósito, stack, padrã
 
 - Criar pastas conforme decisão da Fase 2.
 - Criar `<projeto>/README.md` esqueleto (título, descrição em uma frase, seção de setup, seção de licença).
-- Criar `<projeto>/Makefile` com os quatro targets canônicos (`check`, `test`, `lint`, `typecheck`). Cada target chama os comandos reais da stack escolhida, ou imprime `noop` quando ainda não há comando real definido.
+- Materializar os comandos de validação na forma idiomática da stack (scripts em `package.json`, um `Makefile`, ou `justfile`) quando útil — cada um chamando o comando real da stack, ou um `noop` quando ainda não há comando definido. O embrulho é opcional; a fonte canônica dos comandos é o `manifest.md` (Fase 4).
 - Criar `<projeto>/.gitignore` com entradas mínimas: artefatos de build da stack, `.codeflow/checkpoints/`, arquivos de IDE comuns.
 - Criar `<projeto>/LICENSE` com texto da licença escolhida.
 - Gravar checkpoint ao fim da fase.
@@ -50,7 +50,7 @@ Projeto novo nasce com decisões mínimas explícitas: propósito, stack, padrã
 ### Fase 4 — Geração de artefatos do `.codeflow/`
 
 - Gerar `<projeto>/.codeflow/constitution.md` aplicando o template de `ARTIFACTS_SPEC.md` §2.2.5. Incluir princípios derivados das restrições e decisões das Fases 1 e 2.
-- Gerar `<projeto>/.codeflow/manifest.md` aplicando o template de `ARTIFACTS_SPEC.md` §2.3.5. Incluir: stack decidida, comandos make, padrões arquiteturais, arquivos críticos para freshness. **A quarta seção é `## Padrões definidos`, não `## Padrões detectados`** (`ARTIFACTS_SPEC.md` §2.3.3 item 4): bootstrap não inspeciona código, então os padrões são metas decididas na Fase 2 — usar verbos prospectivos ("a estabelecer", "definido como meta"), nunca afirmar que uma estrutura foi "detectada" ou "estabelecida" quando os arquivos ainda não existem. Registrar em `## Notas de inspeção` que os padrões são prospectivos.
+- Gerar `<projeto>/.codeflow/manifest.md` aplicando o template de `ARTIFACTS_SPEC.md` §2.3.5. Incluir: stack decidida, comandos de validação, padrões arquiteturais, arquivos críticos para freshness. **A quarta seção é `## Padrões definidos`, não `## Padrões detectados`** (`ARTIFACTS_SPEC.md` §2.3.3 item 4): bootstrap não inspeciona código, então os padrões são metas decididas na Fase 2 — usar verbos prospectivos ("a estabelecer", "definido como meta"), nunca afirmar que uma estrutura foi "detectada" ou "estabelecida" quando os arquivos ainda não existem. Registrar em `## Notas de inspeção` que os padrões são prospectivos.
 - Gerar `<projeto>/.codeflow/INDEX.md` aplicando o template de `ARTIFACTS_SPEC.md` §2.1.5. Listar `constitution.md` e `manifest.md` em `## Leia sempre primeiro`. **Não** referenciar `discovered.md` — bootstrap não o gera.
 - Aplicar `## Validação pós-geração` em cada arquivo antes de avançar.
 - Gravar checkpoint ao fim da fase.
@@ -78,7 +78,7 @@ Esta meta-skill gera três artefatos do `.codeflow/` mais arquivos esqueleto do 
 - **`INDEX.md`:** template em `ARTIFACTS_SPEC.md` §2.1.5.
 - **`constitution.md`:** template em `ARTIFACTS_SPEC.md` §2.2.5.
 - **`manifest.md`:** template em `ARTIFACTS_SPEC.md` §2.3.5.
-- **Makefile, README.md, .gitignore, LICENSE:** esqueletos mínimos descritos na Fase 3, sem template formal.
+- **README.md, .gitignore, LICENSE (e Makefile/scripts se a stack pedir):** esqueletos mínimos descritos na Fase 3, sem template formal.
 
 Substituir placeholders com valores coletados nas Fases 1 e 2. Datas em formato ISO `AAAA-MM-DD` no fuso local da máquina.
 
@@ -87,7 +87,7 @@ Substituir placeholders com valores coletados nas Fases 1 e 2. Datas em formato 
 Dois conjuntos de destinos:
 
 - **Artefatos do codeflow** (gerados nesta meta-skill): `<projeto>/.codeflow/INDEX.md`, `<projeto>/.codeflow/constitution.md`, `<projeto>/.codeflow/manifest.md`.
-- **Arquivos do projeto** (estrutura mínima): `<projeto>/README.md`, `<projeto>/Makefile`, `<projeto>/.gitignore`, `<projeto>/LICENSE`, e pastas decididas na Fase 2.
+- **Arquivos do projeto** (estrutura mínima): `<projeto>/README.md`, `<projeto>/.gitignore`, `<projeto>/LICENSE`, o embrulho de comandos se houver (`Makefile`/scripts), e pastas decididas na Fase 2.
 
 Nenhum arquivo é criado em `~/.codeflow/` por esta meta-skill.
 
@@ -98,7 +98,7 @@ Nenhum arquivo é criado em `~/.codeflow/` por esta meta-skill.
 - Aplicar `ARTIFACTS_SPEC.md` §2.3.6 a `manifest.md`.
 - Verificar que a quarta seção do `manifest.md` é `## Padrões definidos` (não `## Padrões detectados`) e usa verbos prospectivos — nenhuma afirmação de que estrutura foi "detectada"/"estabelecida" com arquivos que ainda não existem.
 - Verificar que `INDEX.md` **não** referencia `discovered.md` (bootstrap não o gera).
-- Verificar que `Makefile` tem os quatro targets canônicos (`check`, `test`, `lint`, `typecheck`).
+- Verificar que o `manifest.md` registra os comandos de validação (`check`, `lint`, `typecheck`, `test`, `security`); se houver embrulho (`Makefile`/scripts), que ele os reflete.
 - Verificar que `<projeto>/.codeflow/checkpoints/` está listado no `.gitignore` do projeto.
 - Apresentar resumo final ao usuário com caminhos dos arquivos gerados.
 

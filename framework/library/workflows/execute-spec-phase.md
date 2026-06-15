@@ -1,5 +1,5 @@
 ---
-versão: 1.7
+versão: 1.8
 status: experimental
 atualizado: 2026-06-15
 granularidade: médio
@@ -32,7 +32,7 @@ Executar a **próxima fase pendente** de uma spec gerada por `/create-spec` (em 
 - .codeflow/decisions/INDEX.md (carregar decisions ATIVAS cujas tags cruzem o domínio da fase)
 
 ## Antes de começar
-Identificar a spec que o usuário pediu (por caminho ou slug em `.codeflow/specs/`). **Trocar para a branch de trabalho da spec antes de qualquer coisa** (`spec/<slug>`, ou a de `.codeflow/manifest.md`; se não existir, criá-la a partir da default) — a spec e os artefatos vivem nela e em `main` não aparecem; sem isso o Passo 1 falha em chat zerado. Se o usuário colou uma avaliação (`FASE-<id>-*-AVALIACAO.md` com `veredito: REPROVADO` ou `RESSALVAS`), o alvo é o **rework** dessa fase. Se a fase tocar áreas com decisions arquivadas, carregar as decisions ATIVAS por tag antes de implementar.
+Identificar a spec que o usuário pediu (por caminho ou slug em `.codeflow/specs/`). **Trabalhar na branch atual** — o pipeline não cria nem troca de branch; a spec e os artefatos vivem na branch em que você está (a mesma onde `/create-spec` os commitou). Se a branch atual é a default (`main`/`master`), **avisar e pedir confirmação** antes de commitar (Passo 6). Se o usuário colou uma avaliação (`FASE-<id>-*-AVALIACAO.md` com `veredito: REPROVADO` ou `RESSALVAS`), o alvo é o **rework** dessa fase. Se a fase tocar áreas com decisions arquivadas, carregar as decisions ATIVAS por tag antes de implementar.
 
 ## Protocolo
 
@@ -43,7 +43,7 @@ Identificar a spec que o usuário pediu (por caminho ou slug em `.codeflow/specs
 - Gate: spec encontrada, `run-structural.sh` retornou `0`, e §5 interpretada como lista ordenada de fases.
 
 ### Passo 2 — Determinar a fase-alvo (estado por frontmatter, não por prosa)
-- Para cada fase de §5 (identificada pelo `id`), ler o **frontmatter** dos artefatos em `artefatos/` (`fase:`, `status:`, `tentativa:`, `reprovacoes:` no EXECUCAO; `fase:`, `tentativa:`, `veredito:` no AVALIACAO) — nunca inferir estado de texto livre. Classificar cada fase em **um único** estado (**pendente** / **aguardando avaliação** / **reprovada** / **concluída**) e resolver **elegibilidade** e **teto** conforme a definição canônica de **ARTIFACTS_SPEC §2.11** (máquina de estados da fase): pareamento EXECUCAO↔AVALIACAO pela `tentativa`, deps concluídas por `id`, teto por `reprovacoes` (vereditos não-APROVADO). Não redefinir esses termos aqui.
+- Para cada fase de §5 (identificada pelo `id`), ler o **frontmatter** dos artefatos em `artefatos/` (`fase:`, `status:`, `tentativa:`, `reprovacoes:` no EXECUCAO; `fase:`, `tentativa:`, `veredito:` no AVALIACAO) — nunca inferir estado de texto livre. Classificar cada fase em **um único** estado (**pendente** / **aguardando avaliação** / **reprovada** / **concluída**) e resolver **elegibilidade** e **teto** conforme a definição canônica de **ARTIFACTS_SPEC §2.11** (máquina de estados da fase): pareamento EXECUCAO↔AVALIACAO pela `tentativa`, deps concluídas por `id`, teto por `reprovacoes` (vereditos não-APROVADO). Não redefinir esses termos aqui. **Caso base:** se a pasta `artefatos/` não existe ou está vazia, nenhuma fase foi executada — o alvo é a **primeira fase de §5** (gatilho 3 da tabela).
 - **Tabela de seleção do alvo** — avaliar de cima para baixo na **ordem textual de §5** (não lexical: `2` antes de `10`); o **primeiro** gatilho que casar define o alvo (a ordem das linhas é a precedência):
 
   | # | Gatilho | Ação |
@@ -62,10 +62,10 @@ Identificar a spec que o usuário pediu (por caminho ou slug em `.codeflow/specs
 ### Passo 3 — Preparar e marcar o início
 - Reler o bloco da fase-alvo em §5. Em rework, ler também os achados BLOQUEANTES/IMPORTANTES da AVALIACAO. Confirmar que os **caminhos de "Arquivos alterados" existem** no repo (se a spec citou caminho inexistente, parar e apontar — não inventar).
 - Conferir dependências: cada `id` listado em "Depende de" da fase-alvo está **concluído** (AVALIACAO `veredito: APROVADO` da tentativa corrente); se faltar, **parar** e relatar qual dependência. Criar `artefatos/` se não existir (esta pasta é criada aqui, não por `/create-spec`).
-- **Branch de trabalho:** confirmar que está na branch de trabalho da spec (já trocada em *Antes de começar*). Nunca commitar na default/`main`.
+- **Branch:** trabalhar na branch atual (o pipeline não troca de branch). Se for a default (`main`), avisar e pedir confirmação antes de commitar (Passo 6).
 - **Ciclo da spec:** se o frontmatter da spec está `status: draft` e esta é a primeira execução de qualquer fase, atualizar para `status: active` + `updated_at` (commitado junto no Passo 7).
 - **SHA inicial:** em **nova execução**, anotar o HEAD atual como `sha_inicial` (início ORIGINAL da fase). Em **rework**, **reusar** o `sha_inicial` do EXECUCAO existente (não redefinir).
-- Gate: pré-requisitos satisfeitos, branch de trabalho ativa, `artefatos/` existe, `sha_inicial` conhecido.
+- Gate: pré-requisitos satisfeitos, `artefatos/` existe, `sha_inicial` conhecido.
 
 ### Passo 4 — Executar a fase (TDD, escopo fechado)
 - Nova execução: implementar **somente** os passos da fase-alvo, tocando apenas os arquivos que ela declara (diff mínimo). Rework: corrigir **apenas** os achados da avaliação, sem ampliar escopo.
@@ -74,18 +74,18 @@ Identificar a spec que o usuário pediu (por caminho ou slug em `.codeflow/specs
 - Gate: passos implementados (ou achados corrigidos); testes da fase passam.
 
 ### Passo 5 — Validar
-- Executar `make check` (ou os alvos equivalentes de `.codeflow/manifest.md`) e aplicar `self-review` no diff.
-- Se o target `make check` (e equivalentes do manifest) **não existir** no projeto: marcar `[—]` com justificativa no relatório e rodar a validação mínima possível (testes/lint da fase) — não tratar como falha (SPEC §3.10).
-- Se `make check` existir e falhar: aplicar a política de falhas da constitution (falha Lógica → re-tentar com o erro como contexto, limite de **2 tentativas**; falha de Escopo/Ambiente → parar). Distinto do teto do Passo 2 (3 vereditos não-APROVADO, ciclo executor↔avaliador).
-- Gate: `make check` retornou zero (ou `[—]` justificado) e self-review limpo.
+- Rodar os **comandos de validação do projeto** (do `.codeflow/manifest.md`; se ausente, inferir do stack) — os gates que se aplicam à fase (lint, type, testes, segurança) — e aplicar `self-review` no diff. Rodar o necessário para provar a fase, não a suíte inteira por reflexo.
+- Se um gate de validação **não existir** no projeto: marcar `[—]` com justificativa no relatório e rodar a validação mínima possível (os testes/lint da fase) — não tratar como falha (SPEC §3.10).
+- Se um comando de validação existir e falhar: aplicar a política de falhas da constitution (falha Lógica → re-tentar com o erro como contexto, limite de **2 tentativas**; falha de Escopo/Ambiente → parar). Distinto do teto do Passo 2 (3 vereditos não-APROVADO, ciclo executor↔avaliador).
+- Gate: os comandos de validação aplicáveis retornaram zero (ou `[—]` justificado) e self-review limpo.
 
 ### Passo 6 — Commitar a fase
-- Commitar o trabalho na branch de trabalho (Conventional Commits em pt-BR; um ou mais commits lógicos). Não commitar na default/`main`.
+- Commitar o trabalho na branch atual (Conventional Commits em pt-BR; um ou mais commits lógicos). Se a branch atual é a default (`main`), confirmar antes.
 - Anotar o `sha_final` = HEAD atual. O **range canônico da fase é sempre `sha_inicial..sha_final`** (início original → HEAD), de modo que em rework o avaliador veja a fase inteira, não só os commits de conserto.
 - Gate: trabalho commitado; `range` conhecido.
 
 ### Passo 7 — Gerar o relatório pronto para avaliação
-- Escrever (ou, em rework, sobrescrever) `.codeflow/specs/<slug>/artefatos/FASE-<id>-<slug>-EXECUCAO.md` com este **frontmatter machine-readable** seguido do corpo. `fase` é o `id` da fase na spec (`1` ou `A.1`); `slug_fase` é o `slug` da fase na spec, **reusado verbatim** (não derivar de novo) para casar com o arquivo de avaliação:
+- Partir do molde `.codeflow/specs/_TEMPLATES/TEMPLATE-EXECUCAO.md` (anti-alucinação) e escrever (ou, em rework, sobrescrever) `.codeflow/specs/<slug>/artefatos/FASE-<id>-<slug>-EXECUCAO.md` com este **frontmatter machine-readable** seguido do corpo. `fase` é o `id` da fase na spec (`1` ou `A.1`); `slug_fase` é o `slug` da fase na spec, **reusado verbatim** (não derivar de novo) para casar com o arquivo de avaliação:
 
   ```markdown
   ---
@@ -100,8 +100,8 @@ Identificar a spec que o usuário pediu (por caminho ou slug em `.codeflow/specs
   range: <sha_inicial>..<sha_final>
   ---
   ```
-  Regras dos campos: `status` é `executado` (nova execução) ou `rework`. **Nova execução:** `tentativa: 1`, `reprovacoes: 0`, `sha_inicial` = HEAD original da fase. **Rework:** `tentativa` = anterior + 1; `reprovacoes` = anterior + 1 (o veredito não-APROVADO — `REPROVADO` ou `RESSALVAS` — que motivou este rework; §2.9.3 / §2.11.4); `sha_inicial` = **reusar** o do EXECUCAO anterior. `range` é sempre `sha_inicial..sha_final` (início original → HEAD), para o avaliador ver a fase inteira. Se a branch de trabalho ≠ `spec/<slug>`, **incluir `branch: <nome>`** no frontmatter como **registro/confirmação** — a descoberta da branch em chat zerado é feita por convenção (`spec/<slug>`) ou pelo override do `.codeflow/manifest.md` (ambos legíveis de `main`); o campo só confirma depois de já se estar na branch.
-  Corpo: resumo do que foi feito; tabela de arquivos CRIADOS/ALTERADOS (caminho + propósito); confirmação do REUSO; decisões de design e **qualquer desvio** da spec/rules com justificativa; comandos rodados + **saídas reais** (linters/test/`make check`); checklist dos ACs/critério de conclusão, cada item **com evidência**; (em rework) o que mudou nesta tentativa; dúvidas para o avaliador.
+  Regras dos campos: `status` é `executado` (nova execução) ou `rework`. **Nova execução:** `tentativa: 1`, `reprovacoes: 0`, `sha_inicial` = HEAD original da fase. **Rework:** `tentativa` = anterior + 1; `reprovacoes` = anterior + 1 (o veredito não-APROVADO — `REPROVADO` ou `RESSALVAS` — que motivou este rework; §2.9.3 / §2.11.4); `sha_inicial` = **reusar** o do EXECUCAO anterior. `range` é sempre `sha_inicial..sha_final` (início original → HEAD), para o avaliador ver a fase inteira. O avaliador roda na **mesma branch** (o pipeline não troca de branch), então o `range` basta — não há campo de branch no frontmatter.
+  Corpo: resumo do que foi feito; tabela de arquivos CRIADOS/ALTERADOS (caminho + propósito); confirmação do REUSO; decisões de design e **qualquer desvio** da spec/rules com justificativa; comandos rodados + **saídas reais** (os comandos de validação do projeto); checklist dos ACs/critério de conclusão, cada item **com evidência**; (em rework) o que mudou nesta tentativa; dúvidas para o avaliador.
 - **Commitar o relatório** (`.codeflow/specs/` é versionado): commit separado do de código. Se a spec teve o frontmatter atualizado neste run (`status: draft → active`, ou `→ done` no caso 6 do Passo 2), commitar a spec também.
 - Ser **honesto** sobre o que não ficou pronto — será conferido contra o código real por um revisor independente. As decisões da fase ficam registradas **neste relatório**, não em artefato paralelo.
 - Apresentar o resumo final e instruir: avaliar a fase com `/evaluate-spec-phase` em **chat zerado**.
@@ -109,10 +109,10 @@ Identificar a spec que o usuário pediu (por caminho ou slug em `.codeflow/specs
 ## Definition of Done
 - [ ] Spec lida na íntegra (incl. escopo travado); `run-structural.sh` retornou `0` (gate da §5) e documentos referenciados carregados (Passo 1).
 - [ ] Fase-alvo determinada por frontmatter (estado/elegibilidade/teto conforme §2.11), pareando EXECUCAO/AVALIACAO pela `tentativa`; guard de teto (3 não-APROVADO → escala ao owner) respeitado (Passo 2).
-- [ ] Dependências (por `id`) e caminhos verificados; branch de trabalho ativa; `sha_inicial` anotado (Passo 3).
+- [ ] Dependências (por `id`) e caminhos verificados; `sha_inicial` anotado (Passo 3).
 - [ ] Apenas a fase-alvo executada/corrigida, dentro do escopo; nenhuma fase fora do alvo tocada (Passo 4).
-- [ ] Testes da fase passam; `make check` retornou zero (ou `[—]` justificado); self-review aplicado (Passo 5).
-- [ ] Trabalho commitado na branch de trabalho; `range = sha_inicial..sha_final` (Passo 6).
+- [ ] Testes da fase passam; comandos de validação do projeto retornaram zero (ou `[—]` justificado); self-review aplicado (Passo 5).
+- [ ] Trabalho commitado na branch atual; `range = sha_inicial..sha_final` (Passo 6).
 - [ ] Relatório `FASE-<id>-<slug>-EXECUCAO.md` gravado com frontmatter machine-readable (incl. `reprovacoes`) e commitado (Passo 7).
 - [ ] Ciclo da spec avançado quando aplicável (`draft → active` na 1ª execução; `→ done` quando todas concluídas) e commitado.
 

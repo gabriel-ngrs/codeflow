@@ -1,7 +1,7 @@
 ---
-versão: 1.0
+versão: 1.1
 status: estável
-atualizado: 2026-05-23
+atualizado: 2026-06-15
 granularidade: médio
 gera_decision: auto
 usa_checkpoints: no
@@ -54,9 +54,9 @@ Se o bug toca em áreas com decisions arquivadas (auth, payments, schema), consu
 - Gate: teste de regressão (Passo 2) passa.
 
 ### Passo 5 — Validar
-- Executar `make check` (ou alternativas conforme `.codeflow/manifest.md`).
+- Rodar os comandos de validação do projeto (do `.codeflow/manifest.md`; se ausente, inferir do stack) — **o necessário para provar o fix**: o teste de regressão do Passo 2 + lint/type dos arquivos tocados. Não rodar a suíte inteira por reflexo se o subconjunto já prova.
 - Aplicar skill `self-review` no diff produzido.
-- Se `make check` falha: aplicar política de falhas da constitution.
+- Se um comando de validação falha: aplicar política de falhas da constitution. Gate que não existe no projeto → `[—]` com justificativa, não falha (SPEC §3.10).
 
 ### Passo 6 — Resumir e (se aplicável) gerar decision
 - Apresentar resumo final no formato fixo de cinco seções.
@@ -69,7 +69,7 @@ Se o bug toca em áreas com decisions arquivadas (auth, payments, schema), consu
 - [ ] Bug reproduzido no Passo 1.
 - [ ] Teste de regressão adicionado e falhando antes do fix.
 - [ ] Teste de regressão passando após o fix.
-- [ ] `make check` retornou zero.
+- [ ] Comandos de validação do projeto retornaram zero (ou `[—]` justificado).
 - [ ] Diff dentro do escopo declarado.
 - [ ] Self-review aplicado.
 - [ ] Decision gerada se aplicável (gera_decision: auto) — incluindo default após "não sei" do usuário e divergência consciente da constitution.

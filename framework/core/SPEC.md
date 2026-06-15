@@ -1,5 +1,5 @@
 ---
-versão: 2.0
+versão: 3.0
 status: estável
 atualizado: 2026-06-15
 documento: SPEC.md
@@ -40,7 +40,7 @@ audiência secundária: desenvolvedores que mantêm/evoluem o framework
   - [3.7 Sessão fresca por workflow](#37-sessão-fresca-por-workflow)
   - [3.8 Comportamento quando workflow não encaixa](#38-comportamento-quando-workflow-não-encaixa)
   - [3.9 install.sh: instalação mínima sem tocar no projeto](#39-installsh-instalação-mínima-sem-tocar-no-projeto)
-  - [3.10 Make como abstração canônica de execução](#310-make-como-abstração-canônica-de-execução)
+  - [3.10 Comandos de validação definidos pelo projeto](#310-comandos-de-validação-definidos-pelo-projeto)
 - [Parte 4 — Conceitos centrais](#parte-4--conceitos-centrais)
   - [4.1 Constitution](#41-constitution)
   - [4.2 Workflows](#42-workflows)
@@ -490,24 +490,24 @@ A nível de projeto: cada workflow em `<projeto>/.codeflow/workflows/<nome>.md` 
 - `install.sh` não roda git init nem altera configurações do git.
 - `install.sh` não instala dependências, não baixa nada, não modifica nada fora de `.codeflow/`.
 
-### 3.10 Make como abstração canônica de execução
+### 3.10 Comandos de validação definidos pelo projeto
 
-**Decisão:** Workflows usam targets `make` para executar comandos de validação do projeto. O subconjunto mínimo esperado é: `make check`, `make test`, `make lint`, `make typecheck`.
+**Decisão:** Workflows validam código rodando os **comandos de validação que o projeto define**, registrados no `manifest.md` por `discover`/`bootstrap`. Esses comandos cobrem os gates conceituais — formatação, lint, type-check, testes (com cobertura quando aplicável) e segurança — mas o **comando real de cada gate é o do projeto, com a ferramenta dele**: pode ser `pytest --cov`, `npm test`, `cargo test`, `go test ./...`, `ruff check`, `docker compose exec backend pytest`, um alvo `make`, ou qualquer outro. O codeflow não presume nenhuma ferramenta específica.
 
-**Justificativa:** Make é universal em Linux/macOS/WSL, executável sem instalação adicional (em ambientes mainstream), versionável no projeto, e útil para humanos além do codeflow. Centraliza comandos do projeto em um arquivo. Permite ao codeflow ser agnóstico de stack: `make test` funciona seja pytest, vitest, ou go test por baixo.
+**Justificativa:** Projetos validam de formas radicalmente diferentes, e muitos não têm `make`. Amarrar o framework a `make check` quebra em todo projeto que usa outra convenção. O que é universal não é a ferramenta, e sim o **conceito** de uma sequência de gates de qualidade que reproduz o que o CI cobraria. Registrar os comandos reais no manifest dá reprodutibilidade; inferir do stack quando faltam dá robustez.
 
 **Implicações:**
-- Workflows que validam código rodam `make check` (ou alternativas equivalentes) no Definition of Done.
-- `discover` propõe criar Makefile básico se ausente.
-- `bootstrap` cria Makefile com targets canônicos no projeto novo.
-- Workflows toleram targets ausentes: se `make typecheck` não existe, marca como "pulado", não como falha.
-- Codeflow não duplica funcionalidades que Make já oferece (logging, guards, prompts) — usa o que o projeto tem.
+- O `manifest.md` tem uma seção `## Comandos de validação` que mapeia cada gate (`check`, `lint`, `typecheck`, `test`, `security`) ao **comando real** do projeto, ou `[—]` quando o gate não se aplica. `check` é o agregador (roda a sequência); pode ser um único comando (ex: `make check`, `npm run ci`) ou a composição dos demais.
+- Workflows rodam **o necessário para a tarefa**, não a suíte inteira por reflexo: num bugfix, o teste que cobre o bug + lint/type dos arquivos tocados; numa fase de spec, os testes e gates daquela fase.
+- Quando o manifest falta, ou um gate não está mapeado, a IA **infere do stack** (lê `package.json` scripts, `pyproject.toml`, `Makefile` se houver, configs de CI) e roda o comando equivalente — registrando o que rodou.
+- `discover` descobre e registra esses comandos; `bootstrap` os define para a stack escolhida.
+- Gate ausente ou inaplicável é marcado `[—]` com justificativa, não como falha; o workflow continua.
 
 **Anti-decisão:**
-- Não criar `validators/` plugáveis paralelos ao Makefile.
-- Não exigir conjunto rígido de targets — projeto pode ter mais, mas precisa ter o mínimo para workflows funcionarem plenamente.
-- Não invocar comandos brutos diretamente (ex: `pytest tests/`) — sempre via `make`.
-- Não exigir Make em ambientes onde não está disponível (Windows nativo sem WSL) — nesse caso, workflows operam em modo degradado, perguntando comandos.
+- Não presumir `make` nem exigir um Makefile. `make` é uma opção de embrulho, não a interface.
+- Não rodar a suíte inteira por padrão quando o subconjunto relevante já prova a tarefa.
+- Não criar `validators/` plugáveis paralelos — os comandos vivem no manifest do projeto.
+- Não inventar um comando que não existe no projeto: sem como validar um gate, marcar `[—]` e avisar o usuário.
 
 ---
 
@@ -622,7 +622,7 @@ Todo workflow contém, na ordem:
 
 6. **Definition of Done:** checklist objetivo de conclusão. Inclui:
    - Itens verificáveis pela IA (ex: "todos os passos do protocolo foram executados").
-   - Itens validados por script via `make` (ex: "make check passou").
+   - Itens validados por comando do projeto (ex: "os testes da área passaram").
    - Itens documentais (ex: "decision foi gerada se aplicável").
 
 7. **Seção "Resumo final":** template do formato fixo de 5 seções (estado, mudanças, checklist, riscos, próximos) que a IA apresenta ao terminar.
@@ -637,7 +637,7 @@ Workflows **não copiam** conteúdo de constitution ou skills. Apenas referencia
 
 A maioria dos workflows é **independente**: uma invocação resolve a tarefa inteira. O **pipeline de spec** é a exceção — uma família de quatro workflows que operam em conjunto sobre um mesmo artefato (a **spec**) e a executam de forma incremental:
 
-- **`/create-spec`** (detalhado) — sonda o repositório e produz **um único documento autoexecutável** (`SPEC_<NAME>.md`) com requisitos, abordagem técnica e um **plano de desenvolvimento por fases** (§5). Vive numa branch de trabalho `spec/<slug>`.
+- **`/create-spec`** (detalhado) — sonda o repositório e produz **um único documento autoexecutável** (`SPEC_<NAME>.md`) com requisitos, abordagem técnica e um **plano de desenvolvimento por fases** (§5). Vive na branch atual (o pipeline não cria nem troca de branch; quem gerencia a branch é o owner).
 - **`/execute-spec-phase`** (médio) — executa **uma fase por vez** (TDD, escopo fechado), commita e grava o relatório `FASE-<id>-<slug>-EXECUCAO.md` com frontmatter machine-readable.
 - **`/evaluate-spec-phase`** (médio) — avalia a fase **em chat zerado independente**, sem confiar no relatório: verifica tudo contra o código real e emite um **veredito** (`APROVADO`/`RESSALVAS`/`REPROVADO`). Só `APROVADO` conclui a fase.
 - **`/spec-status`** (magro) — read-only; deriva o estado de cada fase e aponta o próximo passo.
@@ -706,7 +706,7 @@ O framework é entregue com cinco meta-skills:
 
 **`discover`:** aprende um projeto existente. Conduz inspeção silenciosa, formula hipóteses, conduz entrevista qualificada (orientação: no mínimo cinco perguntas, sem teto — cinco é piso para garantir cobertura, não corte rápido; ao passar de dez, faz pausa de sanidade sobre fadiga do usuário e aguarda decisão antes de continuar), gera os artefatos iniciais (INDEX.md, constitution.md, manifest.md, discovered.md). Granularidade detalhada.
 
-**`bootstrap`:** cria um projeto novo a partir de uma ideia. Conduz conversa estruturada (escopo, stack, padrão arquitetural, regras), gera estrutura de pastas, configs iniciais, Makefile, e os artefatos do codeflow. Granularidade detalhada.
+**`bootstrap`:** cria um projeto novo a partir de uma ideia. Conduz conversa estruturada (escopo, stack, padrão arquitetural, regras), gera estrutura de pastas, configs iniciais e os artefatos do codeflow (registrando no manifest os comandos de validação da stack). Granularidade detalhada.
 
 **`create-workflow`:** entrevista o usuário para criar um workflow novo. Pergunta nome, escopo, granularidade, passos, gera o arquivo no formato correto.
 
@@ -817,7 +817,7 @@ Existem sete tipos de artefatos no codeflow:
 
 **`checkpoints/<workflow>-<timestamp>.md`:** estado intermediário de workflows detalhados em execução. Gerado automaticamente entre passos longos. Efêmero — deletado ao fim do workflow bem-sucedido. Vai para `.gitignore`.
 
-**`specs/<slug>/SPEC_<NAME>.md`:** a spec — documento único autoexecutável gerado por `/create-spec`, com requisitos, abordagem técnica e plano de fases (§5). Versionada na branch de trabalho `spec/<slug>`. É artefato de ciclo de vida (`status: draft|active|done`).
+**`specs/<slug>/SPEC_<NAME>.md`:** a spec — documento único autoexecutável gerado por `/create-spec`, com requisitos, abordagem técnica e plano de fases (§5). Versionada na branch atual. É artefato de ciclo de vida (`status: draft|active|done`).
 
 **`specs/<slug>/artefatos/FASE-<id>-<slug>-EXECUCAO.md`:** relatório de execução de uma fase, gerado por `/execute-spec-phase`, com frontmatter machine-readable (`tentativa`, `reprovacoes`, `range` de commits) e evidências.
 
@@ -969,14 +969,14 @@ e carregue decisões ATIVAS encontradas.
 - ...
 
 ### Passo 4 — Validar
-- Executar `make check` (ou alternativas conforme manifest)
+- Executar os comandos de validação do projeto (do manifest; inferir do stack se ausente)
 - Se falhar: aplicar política de falhas da constitution
 
 ### Passo 5 — Resumir e (se aplicável) gerar decision
 
 ## Definition of Done
 - [ ] Todos os passos do protocolo concluídos
-- [ ] make check passou
+- [ ] Comandos de validação do projeto retornaram zero
 - [ ] Diff dentro do escopo declarado
 - [ ] Teste adicionado se aplicável
 - [ ] Decision gerada se workflow declara gera_decision: yes
@@ -1101,7 +1101,7 @@ A IA não tenta caminhos adicionais após apresentar este formato. Aguarda inter
 
 ### 5.6 Definition of Done
 
-Define o critério objetivo de conclusão de um workflow. Usa o **Modelo C**: checklist explícito + scripts/comandos `make` como gates automáticos.
+Define o critério objetivo de conclusão de um workflow. Usa o **Modelo C**: checklist explícito + os comandos de validação do projeto como gates automáticos.
 
 #### 5.6.1 Tipos de itens
 
@@ -1109,15 +1109,15 @@ Cada item do checklist pertence a um de três tipos:
 
 **Verificável pela IA:** a IA confirma com base em sua própria execução (ex: "todos os passos do protocolo foram concluídos").
 
-**Validado por comando:** a IA roda um comando, lê a saída, confirma sucesso (ex: "make check passou"). Se o comando falha, o item NÃO pode ser marcado como pronto.
+**Validado por comando:** a IA roda um comando, lê a saída, confirma sucesso (ex: "os testes da área passaram", "o lint dos arquivos tocados ficou limpo"). Se o comando falha, o item NÃO pode ser marcado como pronto.
 
 **Documental:** verifica que artefatos esperados foram gerados (ex: "decision gerada em .codeflow/decisions/", "teste de regressão adicionado").
 
-#### 5.6.2 Comandos make como gates
+#### 5.6.2 Comandos de validação como gates
 
-Workflows que modificam código devem incluir `make check` (ou equivalentes do manifest) no Definition of Done. A IA não pode marcar como concluído sem que esses comandos retornem código de saída zero.
+Workflows que modificam código devem incluir os **comandos de validação do projeto** (do `manifest.md`, ou inferidos do stack quando ausentes) no Definition of Done. A IA não pode marcar como concluído sem que esses comandos retornem código de saída zero.
 
-Se um target `make` necessário não existe no projeto, a IA marca o item como "pulado" com justificativa, não como "falhou". Workflow continua.
+Se um gate de validação não se aplica ao projeto (não há comando para ele), a IA marca o item como `[—]` "pulado" com justificativa, não como "falhou". Workflow continua.
 
 #### 5.6.3 Sinal verde (modo de confirmação)
 
@@ -1527,7 +1527,7 @@ Cada princípio é uma lente de revisão: ao construir ou modificar qualquer ele
 
 **Idealmente presentes:**
 
-- **Makefile** com targets canônicos: `make check`, `make test`, `make lint`, `make typecheck`. Se ausente, `/discover` pode propor criar; `/bootstrap` cria automaticamente em projeto novo.
+- **Comandos de validação descobríveis** (scripts em `package.json`, alvos de `Makefile`, `pyproject.toml`, configs de CI). `/discover` os registra no `manifest.md`; `/bootstrap` os define para a stack nova. Um `Makefile` é uma forma possível de embrulhá-los, não um requisito.
 - **`.gitignore`** configurado. `install.sh` adiciona `.codeflow/checkpoints/` se já existe; cria arquivo se não existe.
 
 **Não requeridas:**
@@ -1552,14 +1552,14 @@ Esta seção declara explicitamente o universo de mudanças que workflows podem 
 
 - Manifest do projeto (`package.json`, `pyproject.toml`) — apenas se tarefa exige nova dependência, e apenas após confirmação do usuário.
 - Migrations de banco — apenas em workflows específicos (uma fase de spec tocando schema, ou `/db-migration` quando criado).
-- Makefile — apenas se `/discover` ou `/bootstrap` propõem, e usuário aprova.
+- Makefile ou scripts de validação — apenas se `/discover` ou `/bootstrap` propõem, e usuário aprova.
 
 **Apenas em `/bootstrap` (projeto novo):**
 
 - Estrutura inicial de pastas (`src/`, `tests/`, etc.).
 - Manifest de stack inicial (`package.json`, `pyproject.toml`).
 - Configs de linter e formatter (eslint, ruff, prettier).
-- Makefile com targets canônicos.
+- Comandos de validação registrados no manifest (e um Makefile/scripts, se a stack pedir).
 - README inicial.
 - `.gitignore` inicial.
 - Tudo conforme escolhas explícitas do usuário durante a conversa do bootstrap.
@@ -1624,9 +1624,9 @@ Esta seção define os termos do codeflow com precisão. Em caso de ambiguidade 
 
 ### M
 
-**Make:** sistema de build canônico usado pelo codeflow para executar comandos do projeto. Subconjunto mínimo esperado: `make check`, `make test`, `make lint`, `make typecheck`.
+**Comandos de validação:** os comandos que o projeto usa para validar código — gates de formatação, lint, type-check, testes e segurança. Registrados no `manifest.md` por `/discover`/`/bootstrap` com a ferramenta real do projeto (`pytest`, `npm test`, `cargo test`, um alvo `make`, etc.). O codeflow não presume `make`. Ver §3.10.
 
-**Manifest:** arquivo `.codeflow/manifest.md` que descreve stack, comandos make, padrões detectados do projeto. Contém `validation_hash` e `last_validated` para detecção de obsolescência.
+**Manifest:** arquivo `.codeflow/manifest.md` que descreve stack, comandos de validação e padrões detectados do projeto. Contém `validation_hash` e `last_validated` para detecção de obsolescência.
 
 **Meta-skill:** skill cujo propósito é criar outros artefatos do framework. Mora em `framework/meta/`. Cinco no escopo inicial: `discover`, `bootstrap`, `create-workflow`, `create-skill`, `create-agent`.
 
@@ -1662,9 +1662,9 @@ Esta parte registra explicitamente o que **NÃO** será incluído no codeflow, c
 
 **Descrição:** ideia de criar pasta `.codeflow/validators/` para scripts bash customizados de validação do projeto.
 
-**Por que não:** Makefile do projeto já cobre essa função, com bonus de ser útil para humanos e CI. Adicionar segunda fila de validações cria confusão (qual rodar? quem mantém?) e duplicação inevitável.
+**Por que não:** os comandos de validação do projeto (no manifest) já cobrem essa função, com bônus de serem úteis para humanos e CI. Adicionar segunda fila de validações cria confusão (qual rodar? quem mantém?) e duplicação inevitável.
 
-**Reconsiderar quando:** sentir dor real de validação que não cabe no Makefile. Improvável.
+**Reconsiderar quando:** sentir dor real de validação que não cabe nos comandos do projeto. Improvável.
 
 ### 10.2 Skill `/learn` como modo tutor
 
@@ -1678,7 +1678,7 @@ Esta parte registra explicitamente o que **NÃO** será incluído no codeflow, c
 
 **Descrição:** sistema de classificação de risco (low, medium, high, critical) que faria IA pedir confirmação extra em níveis altos.
 
-**Por que não:** redundante com guards do Makefile (que você já tem no ritmly), com Definition of Done que apresenta resumo antes de fechar, e com a flag `--dry-run`. Gold-plating.
+**Por que não:** redundante com os comandos de validação do projeto, com a Definition of Done que apresenta resumo antes de fechar, e com a flag `--dry-run`. Gold-plating.
 
 **Reconsiderar quando:** improvável.
 

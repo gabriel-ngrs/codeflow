@@ -1,5 +1,5 @@
 ---
-versão: 1.1
+versão: 1.2
 status: estável
 atualizado: 2026-06-15
 ---
@@ -64,7 +64,7 @@ atualizado: 2026-06-15
 - **Definição:** arquivo que descreve stack, comandos `make` e padrões detectados do projeto, com header de freshness check.
 - **Onde mora:** `<projeto>/.codeflow/manifest.md`.
 - **O que NÃO é:** não é constitution. Constitution declara regras; manifest descreve o estado factual do projeto.
-- **Exemplo concreto:** workflows leem `manifest.md` para descobrir que `make check` no projeto X equivale a `pytest && ruff check`.
+- **Exemplo concreto:** workflows leem `manifest.md` para descobrir que, no projeto X, o gate `check` equivale a `pytest && ruff check`.
 
 ### Meta-skill
 
@@ -108,7 +108,7 @@ O pipeline de spec é a cadeia `/create-spec` → `/execute-spec-phase` → `/ev
 ### Spec
 
 - **Definição:** documento único e autoexecutável (`SPEC_<NAME>.md`) gerado por `/create-spec`, ancorado na sondagem do repositório. Contém problema, requisitos (FR/NFR), critérios de aceite, abordagem técnica e o **plano de desenvolvimento por fases** (§5).
-- **Onde mora:** `<projeto>/.codeflow/specs/<slug>/SPEC_<NAME>.md`, versionado na branch de trabalho `spec/<slug>`.
+- **Onde mora:** `<projeto>/.codeflow/specs/<slug>/SPEC_<NAME>.md`, versionado na branch atual (o pipeline não cria branch própria; quem gerencia a branch é o owner).
 - **O que NÃO é:** não é decision. Decision é registro leve de uma escolha pontual; a spec é o plano completo e executável. As decisões de escopo da spec ficam dentro dela (§4 e §8), não em artefato separado.
 - **Referência canônica:** `ARTIFACTS_SPEC.md` §2.8.
 

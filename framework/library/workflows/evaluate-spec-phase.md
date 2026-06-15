@@ -1,5 +1,5 @@
 ---
-versão: 1.6
+versão: 1.7
 status: experimental
 atualizado: 2026-06-15
 granularidade: médio
@@ -31,7 +31,7 @@ Avaliar, de forma **independente e cética**, a fase executada por `/execute-spe
 - .codeflow/decisions/INDEX.md (carregar decisions ATIVAS cujas tags cruzem o domínio da fase)
 
 ## Antes de começar
-**Pré-condição de independência (processo, não auto-detecção):** este workflow só é válido invocado em **chat zerado**, separado do que executou a fase — a independência é o motivo de existir dele. Num chat genuinamente zerado não há auto-detecção confiável de autoria; portanto, se houver **qualquer** chance de você ter escrito ou alterado este código na sessão atual, **pare e peça reabertura num chat novo** antes de avaliar. Não avalie o próprio trabalho. **Trocar para a branch de trabalho da spec** (`spec/<slug>`, ou a de `.codeflow/manifest.md`) **antes de qualquer coisa** — o código da fase, a spec e os artefatos foram commitados nela; em `main` (chat zerado) eles não aparecem e você avaliaria a árvore errada. Identificar a spec e a fase a avaliar (por slug em `.codeflow/specs/`; por padrão, a fase no estado **aguardando avaliação** — `FASE-<id>-*-EXECUCAO.md` com `tentativa: T` **sem** AVALIACAO de `tentativa: T`, conforme ARTIFACTS_SPEC §2.11). Reusar `fase` (`id`) e `slug_fase` do EXECUCAO **verbatim** ao nomear o arquivo de avaliação. Resolver o threshold: `quality_gate.threshold` da spec, ou o valor que o usuário informou. Carregar decisions ATIVAS por tag se a fase tocar áreas com decisions arquivadas.
+**Pré-condição de independência (processo, não auto-detecção):** este workflow só é válido invocado em **chat zerado**, separado do que executou a fase — a independência é o motivo de existir dele. Num chat genuinamente zerado não há auto-detecção confiável de autoria; portanto, se houver **qualquer** chance de você ter escrito ou alterado este código na sessão atual, **pare e peça reabertura num chat novo** antes de avaliar. Não avalie o próprio trabalho. **Avaliar na branch atual** — o pipeline não troca de branch; o código da fase, a spec e os artefatos foram commitados na branch em que o executor trabalhou. Se você abriu este chat zerado em outra branch (ex: a default), o `range` do EXECUCAO não estará presente (o Passo 2 detecta) — troque para a branch onde o trabalho foi commitado, ou peça-a ao usuário. Identificar a spec e a fase a avaliar (por slug em `.codeflow/specs/`; por padrão, a fase no estado **aguardando avaliação** — `FASE-<id>-*-EXECUCAO.md` com `tentativa: T` **sem** AVALIACAO de `tentativa: T`, conforme ARTIFACTS_SPEC §2.11). Reusar `fase` (`id`) e `slug_fase` do EXECUCAO **verbatim** ao nomear o arquivo de avaliação. Resolver o threshold: `quality_gate.threshold` da spec, ou o valor que o usuário informou. Carregar decisions ATIVAS por tag se a fase tocar áreas com decisions arquivadas.
 
 ## Protocolo
 
@@ -43,13 +43,13 @@ Avaliar, de forma **independente e cética**, a fase executada por `/execute-spe
 - Gate: §5 estruturalmente válida (`run-structural.sh` = `0`), fase-alvo identificada pelo campo `fase:` e contexto carregado.
 
 ### Passo 2 — Confirmar o estado git e isolar o diff da fase
-- **Estar na ponta da branch de trabalho** — descoberta a partir de `main` por convenção (`spec/<slug>`) ou pelo override do `.codeflow/manifest.md`; o campo `branch` do EXECUCAO **confirma** a escolha depois (não é fonte de descoberta: vive na própria branch). Confirmar que os commits do `range` são **ancestrais do HEAD atual** — `git merge-base --is-ancestor <sha_final> HEAD`. Se não forem, **PARAR**: árvore errada (ex: `main`) ou branch incompleta; peça a branch/commits corretos. **Não** fazer checkout de `sha_final` em detached HEAD — o executor commitou o relatório **em cima** de `sha_final` (commit separado, só markdown), então a ponta da branch já contém o código da fase **e** é onde o AVALIACAO precisa ser commitado (Passo 5); avaliar em detached orfanaria esse commit e travaria o pipeline. Rodar as verificações do Passo 3 na ponta da branch.
+- **Estar na branch atual onde o trabalho foi commitado** (o pipeline não troca de branch). Confirmar que os commits do `range` são **ancestrais do HEAD atual** — `git merge-base --is-ancestor <sha_final> HEAD`. Se não forem, **PARAR**: você está na branch errada (ex: a default) ou a branch está incompleta; troque para a branch correta ou peça-a ao usuário. **Não** fazer checkout de `sha_final` em detached HEAD — o executor commitou o relatório **em cima** de `sha_final` (commit separado, só markdown), então a ponta da branch já contém o código da fase **e** é onde o AVALIACAO precisa ser commitado (Passo 5); avaliar em detached orfanaria esse commit e travaria o pipeline. Rodar as verificações do Passo 3 na ponta da branch.
 - Obter o **range** (`range: <sha_inicial>..<sha_final>` do EXECUCAO); se ausente, identificá-lo via `git log --oneline` e registrar a incerteza como achado.
 - Examinar o diff **completo** do range, **excluindo** `.codeflow/specs/<slug>/artefatos/` (em rework o range engloba os `.md` de execução/avaliação de tentativas anteriores — ruído; o foco é o código): `git diff <sha_inicial>..<sha_final> -- . ':(exclude).codeflow/specs/*/artefatos/*'`. Comparar com o precedente/molde citado na spec — divergência de shape sem justificativa é achado.
 - Gate: commits do range são ancestrais de HEAD na branch; diff de código (sem `artefatos/`) lido na íntegra.
 
 ### Passo 3 — Rodar as verificações você mesmo (não acreditar no relatório)
-- Linters e type-check dos arquivos tocados + `make check` (ou os alvos equivalentes de `.codeflow/manifest.md`); rodar a suíte relevante e reportar falhas **reais**. Se `make check` (e equivalentes do manifest) **não existir**, marcar `[—]` com justificativa e rodar as validações mínimas possíveis — alvo ausente é "pulado", não falha (SPEC §3.10).
+- Rodar os **comandos de validação do projeto** (do `.codeflow/manifest.md`; se ausente, inferir do stack): lint e type-check dos arquivos tocados, a suíte de testes relevante, segurança quando aplicável. Reportar falhas **reais**. Gate que **não existir** no projeto → `[—]` com justificativa; rodar as validações mínimas possíveis — gate ausente é "pulado", não falha (SPEC §3.10).
 - Aplicáveis conforme a fase: hooks de fitness, round-trip de migration se houver schema, `grep` de segredo/PII (deve ser zero) e os **greps de escopo travado** declarados na spec.
 - **Sem mutar o repo:** as verificações não podem alterar a working tree nem criar/reescrever commits; se uma checagem suja a árvore (artefatos de teste), reverter (`git stash`/`git checkout --`); resets de banco só em DB de **dev descartável**. Colar as **SAÍDAS REAIS** — nunca "passou" sem output. Opcional: `/code-review`.
 - Gate: verificações aplicáveis rodadas, com evidência, e árvore limpa ao final.
@@ -61,7 +61,7 @@ Avaliar, de forma **independente e cética**, a fase executada por `/execute-spe
 - **Apenas `APROVADO` conclui a fase.** Tanto `REPROVADO` quanto `RESSALVAS` exigem rework e reavaliação — neste pipeline `RESSALVAS` **nunca** fecha uma fase nem libera a fase seguinte (alinhado ao padrão-ouro, em que "reprovado/com ressalvas" devolve os achados ao executor).
 
 ### Passo 5 — Gravar e commitar o artefato de avaliação
-- Escrever `.codeflow/specs/<slug>/artefatos/FASE-<id>-<slug>-AVALIACAO.md` com este **frontmatter machine-readable** seguido do corpo. `fase` (`id`), `slug` no nome do arquivo e `tentativa` vêm do EXECUCAO avaliado, reusados verbatim; `threshold` é o **valor efetivamente usado**, não um literal:
+- Partir do molde `.codeflow/specs/_TEMPLATES/TEMPLATE-AVALIACAO.md` (anti-alucinação) e escrever `.codeflow/specs/<slug>/artefatos/FASE-<id>-<slug>-AVALIACAO.md` com este **frontmatter machine-readable** seguido do corpo. `fase` (`id`), `slug` no nome do arquivo e `tentativa` vêm do EXECUCAO avaliado, reusados verbatim; `threshold` é o **valor efetivamente usado**, não um literal:
 
   ```markdown
   ---
@@ -81,8 +81,8 @@ Avaliar, de forma **independente e cética**, a fase executada por `/execute-spe
 
 ## Definition of Done
 - [ ] Pré-condição de independência satisfeita (chat zerado); `run-structural.sh` retornou `0` (gate da §5); spec, fase, DoD, princípios, ACs, escopo travado e rules/ADRs carregados (Passo 1).
-- [ ] Na ponta da branch de trabalho, commits do `range` confirmados como ancestrais de HEAD (senão parar); diff de código (excluindo `artefatos/`) lido na íntegra (Passo 2).
-- [ ] Verificações rodadas pelo próprio avaliador (incl. `make check`, ou `[—]` justificado se ausente), com saídas reais e árvore limpa ao final (Passo 3).
+- [ ] Na branch onde o trabalho foi commitado, commits do `range` confirmados como ancestrais de HEAD (senão parar); diff de código (excluindo `artefatos/`) lido na íntegra (Passo 2).
+- [ ] Verificações rodadas pelo próprio avaliador (os comandos de validação do projeto, ou `[—]` justificado se ausente), com saídas reais e árvore limpa ao final (Passo 3).
 - [ ] Scorecard com evidência por dimensão e score final calculado (Passo 4).
 - [ ] Veredito (`APROVADO`/`RESSALVAS`/`REPROVADO`) pela precedência estrita `REPROVADO` > `RESSALVAS` > `APROVADO`, coerente com o threshold resolvido (quality_gate da spec ou override; zero BLOQUEANTES para aprovar); `threshold` real persistido.
 - [ ] Artefato `FASE-<id>-<slug>-AVALIACAO.md` gravado com frontmatter machine-readable (incl. `fase`/`slug_fase`/`tentativa` do EXECUCAO) e **commitado**.

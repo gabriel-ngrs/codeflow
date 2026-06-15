@@ -1,7 +1,7 @@
 ---
-versão: 1.0
+versão: 1.1
 status: estável
-atualizado: 2026-05-23
+atualizado: 2026-06-15
 descrição: Aprende um projeto existente e gera os artefatos iniciais do .codeflow/.
 é_meta_skill: yes
 granularidade: detalhado
@@ -84,7 +84,7 @@ Caminhos referenciados são relativos à raiz do projeto (sem `/` ou `~/`).
 
 **Seções obrigatórias, nesta ordem literal:**
 1. `## Stack identificada` — versões exatas (ex: `Python 3.11.5`, não `Python`).
-2. `## Comandos make canônicos` — mapeia `check`, `test`, `lint`, `typecheck` para os comandos efetivos. Targets ausentes ficam como `[—]`. Os quatro sempre listados.
+2. `## Comandos de validação` — descobre e mapeia cada gate (`check`, `lint`, `typecheck`, `test`, `security`) para o **comando real** do projeto, inspecionando scripts de `package.json`, `pyproject.toml`, `Makefile` (se houver) e configs de CI. **Não presumir `make`:** registrar o comando efetivo (ex: `npm test`, `pytest --cov`, `cargo test`, ou um alvo `make` quando o projeto usa). Gates sem comando no projeto ficam `[—]`. Os cinco sempre listados.
 3. `## Padrões detectados` — bullets factuais (no mínimo três). Descritivo, nunca prescritivo (regras vão na constitution).
 4. `## Arquivos críticos para freshness` — lista dos arquivos usados no `validation_hash`, na mesma ordem.
 5. `## Notas de inspeção` — registrar data ISO da inspeção e a meta-skill que gerou (`discover` ou `bootstrap`).
