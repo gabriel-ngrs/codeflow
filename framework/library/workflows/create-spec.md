@@ -1,5 +1,5 @@
 ---
-versão: 1.3
+versão: 1.5
 status: experimental
 atualizado: 2026-06-15
 granularidade: detalhado
@@ -87,7 +87,8 @@ Escrever a spec final — **um único documento autoexecutável** — no formato
    - **`id` da fase:** inteiro sequencial (`1`, `2`, …) quando a spec é single-track (`wave: single`); ou `<TRACK>.<n>` (`A.1`, `A.2`, `B.1`, …) quando há tracks paralelos (`wave: multi`). O `id` é o que entra no nome dos artefatos (`FASE-<id>-<slug>-…`), então é estável e único.
    - **`slug` da fase:** kebab-case curto e canônico (ex: `evolution-adapter`), definido **aqui** pela spec e reusado verbatim por `/execute-spec-phase` e `/evaluate-spec-phase` nos nomes de arquivo — não derivado de novo a cada chat.
    - **Dependências:** cada fase declara `Depende de:` com a **lista de `id`s** das fases pré-requisito (ex: `A.7`), não apenas "fases anteriores". Em `wave: multi`, isso permite acoplamento cruzado entre tracks (ex: `B.2 depende de A.7`) sem assumir ordem linear. Sem ciclos: o grafo de dependências é acíclico.
-2. Criar/trocar para a **branch de trabalho da spec** `spec/<slug>` (a partir da default; ou a indicada em `.codeflow/manifest.md`) — é nela que a spec e, depois, todo o trabalho das fases vivem; `/execute-spec-phase` e `/evaluate-spec-phase` operam nessa mesma branch. Então criar a subpasta `.codeflow/specs/<slug>/` (uma subpasta por spec) e escrever dentro dela **o único arquivo** `SPEC_<NAME>.md`, seguindo **exatamente** o esqueleto abaixo (padrão de qualidade das specs `.devgabriel` do agendia, **com** o "Plano de desenvolvimento por fases" detalhado; a DoD tem gate por etapa). Nenhum outro arquivo é criado.
+   - **Agrupador de track (multi-track):** em `wave: multi`, opcionalmente preceder as fases de cada track com um cabeçalho **não-fase** `### Track <X> — <nome>` (legibilidade, como no padrão-ouro); a contagem de fases ignora esses cabeçalhos — só `### Fase <id> — …` conta.
+2. **Branch de trabalho da spec.** A convenção é `spec/<slug>` criada a partir da default; se for usar outro nome de branch (override), **primeiro registrar esse nome em `.codeflow/manifest.md` e commitá-lo na branch default** — o executor/avaliador descobrem a branch lendo o `manifest.md` de `main`, então o override precisa estar em `main` **antes** do switch (gravá-lo só depois de trocar de branch o deixa invisível em `main`). Só então **criar/trocar para a branch** (`spec/<slug>` ou o override). É nela que a spec e, depois, todo o trabalho das fases vivem; `/execute-spec-phase` e `/evaluate-spec-phase` operam nessa mesma branch. Criar a subpasta `.codeflow/specs/<slug>/` (uma subpasta por spec). **Guard de sobrescrita:** se `.codeflow/specs/<slug>/SPEC_*.md` já existir, **PARAR** e avisar o owner (já há spec com esse slug — não sobrescrever; renomear o slug ou editar a existente). Caso contrário, escrever dentro da subpasta **o único arquivo** `SPEC_<NAME>.md`, seguindo **exatamente** o esqueleto abaixo (padrão de qualidade das specs `.devgabriel` do agendia, **com** o "Plano de desenvolvimento por fases" detalhado; a DoD tem gate por etapa). Nenhum outro arquivo é criado. **Campos opcionais:** os de refinamento (`risk_level`, `risk_score`, `refine_mode`, `estimated_effort`, `cross_context`, `linked_adr`, `linked_feat`, `depends_on`, `blocks`, `related_bugs`) são opcionais (ARTIFACTS_SPEC §2.8.4) — preencher só quando aplicável; caso contrário **omitir a linha** ou usar `null`/`[]`. Não inventar `risk_score` numérico para spec trivial.
 
    ```markdown
    ---
@@ -193,10 +194,10 @@ Escrever a spec final — **um único documento autoexecutável** — no formato
    ```
 
 3. Validar a spec gerada com a skill `self-review`: cada FR tem AC; cada princípio inviolável vem de uma rule/ADR real; **cada fase de §5 é executável isoladamente** (tem `id` único, `slug` canônico, arquivos, passos, testes, escopo travado e critério de conclusão), declara dependências por `id` (sem ciclo; todo `id` em "Depende de" existe) e **só cita caminhos que existem no repo**; segredos/PII não aparecem em exemplos.
-4. **Commitar a SPEC** na branch de trabalho `spec/<slug>` (`.codeflow/specs/` é versionado; Conventional Commits em pt-BR). Sem este commit o pipeline fica sem fonte de verdade: o executor/avaliador rodam em chat zerado nessa branch e precisam encontrá-la commitada. Não commitar na default/`main`. Em seguida, apresentar o resumo final e, com a spec aprovada, deletar os checkpoints da execução. As decisões de escopo e Open Questions já ficam registradas **dentro da própria spec** (§8); este workflow não gera artefato separado.
+4. **Commitar a SPEC** na branch de trabalho `spec/<slug>` (`.codeflow/specs/` é versionado; Conventional Commits em pt-BR). Sem este commit o pipeline fica sem fonte de verdade: o executor/avaliador rodam em chat zerado nessa branch e precisam encontrá-la commitada. Não commitar na default/`main`. Em seguida, apresentar o resumo final e, concluído o workflow com sucesso (SPEC commitada e validada por `self-review` na Ação 3), deletar os checkpoints da execução. As decisões de escopo e Open Questions já ficam registradas **dentro da própria spec** (§8); este workflow não gera artefato separado.
 
 ### Checkpoint
-Estado final persistido e **commitado** no único artefato versionável (`.codeflow/specs/<slug>/SPEC_<NAME>.md`) na branch `spec/<slug>`; com a spec aprovada, `.codeflow/checkpoints/create-spec-<timestamp>.md` é deletado (workflow concluído).
+Estado final persistido e **commitado** no único artefato versionável (`.codeflow/specs/<slug>/SPEC_<NAME>.md`) na branch `spec/<slug>`; concluído o workflow com sucesso, `.codeflow/checkpoints/create-spec-<timestamp>.md` é deletado.
 
 ## Proibições durante este workflow
 - Não escrever a spec antes da confirmação de escopo do owner (Fase 1).

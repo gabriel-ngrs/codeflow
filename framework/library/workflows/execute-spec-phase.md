@@ -1,5 +1,5 @@
 ---
-versão: 1.5
+versão: 1.7
 status: experimental
 atualizado: 2026-06-15
 granularidade: médio
@@ -22,6 +22,7 @@ Executar a **próxima fase pendente** de uma spec gerada por `/create-spec` (em 
 
 ## LEIA TAMBÉM
 - ~/.codeflow/framework/core/constitution.md
+- ~/.codeflow/framework/core/ARTIFACTS_SPEC.md (§2.8.6 gate estrutural; §2.11 máquina de estados da fase)
 - ~/.codeflow/framework/core/rules/code-quality.md
 - ~/.codeflow/framework/core/rules/testing.md
 - ~/.codeflow/framework/library/skills/self-review/SKILL.md
@@ -37,19 +38,25 @@ Identificar a spec que o usuário pediu (por caminho ou slug em `.codeflow/specs
 
 ### Passo 1 — Carregar a spec e o contexto
 - Localizar `.codeflow/specs/<slug>/SPEC_<NAME>.md` e lê-lo **na íntegra** — atenção a §4 (abordagem), §5 (plano de fases) e ao escopo travado / violações bloqueantes de cada fase.
+- **Gate estrutural da §5 (determinístico, antes de classificar fases):** rodar `bash ~/.codeflow/framework/core/scripts/run-structural.sh .codeflow/specs/<slug>/SPEC_<NAME>.md`. Exit `0` libera o Passo 2. Exit `1` = §5 malformada (id duplicado, heading ≠ bullet `id`, "Depende de" órfão, ciclo, fora de 3–8 por track, ou slug inválido): **parar**, colar a saída do script e pedir correção da spec por `/create-spec` — não classificar fases sobre uma §5 quebrada. Exit `2`/`3` = erro de execução/uso: parar. Aplica as regras de ARTIFACTS_SPEC §2.8.6 sem depender de leitura humana.
 - Ler os documentos referenciados (`linked_adr`, rules, decisions ativas, `.codeflow/manifest.md`) e inspecionar os seams de código citados em §4. **Não escrever nada ainda.**
-- Gate: spec encontrada e §5 interpretada como lista ordenada de fases.
+- Gate: spec encontrada, `run-structural.sh` retornou `0`, e §5 interpretada como lista ordenada de fases.
 
 ### Passo 2 — Determinar a fase-alvo (estado por frontmatter, não por prosa)
-- Para cada fase de §5 (identificada pelo seu `id`), ler o **frontmatter** dos artefatos em `artefatos/` (campos `fase:`, `status:`, `tentativa:`, `reprovacoes:` no EXECUCAO; `fase:`, `tentativa:`, `veredito:` no AVALIACAO) — nunca inferir estado de texto livre. **Sempre parear EXECUCAO e AVALIACAO da mesma fase pela tentativa** (`AVALIACAO.tentativa == EXECUCAO.tentativa`); avaliação de tentativa antiga não classifica a tentativa corrente. Classificar cada fase em **um único** estado:
-  - **pendente** — não existe EXECUCAO para aquele `id`.
-  - **aguardando avaliação** — existe EXECUCAO com `tentativa: T` e **não** existe AVALIACAO com `tentativa: T` (inclui o caso de rework recém-feito: a AVALIACAO antiga, de tentativa < T, **não** conta).
-  - **reprovada** — existe AVALIACAO com `tentativa: T == EXECUCAO.tentativa` e `veredito: REPROVADO` ou `RESSALVAS`.
-  - **concluída** — existe AVALIACAO com `tentativa: T == EXECUCAO.tentativa` e `veredito: APROVADO`.
-- Uma fase só é **elegível** para nova execução quando **todas** as fases listadas em "Depende de" (por `id`) estão **concluídas** (AVALIACAO `APROVADO` da tentativa corrente) — vale também entre tracks (`B.2` depende de `A.7`). Uma dependência apenas "aguardando avaliação" **não** está concluída, então não libera quem depende dela.
-- Selecionar o alvo nesta ordem (a precedência resolve sobreposições): (1) avaliação reprovada colada pelo usuário → **rework** dessa fase; (2) primeira fase **reprovada** (na **ordem textual** de §5, não lexical — `2` antes de `10`) → rework; (3) primeira fase **pendente e elegível** (deps concluídas) → nova execução; (4) nenhuma elegível, mas há fase **aguardando avaliação** → **parar** e pedir `/evaluate-spec-phase`; (5) nenhuma elegível nem aguardando, mas há pendente bloqueada por dependência → **parar** e relatar a dependência faltante; (6) todas concluídas → atualizar a spec para `status: done` + `updated_at`, commitar a spec, e **parar** (spec concluída).
-- **Multi-track:** como a elegibilidade (3) é por dependência de `id`, tracks independentes avançam em paralelo — uma fase "aguardando avaliação" só segura quem depende dela, nunca o grafo inteiro. A regra (4) só dispara quando **não** há nada elegível para executar (em single-track, isso é logo após cada execução).
-- **Teto de rework:** a fase para após **3 vereditos não-APROVADO**. Neste pipeline "reprovado" = qualquer veredito não-APROVADO (`REPROVADO` **ou** `RESSALVAS`); ambos disparam rework e contam em `reprovacoes`. Como o alvo só vira rework quando há uma AVALIACAO não-APROVADO da tentativa corrente, a regra é: se a fase-alvo é rework e `EXECUCAO.reprovacoes` já vale `2` (o veredito corrente fecharia o 3º), **parar** e escalar ao owner. `reprovacoes` é cumulativo e sobrevive à sobrescrita (ver Passo 7). Este teto é o **ciclo executor↔avaliador**; falhas Lógicas **dentro** de uma execução seguem o limite de 2 tentativas da constitution (Passo 5).
+- Para cada fase de §5 (identificada pelo `id`), ler o **frontmatter** dos artefatos em `artefatos/` (`fase:`, `status:`, `tentativa:`, `reprovacoes:` no EXECUCAO; `fase:`, `tentativa:`, `veredito:` no AVALIACAO) — nunca inferir estado de texto livre. Classificar cada fase em **um único** estado (**pendente** / **aguardando avaliação** / **reprovada** / **concluída**) e resolver **elegibilidade** e **teto** conforme a definição canônica de **ARTIFACTS_SPEC §2.11** (máquina de estados da fase): pareamento EXECUCAO↔AVALIACAO pela `tentativa`, deps concluídas por `id`, teto por `reprovacoes` (vereditos não-APROVADO). Não redefinir esses termos aqui.
+- **Tabela de seleção do alvo** — avaliar de cima para baixo na **ordem textual de §5** (não lexical: `2` antes de `10`); o **primeiro** gatilho que casar define o alvo (a ordem das linhas é a precedência):
+
+  | # | Gatilho | Ação |
+  |---|---|---|
+  | 1 | AVALIACAO não-APROVADO colada pelo usuário (fase = a dela) | alvo = **rework** dessa fase → aplicar **guard de teto** |
+  | 2 | Existe fase **reprovada** (1ª na ordem textual de §5) | alvo = **rework** dessa fase → aplicar **guard de teto** |
+  | 3 | Existe fase **pendente e elegível** (todas as deps por `id` concluídas) | alvo = **nova execução** dessa fase |
+  | 4 | Nenhuma elegível, mas há fase **aguardando avaliação** | **PARAR** e pedir `/evaluate-spec-phase` |
+  | 5 | Nenhuma elegível nem aguardando, mas há **pendente bloqueada** por dep | **PARAR** e relatar o(s) `id`(s) de dependência faltante |
+  | 6 | Todas **concluídas** | spec → `status: done` + `updated_at`, commitar a spec, **PARAR** (spec concluída) |
+
+- **Guard de teto (só em rework, §2.11.4):** com `R = EXECUCAO.reprovacoes`, se a fase-alvo é rework e `R >= 2` (o veredito não-APROVADO corrente fecharia o 3º) → **PARAR** e escalar ao owner. Vale para `REPROVADO` **e** `RESSALVAS` (ambos contam): escalar a um humano é o estado terminal seguro, e contar os dois garante que nenhuma sequência de vereditos faça ping-pong sem fim. Este teto é o do ciclo **executor↔avaliador**; falhas Lógicas **dentro** de uma execução seguem o limite de 2 tentativas da constitution (Passo 5), independente.
+- **Multi-track:** a elegibilidade (linha 3) é por dependência de `id`, então tracks independentes avançam em paralelo — uma fase "aguardando avaliação" só segura quem depende dela, nunca o grafo inteiro. A linha 4 só dispara quando **não** há nada elegível para executar (em single-track, isso é logo após cada execução).
 - Gate: um único alvo definido (rework ou nova execução), ou parada limpa/escalonamento.
 
 ### Passo 3 — Preparar e marcar o início
@@ -69,7 +76,7 @@ Identificar a spec que o usuário pediu (por caminho ou slug em `.codeflow/specs
 ### Passo 5 — Validar
 - Executar `make check` (ou os alvos equivalentes de `.codeflow/manifest.md`) e aplicar `self-review` no diff.
 - Se o target `make check` (e equivalentes do manifest) **não existir** no projeto: marcar `[—]` com justificativa no relatório e rodar a validação mínima possível (testes/lint da fase) — não tratar como falha (SPEC §3.10).
-- Se `make check` existir e falhar: aplicar a política de falhas da constitution (falha Lógica → re-tentar com o erro como contexto, limite de **2 tentativas**; falha de Escopo/Ambiente → parar). Distinto do teto de 3 reworks do Passo 2.
+- Se `make check` existir e falhar: aplicar a política de falhas da constitution (falha Lógica → re-tentar com o erro como contexto, limite de **2 tentativas**; falha de Escopo/Ambiente → parar). Distinto do teto do Passo 2 (3 vereditos não-APROVADO, ciclo executor↔avaliador).
 - Gate: `make check` retornou zero (ou `[—]` justificado) e self-review limpo.
 
 ### Passo 6 — Commitar a fase
@@ -93,15 +100,15 @@ Identificar a spec que o usuário pediu (por caminho ou slug em `.codeflow/specs
   range: <sha_inicial>..<sha_final>
   ---
   ```
-  Regras dos campos: `status` é `executado` (nova execução) ou `rework`. **Nova execução:** `tentativa: 1`, `reprovacoes: 0`, `sha_inicial` = HEAD original da fase. **Rework:** `tentativa` = anterior + 1; `reprovacoes` = anterior + 1 (o veredito não-APROVADO que motivou este rework); `sha_inicial` = **reusar** o do EXECUCAO anterior. `range` é sempre `sha_inicial..sha_final` (início original → HEAD), para o avaliador ver a fase inteira. Se a branch de trabalho ≠ `spec/<slug>`, **incluir `branch: <nome>`** no frontmatter (avaliador e spec-status leem este campo antes de cair no manifest).
+  Regras dos campos: `status` é `executado` (nova execução) ou `rework`. **Nova execução:** `tentativa: 1`, `reprovacoes: 0`, `sha_inicial` = HEAD original da fase. **Rework:** `tentativa` = anterior + 1; `reprovacoes` = anterior + 1 (o veredito não-APROVADO — `REPROVADO` ou `RESSALVAS` — que motivou este rework; §2.9.3 / §2.11.4); `sha_inicial` = **reusar** o do EXECUCAO anterior. `range` é sempre `sha_inicial..sha_final` (início original → HEAD), para o avaliador ver a fase inteira. Se a branch de trabalho ≠ `spec/<slug>`, **incluir `branch: <nome>`** no frontmatter como **registro/confirmação** — a descoberta da branch em chat zerado é feita por convenção (`spec/<slug>`) ou pelo override do `.codeflow/manifest.md` (ambos legíveis de `main`); o campo só confirma depois de já se estar na branch.
   Corpo: resumo do que foi feito; tabela de arquivos CRIADOS/ALTERADOS (caminho + propósito); confirmação do REUSO; decisões de design e **qualquer desvio** da spec/rules com justificativa; comandos rodados + **saídas reais** (linters/test/`make check`); checklist dos ACs/critério de conclusão, cada item **com evidência**; (em rework) o que mudou nesta tentativa; dúvidas para o avaliador.
 - **Commitar o relatório** (`.codeflow/specs/` é versionado): commit separado do de código. Se a spec teve o frontmatter atualizado neste run (`status: draft → active`, ou `→ done` no caso 6 do Passo 2), commitar a spec também.
 - Ser **honesto** sobre o que não ficou pronto — será conferido contra o código real por um revisor independente. As decisões da fase ficam registradas **neste relatório**, não em artefato paralelo.
 - Apresentar o resumo final e instruir: avaliar a fase com `/evaluate-spec-phase` em **chat zerado**.
 
 ## Definition of Done
-- [ ] Spec lida na íntegra (incl. escopo travado) e documentos referenciados carregados (Passo 1).
-- [ ] Fase-alvo determinada por frontmatter, pareando EXECUCAO/AVALIACAO pela `tentativa`; teto de rework (`reprovacoes`) respeitado (Passo 2).
+- [ ] Spec lida na íntegra (incl. escopo travado); `run-structural.sh` retornou `0` (gate da §5) e documentos referenciados carregados (Passo 1).
+- [ ] Fase-alvo determinada por frontmatter (estado/elegibilidade/teto conforme §2.11), pareando EXECUCAO/AVALIACAO pela `tentativa`; guard de teto (3 não-APROVADO → escala ao owner) respeitado (Passo 2).
 - [ ] Dependências (por `id`) e caminhos verificados; branch de trabalho ativa; `sha_inicial` anotado (Passo 3).
 - [ ] Apenas a fase-alvo executada/corrigida, dentro do escopo; nenhuma fase fora do alvo tocada (Passo 4).
 - [ ] Testes da fase passam; `make check` retornou zero (ou `[—]` justificado); self-review aplicado (Passo 5).

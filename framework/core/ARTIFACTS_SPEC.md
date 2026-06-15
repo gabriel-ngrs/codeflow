@@ -1,5 +1,5 @@
 ---
-versão: 1.4
+versão: 1.6
 status: estável
 atualizado: 2026-06-15
 documento: ARTIFACTS_SPEC.md
@@ -42,6 +42,7 @@ audiência secundária: mantenedor do framework
   - 2.8 Spec (`SPEC_<NAME>.md`)
   - 2.9 Relatório de execução de fase (`FASE-<id>-<slug>-EXECUCAO.md`)
   - 2.10 Avaliação de fase (`FASE-<id>-<slug>-AVALIACAO.md`)
+  - 2.11 Máquina de estados da fase
 - [Parte 3 — Regras transversais de validação](#parte-3--regras-transversais-de-validação)
 
 ---
@@ -2604,6 +2605,7 @@ Cada fase é uma sub-seção `### Fase <id> — <nome>` com, no mínimo, os camp
 
 - Campos de frontmatter de refinamento: `risk_level` (`GREEN`/`YELLOW`/`RED`), `risk_score` (0–25 ou `null`), `refine_mode` (`SHALLOW`/`DEEP`), `estimated_effort`, `cross_context`, `linked_adr`, `linked_feat`, `depends_on`, `blocks`, `related_bugs`. Incluir quando aplicável; omitir (ou `null`/`[]`) quando não.
 - Estimativa de tamanho/esforço por fase no título da sub-seção (`*(tamanho M; ≈4h)*`).
+- Cabeçalho de track em `wave: multi`: `### Track <X> — <nome>` antes das fases daquele track (legibilidade, como no padrão-ouro). Não é fase — a contagem de fases (§2.8.6 #3) ignora esses cabeçalhos; só `### Fase <id> — …` conta.
 
 #### 2.8.5 Exemplo preenchido
 
@@ -2677,6 +2679,7 @@ quality_gate:
 - **`Depende de: fases anteriores`.** Dependência é por `id` explícito; "anteriores" não expressa acoplamento cruzado entre tracks.
 - **Criar `artefatos/` aqui.** A spec nasce sozinha; a pasta de artefatos é da execução.
 - **Fase vaga.** Fase sem passos/testes/escopo travado/critério de conclusão não é executável isoladamente.
+- **Inventar campos opcionais de refinamento.** `risk_score` numérico, `estimated_effort`, `linked_adr` etc. são opcionais (§2.8.4); preenchê-los com valores fabricados em spec trivial é o anti-padrão de "inventar campo". Omitir a linha ou usar `null`/`[]` quando não houver base real.
 
 ### 2.9 Relatório de execução de fase (`FASE-<id>-<slug>-EXECUCAO.md`)
 
@@ -2695,9 +2698,9 @@ Deixar a fase **pronta para avaliação independente**: declara, de forma machin
 - `spec` — slug da spec.
 - `fase` — `id` da fase (`1` ou `A.1`), igual ao da §5.
 - `slug_fase` — `slug` da fase, igual ao da §5.
-- `status` — domínio: `executado` (nova execução) | `rework`.
+- `status` — domínio: `executado` (nova execução) | `rework`. Denormalizado (redundante com `tentativa`: `rework` ⇔ `tentativa ≥ 2`); a regra de validação 4 garante a coerência, então não pode divergir silenciosamente.
 - `tentativa` — inteiro ≥ 1. Nova execução: `1`. Rework: anterior + 1.
-- `reprovacoes` — inteiro ≥ 0, **cumulativo**. Conta os vereditos **não-APROVADO** (`REPROVADO` **ou** `RESSALVAS` — ambos disparam rework) acumulados da fase. Nova execução: `0`. Rework: valor anterior + 1 (o veredito não-APROVADO que motivou este rework). É o que torna o teto de 3 reworks reconstruível mesmo com o arquivo sobrescrito. (O nome é histórico; nesta máquina de estados "reprovação" = qualquer veredito que não conclui a fase.)
+- `reprovacoes` — inteiro ≥ 0, **cumulativo**. Conta os vereditos **não-APROVADO** (`REPROVADO` **ou** `RESSALVAS` — ambos disparam rework e ambos contam para o teto) acumulados da fase. Nova execução: `0`. Rework: valor anterior + 1 (o veredito não-APROVADO que motivou este rework). É o que torna o **teto de 3 tentativas (= 1ª avaliação não-APROVADO + 2 reworks)** reconstruível mesmo com o arquivo sobrescrito (gate: parar quando `reprovacoes >= 2` — ver §2.11.4). (O nome é histórico; nesta máquina de estados "reprovação" = qualquer veredito que não conclui a fase.)
 - `sha_inicial` — HEAD original no início da fase. Em rework, **reusar** o da tentativa anterior (não redefinir).
 - `sha_final` — HEAD após o trabalho desta tentativa.
 - `range` — `<sha_inicial>..<sha_final>`. Sempre do início original ao HEAD, para o avaliador ver a fase inteira.
@@ -2713,7 +2716,7 @@ Resumo do que foi feito; tabela de arquivos CRIADOS/ALTERADOS (caminho + propós
 
 #### 2.9.4 Schema opcional
 
-- Campo `branch` no frontmatter quando a branch de trabalho não segue o default `spec/<slug>`. Quando presente, avaliador e spec-status o leem **antes** de cair na heurística do manifest, fechando o acoplamento de qual branch auditar.
+- Campo `branch` no frontmatter quando a branch de trabalho não segue o default `spec/<slug>`. É **registro/confirmação**, não fonte de descoberta: como o EXECUCAO vive na própria branch, ele não é legível de `main`. A descoberta da branch em chat zerado é por convenção (`spec/<slug>`) ou pelo override do `.codeflow/manifest.md` (ambos legíveis de `main`); o campo só confirma a escolha depois de já se estar na branch.
 
 #### 2.9.5 Exemplo preenchido
 
@@ -2756,7 +2759,7 @@ Rework da Fase A.1 após avaliação t1 (REPROVADO): token deixava de ser mascar
 1. Frontmatter presente, com `spec`, `fase`, `slug_fase`, `status`, `tentativa`, `reprovacoes`, `sha_inicial`, `sha_final`, `range`.
 2. Nome do arquivo `FASE-<fase>-<slug_fase>-EXECUCAO.md`, com `<fase>` e `<slug_fase>` iguais aos campos do frontmatter e aos da §5 da spec.
 3. `status` ∈ {`executado`, `rework`}; `tentativa` ≥ 1; `reprovacoes` ≥ 0.
-4. `status: executado` ⇒ `tentativa: 1` e `reprovacoes: 0`. `status: rework` ⇒ `tentativa` ≥ 2 e `reprovacoes` ≥ 1.
+4. `status: executado` ⇒ `tentativa: 1` e `reprovacoes: 0`. `status: rework` ⇒ `tentativa` ≥ 2 e `reprovacoes` ≥ 1 (todo rework vem de um veredito não-APROVADO, que conta).
 5. `range` é exatamente `<sha_inicial>..<sha_final>`.
 6. Corpo cola **saídas reais** dos comandos (ou `[—]` justificado), nunca apenas "passou".
 7. Sem comentários `#` no frontmatter.
@@ -2765,7 +2768,7 @@ Rework da Fase A.1 após avaliação t1 (REPROVADO): token deixava de ser mascar
 
 - **Versionar o arquivo por tentativa** (`...-EXECUCAO-t2.md`). O contrato é arquivo único + `reprovacoes` cumulativo; múltiplos arquivos quebram os consumidores (§2.10, spec-status).
 - **Redefinir `sha_inicial` em rework.** O range deixaria de cobrir a fase inteira e o avaliador veria só os commits de conserto.
-- **`reprovacoes` ausente ou resetado.** Sem ele o teto de 3 reworks vira inferência frágil a partir de `tentativa` (uma `tentativa: 3` pode ser a 3ª execução ainda não avaliada, não 3 reprovações).
+- **`reprovacoes` ausente ou resetado.** Sem ele o teto de 3 tentativas vira inferência frágil a partir de `tentativa` (uma `tentativa: 3` pode ser a 3ª execução ainda não avaliada, não 3 vereditos não-APROVADO).
 - **"passou" sem saída.** O avaliador re-roda tudo; relatório sem evidência é ruído.
 
 ### 2.10 Avaliação de fase (`FASE-<id>-<slug>-AVALIACAO.md`)
@@ -2776,7 +2779,7 @@ Localização única: `<projeto>/.codeflow/specs/<slug-da-spec>/artefatos/FASE-<
 
 #### 2.10.2 Propósito
 
-Registrar o veredito independente da tentativa avaliada, de forma machine-readable, fechando a máquina de estados da fase. O par `(fase, tentativa)` desta avaliação reconcilia com o EXECUCAO: só uma avaliação cuja `tentativa` casa com a do EXECUCAO classifica a tentativa corrente.
+Registrar o veredito independente da tentativa avaliada, de forma machine-readable, fechando a máquina de estados da fase (definida em §2.11). O par `(fase, tentativa)` desta avaliação reconcilia com o EXECUCAO: só uma avaliação cuja `tentativa` casa com a do EXECUCAO classifica a tentativa corrente.
 
 #### 2.10.3 Schema obrigatório
 
@@ -2797,9 +2800,10 @@ Registrar o veredito independente da tentativa avaliada, de forma machine-readab
 
 **Restrições adicionais:**
 
-- `veredito: APROVADO` exige `score ≥ threshold` **e** zero achados BLOQUEANTES.
-- `veredito: RESSALVAS` exige `score ≥ threshold` com pelo menos um IMPORTANTE.
-- `veredito: REPROVADO` quando `score < threshold` **ou** há qualquer BLOQUEANTE.
+- **Precedência estrita (primeiro que casar vence): `REPROVADO` > `RESSALVAS` > `APROVADO`.**
+- `veredito: REPROVADO` quando `score < threshold` **ou** há ao menos um achado BLOQUEANTE (BLOQUEANTE sempre reprova, qualquer que seja o score).
+- senão `veredito: RESSALVAS` quando há ao menos um achado IMPORTANTE (já implica `score ≥ threshold` e zero BLOQUEANTES).
+- senão `veredito: APROVADO` (`score ≥ threshold`, zero BLOQUEANTES e zero IMPORTANTES).
 - Sem comentários (`#`) dentro do frontmatter (§0.2).
 
 #### 2.10.4 Schema opcional
@@ -2851,6 +2855,35 @@ APROVADO — score 9.1 ≥ 8.5, zero BLOQUEANTES.
 - **`tentativa` desalinhada** da do EXECUCAO. Avaliar a tentativa T e gravar `tentativa: T-1` (ou omitir) reabre a ambiguidade reprovada/aguardando que o pareamento por tentativa fecha.
 - **`RESSALVAS` tratado como conclusão.** Neste pipeline `RESSALVAS` nunca fecha a fase nem libera a seguinte.
 - **O avaliador alterar código.** Este artefato só reporta; correções voltam ao chat executor.
+
+### 2.11 Máquina de estados da fase (derivada de §2.9 + §2.10)
+
+#### 2.11.1 Propósito
+
+Definição **canônica** do estado de cada fase da §5 da spec (§2.8), derivada só do frontmatter dos artefatos §2.9 (EXECUCAO) e §2.10 (AVALIACAO) — nunca de prosa. É uma **classificação derivada** que a IA computa ao ler os artefatos, não um runtime: o framework não tem máquina de estados executável. `/execute-spec-phase` (seleção do alvo), `/evaluate-spec-phase` (identificação da tentativa a avaliar) e `/spec-status` (relato) **referenciam** esta seção; nenhum a redefine.
+
+#### 2.11.2 Pareamento por tentativa
+
+EXECUCAO e AVALIACAO de uma fase casam pelo par (`fase`, `tentativa`): só uma AVALIACAO com `tentativa: T == EXECUCAO.tentativa` classifica a tentativa corrente. Avaliação de tentativa antiga (`< T`) não classifica — é o que desambigua **reprovada** de **aguardando avaliação** logo após um rework.
+
+#### 2.11.3 Os quatro estados
+
+Para cada fase (identificada pelo `id` da §5), derivar **um único** estado, sempre pelo frontmatter:
+
+| Estado | Condição |
+|---|---|
+| **pendente** | não existe EXECUCAO para o `id` |
+| **aguardando avaliação** | existe EXECUCAO `tentativa: T` e **não** existe AVALIACAO `tentativa: T` (rework recém-feito cai aqui: AVALIACAO de tentativa `< T` não conta) |
+| **reprovada** | existe AVALIACAO `tentativa: T == EXECUCAO.tentativa` com `veredito: REPROVADO` **ou** `RESSALVAS` |
+| **concluída** | existe AVALIACAO `tentativa: T == EXECUCAO.tentativa` com `veredito: APROVADO` |
+
+Só `APROVADO` conclui a fase; `RESSALVAS` e `REPROVADO` mantêm a fase em **reprovada** (exigem rework e reavaliação). Os quatro estados são mutuamente exclusivos.
+
+#### 2.11.4 Elegibilidade e teto
+
+- **Elegibilidade.** Uma fase só é elegível para **nova execução** quando **todas** as fases dos seus `Depende de` (por `id`) estão **concluídas** (AVALIACAO `APROVADO` da tentativa corrente). Vale entre tracks (`B.2` depende de `A.7`). Dependência apenas "aguardando avaliação" **não** libera quem depende dela.
+- **Teto de tentativas.** A fase para após **3 vereditos não-APROVADO** (= a 1ª avaliação não-APROVADO + 2 reworks). `reprovacoes` (§2.9.3) conta os vereditos não-APROVADO — `REPROVADO` **ou** `RESSALVAS`, ambos disparam rework e ambos contam. Gate: ao selecionar um rework, se `EXECUCAO.reprovacoes >= 2` (o veredito corrente fecharia o 3º), **parar** e escalar ao owner — estado terminal seguro (decisão humana), qualquer que seja o veredito. **Terminação garantida:** todo veredito não-APROVADO incrementa `reprovacoes`, então nenhuma sequência de vereditos faz o ciclo executor↔avaliador girar sem fim.
+- **Distinção.** Este teto é o do ciclo **executor↔avaliador**. Falhas Lógicas **dentro** de uma única execução seguem o limite de 2 tentativas da constitution (política de falhas), independente.
 
 ---
 
