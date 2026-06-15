@@ -1,7 +1,7 @@
 ---
-versão: 1.0
-status: estável
-atualizado: 2026-06-14
+versão: 1.3
+status: experimental
+atualizado: 2026-06-15
 granularidade: detalhado
 gera_decision: no
 usa_checkpoints: yes
@@ -25,14 +25,13 @@ Transformar uma necessidade ou descrição do usuário (ex: "integração WhatsA
 - ~/.codeflow/framework/core/constitution.md
 - ~/.codeflow/framework/core/rules/code-quality.md
 - ~/.codeflow/framework/library/skills/self-review/SKILL.md
-- ~/.codeflow/framework/library/skills/handoff/SKILL.md
 - .codeflow/INDEX.md
 - .codeflow/constitution.md
 - .codeflow/manifest.md
 - .codeflow/decisions/INDEX.md (carregar decisions ATIVAS cujas tags cruzem o domínio da necessidade)
 
 ## Estrutura do workflow
-Quatro fases sequenciais com checkpoint ao fim de cada uma. Pausa para o owner em duas: confirmação de escopo (Fase 1) e resolução de Open Questions (Fase 3). A última fase gera **um único documento** — a spec — em sua própria subpasta sob `.codeflow/specs/`.
+Quatro fases sequenciais com checkpoint ao fim de cada uma. Pausa para o owner em duas: confirmação de escopo (Fase 1) e resolução de Open Questions (Fase 3). A última fase gera **um único documento** — a spec — em sua própria subpasta sob `.codeflow/specs/`. A pasta `artefatos/` (relatórios de execução e avaliação por fase) **não** é criada por este workflow; ela é criada depois por `/execute-spec-phase`. (Este workflow é `gera_decision: no` apesar de detalhado — desvio consciente do padrão: as decisões de design e escopo são registradas **dentro da própria spec** (§4 e §8), não em artefato `decision` separado.)
 
 ## Fase 1 — Enquadramento da necessidade
 
@@ -84,8 +83,11 @@ Atualizar `.codeflow/checkpoints/create-spec-<timestamp>.md` com: cada Open Ques
 Escrever a spec final — **um único documento autoexecutável** — no formato canônico, incluindo o plano de fases.
 
 ### Ações
-1. Decompor a abordagem técnica (§4) em **fases ordenadas e executáveis**: cada fase entrega um incremento testável, declara seus arquivos/passos/testes/critério de conclusão e respeita as dependências (uma fase não pressupõe trabalho de uma fase posterior). Granularidade-alvo: 3 a 8 fases; fase grande demais para um agente executar de uma vez deve ser subdividida.
-2. Criar a subpasta da spec `.codeflow/specs/<slug>/` (uma subpasta por spec) e escrever dentro dela **o único arquivo** `SPEC_<NAME>.md`, seguindo **exatamente** o esqueleto abaixo (padrão de qualidade das specs `.devgabriel` do agendia, gravado em `.codeflow/specs/`, **com** o "Plano de desenvolvimento por fases" detalhado; a DoD tem gate por etapa). Nenhum outro arquivo é criado.
+1. Decompor a abordagem técnica (§4) em **fases ordenadas e executáveis**: cada fase entrega um incremento testável, declara seu `id`, seu `slug`, suas dependências explícitas, seus arquivos/passos/testes/critério de conclusão. Granularidade-alvo: **3 a 8 fases por track** — single-track tem um track só (3–8 no total); `wave: multi` permite 3–8 em cada track (ex: `A.1`–`A.8` + `B.1`–`B.3` = 11 fases), de modo que specs grandes do padrão `.devgabriel` caibam sem violar o teto. Fase grande demais para um agente executar de uma vez deve ser subdividida.
+   - **`id` da fase:** inteiro sequencial (`1`, `2`, …) quando a spec é single-track (`wave: single`); ou `<TRACK>.<n>` (`A.1`, `A.2`, `B.1`, …) quando há tracks paralelos (`wave: multi`). O `id` é o que entra no nome dos artefatos (`FASE-<id>-<slug>-…`), então é estável e único.
+   - **`slug` da fase:** kebab-case curto e canônico (ex: `evolution-adapter`), definido **aqui** pela spec e reusado verbatim por `/execute-spec-phase` e `/evaluate-spec-phase` nos nomes de arquivo — não derivado de novo a cada chat.
+   - **Dependências:** cada fase declara `Depende de:` com a **lista de `id`s** das fases pré-requisito (ex: `A.7`), não apenas "fases anteriores". Em `wave: multi`, isso permite acoplamento cruzado entre tracks (ex: `B.2 depende de A.7`) sem assumir ordem linear. Sem ciclos: o grafo de dependências é acíclico.
+2. Criar/trocar para a **branch de trabalho da spec** `spec/<slug>` (a partir da default; ou a indicada em `.codeflow/manifest.md`) — é nela que a spec e, depois, todo o trabalho das fases vivem; `/execute-spec-phase` e `/evaluate-spec-phase` operam nessa mesma branch. Então criar a subpasta `.codeflow/specs/<slug>/` (uma subpasta por spec) e escrever dentro dela **o único arquivo** `SPEC_<NAME>.md`, seguindo **exatamente** o esqueleto abaixo (padrão de qualidade das specs `.devgabriel` do agendia, **com** o "Plano de desenvolvimento por fases" detalhado; a DoD tem gate por etapa). Nenhum outro arquivo é criado.
 
    ```markdown
    ---
@@ -113,9 +115,8 @@ Escrever a spec final — **um único documento autoexecutável** — no formato
    blocks: []
    related_bugs: []
    quality_gate:
-     scorer: pattern
-     threshold: 3
-     passed: false
+     scorer: phase-evaluator
+     threshold: 8.5
    ---
 
    # <ID — título curto>
@@ -148,12 +149,22 @@ Escrever a spec final — **um único documento autoexecutável** — no formato
    ## 5. Plano de desenvolvimento por fases
    > Cada fase é executável de forma isolada por um agente de IA lendo só este
    > documento: TDD (teste vermelho → implementação → verde → lint/type →
-   > regressão). Ordem obrigatória; não iniciar a Fase N+1 sem o critério de
-   > conclusão da Fase N verde.
+   > regressão). Uma fase só inicia quando **todas as fases listadas em "Depende
+   > de"** estão concluídas (não basta ordem textual). O `id` e o `slug` de cada
+   > fase são canônicos: `/execute-spec-phase` e `/evaluate-spec-phase` os reusam
+   > verbatim nos nomes dos artefatos (`FASE-<id>-<slug>-EXECUCAO.md`,
+   > `FASE-<id>-<slug>-AVALIACAO.md`). O `threshold` que aprova cada fase é o
+   > `quality_gate.threshold` do frontmatter desta spec (default 8.5).
+   > Single-track usa `id` inteiro (`1`, `2`, …); multi-track (`wave: multi`) usa
+   > `<TRACK>.<n>` (`A.1`, `B.2`, …) com dependência cruzada explícita por `id`.
 
-   ### Fase 1 — <nome> *(tamanho S/M/L; esforço ≈Xh — estimativa grosseira, opcional)*
+   ### Fase <id> — <nome> *(tamanho S/M/L; esforço ≈Xh — estimativa grosseira, opcional)*
+   > O `<id>` no heading é literal: `### Fase 1 — …` (single-track) ou
+   > `### Fase A.1 — …` (multi-track). O heading carrega o mesmo `id` do bullet abaixo.
+   - **id:** `1` (single-track) ou `A.1`/`B.2` (multi-track).
+   - **slug:** `<slug-da-fase>` (kebab-case curto, canônico — entra nos nomes de artefato).
    - **Objetivo:** o incremento que esta fase entrega.
-   - **Depende de:** fases anteriores / pré-requisitos (ou "nenhuma").
+   - **Depende de:** lista de `id`s de fase pré-requisito (ex: `A.7`) ou "nenhuma".
    - **Arquivos novos:** caminhos. **Arquivos alterados:** caminhos (que existem no repo).
    - **Passos:** 1) … 2) … — instruções acionáveis o bastante para executar sem
      reabrir decisões (decisões já estão em §4 e §8).
@@ -163,8 +174,8 @@ Escrever a spec final — **um único documento autoexecutável** — no formato
      do avaliador.
    - **Critério de conclusão (gate):** condição verificável de pronto.
 
-   ### Fase 2 — <nome> *(tamanho S/M/L; esforço ≈Xh opcional)*
-   (mesma estrutura; repetir por fase — alvo 3 a 8 fases.)
+   ### Fase <id> — <nome> *(tamanho S/M/L; esforço ≈Xh opcional)*
+   (mesma estrutura; repetir por fase — alvo 3 a 8 fases **por track**. O heading sempre traz o `id`.)
 
    ## 6. Riscos
    Tabela: # | Risco | Prob. | Impacto | Mitigação.
@@ -181,11 +192,11 @@ Escrever a spec final — **um único documento autoexecutável** — no formato
    segurança/PII, sem regressão). Cada item objetivo e verificável.
    ```
 
-3. Validar a spec gerada com a skill `self-review`: cada FR tem AC; cada princípio inviolável vem de uma rule/ADR real; **cada fase de §5 é executável isoladamente** (tem arquivos, passos, testes, escopo travado e critério de conclusão), respeita as dependências e **só cita caminhos que existem no repo**; segredos/PII não aparecem em exemplos.
-4. Apresentar o resumo final e, com a spec aprovada, deletar os checkpoints da execução. As decisões de escopo e Open Questions já ficam registradas **dentro da própria spec** (§8); este workflow não gera artefato separado.
+3. Validar a spec gerada com a skill `self-review`: cada FR tem AC; cada princípio inviolável vem de uma rule/ADR real; **cada fase de §5 é executável isoladamente** (tem `id` único, `slug` canônico, arquivos, passos, testes, escopo travado e critério de conclusão), declara dependências por `id` (sem ciclo; todo `id` em "Depende de" existe) e **só cita caminhos que existem no repo**; segredos/PII não aparecem em exemplos.
+4. **Commitar a SPEC** na branch de trabalho `spec/<slug>` (`.codeflow/specs/` é versionado; Conventional Commits em pt-BR). Sem este commit o pipeline fica sem fonte de verdade: o executor/avaliador rodam em chat zerado nessa branch e precisam encontrá-la commitada. Não commitar na default/`main`. Em seguida, apresentar o resumo final e, com a spec aprovada, deletar os checkpoints da execução. As decisões de escopo e Open Questions já ficam registradas **dentro da própria spec** (§8); este workflow não gera artefato separado.
 
 ### Checkpoint
-Estado final persistido no único artefato versionável (`.codeflow/specs/<slug>/SPEC_<NAME>.md`); com a spec aprovada, `.codeflow/checkpoints/create-spec-<timestamp>.md` é deletado (workflow concluído).
+Estado final persistido e **commitado** no único artefato versionável (`.codeflow/specs/<slug>/SPEC_<NAME>.md`) na branch `spec/<slug>`; com a spec aprovada, `.codeflow/checkpoints/create-spec-<timestamp>.md` é deletado (workflow concluído).
 
 ## Proibições durante este workflow
 - Não escrever a spec antes da confirmação de escopo do owner (Fase 1).
@@ -193,15 +204,15 @@ Estado final persistido no único artefato versionável (`.codeflow/specs/<slug>
 - Não inventar princípios invioláveis, ADRs ou padrões que não existem no repositório; cada um vem da sondagem da Fase 2.
 - Não chutar Open Question material: ou o owner decide, ou fica registrada como aberta.
 - Não escrever código de produção nem migrations; este workflow produz **um único documento** (a spec), nada mais.
-- Não gerar artefatos paralelos (decision, ROTEIRO, checklist, pasta `artefatos/`): a subpasta `.codeflow/specs/<slug>/` contém só `SPEC_<NAME>.md`.
+- Não gerar artefatos paralelos no momento da criação da spec (decision, ROTEIRO, checklist): a subpasta `.codeflow/specs/<slug>/` nasce contendo só `SPEC_<NAME>.md`. A pasta `artefatos/` (relatórios de execução/avaliação) é criada **depois** por `/execute-spec-phase` — este workflow não a cria, mas também não a proíbe.
 - Não vazar segredo/PII em exemplos da spec.
 
 ## Definition of Done
 - [ ] Escopo e fora-de-escopo confirmados pelo owner (Fase 1).
 - [ ] Codebase sondado; mapa NOVO/REUSADO/REMOVIDO e princípios invioláveis derivados do código real (Fase 2).
 - [ ] Open Questions materiais resolvidas pelo owner ou registradas como abertas (Fase 3).
-- [ ] Subpasta própria `.codeflow/specs/<slug>/` criada, contendo **só** `SPEC_<NAME>.md` (documento único).
-- [ ] A spec contém o "Plano de desenvolvimento por fases" (3–8 fases), cada fase executável isoladamente por um agente — com arquivos, passos, testes, escopo travado/violações bloqueantes e critério de conclusão — e a DoD da spec tem gate por etapa.
+- [ ] Branch de trabalho `spec/<slug>` criada; subpasta própria `.codeflow/specs/<slug>/` contendo `SPEC_<NAME>.md` (único artefato no momento da criação; `artefatos/` virá na execução); SPEC **commitada** nessa branch.
+- [ ] A spec contém o "Plano de desenvolvimento por fases" (3–8 fases por track), cada fase com `id` e `slug` canônicos, dependências por `id` (grafo acíclico), e executável isoladamente por um agente — com arquivos, passos, testes, escopo travado/violações bloqueantes e critério de conclusão — e a DoD da spec tem gate por etapa.
 - [ ] Cada FR tem ao menos um AC correspondente; cada princípio rastreia a uma rule/ADR; cada caminho citado existe no repo.
 - [ ] `self-review` aplicado à spec.
 - [ ] Checkpoints da execução deletados (workflow concluído com sucesso).

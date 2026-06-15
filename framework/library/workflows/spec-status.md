@@ -1,7 +1,7 @@
 ---
-versão: 1.0
-status: estável
-atualizado: 2026-06-14
+versão: 1.3
+status: experimental
+atualizado: 2026-06-15
 granularidade: magro
 gera_decision: no
 usa_checkpoints: no
@@ -26,14 +26,14 @@ Mostrar o progresso de uma spec gerada por `/create-spec`: quais fases estão pe
 ## Protocolo
 
 ### Passo 1 — Carregar a spec e os artefatos
-Localizar `.codeflow/specs/<slug>/SPEC_<NAME>.md` (slug indicado pelo usuário) e extrair a lista ordenada de fases de `## 5. Plano de desenvolvimento por fases`. Ler o **frontmatter** de cada `FASE-*-EXECUCAO.md` e `FASE-*-AVALIACAO.md` em `artefatos/` (campos `fase`, `status`, `tentativa`, `veredito`, `score`). Não modificar nada.
+**Trocar para a branch de trabalho da spec** (`spec/<slug>`, ou a do `branch` do EXECUCAO/manifest); se ela não existir, **abortar** avisando que a spec não foi criada — não produzir uma tabela silenciosamente errada em `main`. Localizar `.codeflow/specs/<slug>/SPEC_<NAME>.md`; se faltar `## 5. Plano de desenvolvimento por fases`, **abortar** (spec sem plano de fases — nada a reportar). Extrair as fases de §5 (com `id` e `Depende de`). Ler o frontmatter de cada `FASE-*-EXECUCAO.md` (`fase`, `tentativa`, `reprovacoes`, `branch`) e `FASE-*-AVALIACAO.md` (`fase`, `tentativa`, `veredito`, `score`), casando os dois pelo `id`. Read-only: não modificar arquivos.
 
 ### Passo 2 — Classificar cada fase e reportar
-Para cada fase de §5, derivar o estado pelos campos (nunca por prosa): **pendente** (sem EXECUCAO), **aguardando avaliação** (EXECUCAO sem AVALIACAO da tentativa atual), **reprovada** (`veredito: REPROVADO`/`RESSALVAS`), **concluída** (`veredito: APROVADO`). Apresentar uma tabela `Fase | Estado | Tentativa | Score | Próximo passo` e, ao fim, o próximo comando a rodar (`/execute-spec-phase` ou `/evaluate-spec-phase`) ou "spec concluída".
+Para cada fase de §5, derivar **um único** estado, sempre pareando EXECUCAO/AVALIACAO pela `tentativa`: **pendente** (sem EXECUCAO para o `id`); **aguardando avaliação** (EXECUCAO `tentativa: T` sem AVALIACAO de `tentativa: T` — rework recém-feito cai aqui: AVALIACAO antiga de tentativa < T não conta); **reprovada** (AVALIACAO de `tentativa == EXECUCAO.tentativa`, `veredito: REPROVADO`/`RESSALVAS`); **concluída** (idem com `veredito: APROVADO`). Só `APROVADO` conclui; `RESSALVAS` é rework. O pareamento por `tentativa` desambigua "reprovada" vs "aguardando". Apresentar a tabela `Fase (id) | Estado | Tentativa | Reprovações | Score | Próximo passo` e o próximo comando: reprovada → `/execute-spec-phase`; aguardando → `/evaluate-spec-phase`; 1ª pendente com dependências (ids) concluídas → `/execute-spec-phase`; pendente bloqueada → indicar o `id` faltante; todas concluídas → "spec concluída".
 
 ## Definition of Done
-- [ ] Spec localizada e fases de §5 extraídas.
-- [ ] Cada fase classificada pelo frontmatter dos artefatos (não por prosa).
+- [ ] Na branch de trabalho da spec; spec localizada e fases de §5 extraídas (ou abortado se branch/§5 ausentes).
+- [ ] Cada fase classificada pelo frontmatter dos artefatos (não por prosa), pareando EXECUCAO/AVALIACAO pela `tentativa`.
 - [ ] Tabela de progresso + próximo passo apresentados; nada modificado.
 
 ## Resumo final

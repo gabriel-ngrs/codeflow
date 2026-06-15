@@ -1,7 +1,7 @@
 ---
-versão: 1.1
+versão: 1.4
 status: estável
-atualizado: 2026-05-20
+atualizado: 2026-06-15
 documento: ARTIFACTS_SPEC.md
 projeto: codeflow
 localização: framework/core/ARTIFACTS_SPEC.md (instalado em ~/.codeflow/framework/core/ARTIFACTS_SPEC.md)
@@ -39,6 +39,9 @@ audiência secundária: mantenedor do framework
   - 2.5 Decision individual
   - 2.6 Decisions INDEX
   - 2.7 Checkpoint
+  - 2.8 Spec (`SPEC_<NAME>.md`)
+  - 2.9 Relatório de execução de fase (`FASE-<id>-<slug>-EXECUCAO.md`)
+  - 2.10 Avaliação de fase (`FASE-<id>-<slug>-AVALIACAO.md`)
 - [Parte 3 — Regras transversais de validação](#parte-3--regras-transversais-de-validação)
 
 ---
@@ -57,13 +60,15 @@ Esta parte define as convenções que se aplicam a **todos** os arquivos do code
 
 ### 0.2 Frontmatter YAML
 
-Todo arquivo markdown do codeflow começa com **frontmatter YAML** delimitado por `---` na primeira linha e em uma linha posterior. Sem exceções.
+Todo arquivo markdown do codeflow começa com **frontmatter YAML** delimitado por `---` na primeira linha e em uma linha posterior.
 
-**Campos universais obrigatórios** (presentes em qualquer frontmatter):
+**Campos universais obrigatórios em conteúdo de framework e docs duráveis** (presentes no frontmatter de todo arquivo da Parte 1 e dos artefatos de projeto duráveis, versionados como documento — INDEX, constitution de projeto, manifest, discovered, decision, decisions/INDEX, §2.1–§2.6):
 
 - `versão` — formato `X.Y` (ex: `1.0`, `2.3`). Nunca `X.Y.Z`.
 - `status` — um de: `estável`, `experimental`, `deprecated`. Em minúsculas.
 - `atualizado` — data ISO `AAAA-MM-DD`.
+
+**Artefatos de runtime e de ciclo de vida** — checkpoint (§2.7), spec (§2.8), relatório de execução de fase (§2.9) e avaliação de fase (§2.10) — **não** carregam `versão` nem `atualizado`: são regenerados ou efêmeros, não versionados como documento. Em vez do enum de framework, esses artefatos usam um **único** campo `status` com **enum de domínio** próprio, declarado na seção de cada um (ex: checkpoint `em_progresso|concluído|abortado`; spec `draft|active|done`; execução `executado|rework`; a avaliação não tem `status`, e sim `veredito`). Datas de domínio (`created_at`/`updated_at`, `timestamp`) vivem em campos próprios. **A chave `status` nunca aparece duas vezes** no mesmo frontmatter.
 
 Campos adicionais variam por tipo de arquivo e são declarados na seção correspondente da Parte 1 ou Parte 2.
 
@@ -1727,7 +1732,7 @@ o protocolo descrito ali. Carregue ## LEIA TAMBÉM antes de começar.
 
 ## Parte 2 — Artefatos do projeto (`.codeflow/`)
 
-Esta parte define o formato dos sete artefatos que vivem em `<projeto>/.codeflow/`, gerados pelas meta-skills (`discover`, `bootstrap`) ou por workflows durante o uso do framework. Diferente da Parte 1, esses arquivos **não** são gerados pelo Claude Code durante a construção do framework — são gerados em tempo de uso, em projetos reais. Este documento define o formato que essas gerações devem seguir.
+Esta parte define o formato dos artefatos que vivem em `<projeto>/.codeflow/`, gerados pelas meta-skills (`discover`, `bootstrap`) ou por workflows durante o uso do framework. Diferente da Parte 1, esses arquivos **não** são gerados pelo Claude Code durante a construção do framework — são gerados em tempo de uso, em projetos reais. Este documento define o formato que essas gerações devem seguir. As subseções 2.1–2.7 cobrem os artefatos de `discover`/`bootstrap` e os transversais; as subseções 2.8–2.10 cobrem os artefatos do pipeline de specs (`/create-spec` → `/execute-spec-phase` → `/evaluate-spec-phase` → `/spec-status`), cujo frontmatter machine-readable é o **contrato de estado** entre esses workflows — esta é a fonte única de verdade dele.
 
 Toda subseção segue a estrutura uniforme de 7 blocos definida no preâmbulo da Parte 1.
 
@@ -2447,7 +2452,7 @@ Registrar estado intermediário de workflow detalhado em execução. Permite ret
 
 #### 2.7.3 Schema obrigatório
 
-**Frontmatter — campos além dos universais da §0.2, conforme `SPEC.md` §6.6.2:**
+**Frontmatter — artefato de runtime (§0.2): carrega só os campos abaixo, sem `versão`/`atualizado`; o `status` é o de domínio. Conforme `SPEC.md` §6.6.2:**
 
 - `workflow` — nome do workflow que gerou o checkpoint. Obrigatório.
 - `timestamp` — timestamp ISO estendido `AAAA-MM-DD-HHMMSS`. Obrigatório. Bate com o sufixo do nome do arquivo.
@@ -2479,9 +2484,6 @@ Nome do arquivo: `discover-2026-05-17-143205.md`.
 
 ```markdown
 ---
-versão: 1.0
-status: estável
-atualizado: 2026-05-17
 workflow: discover
 timestamp: 2026-05-17-143205
 fase_atual: 3 — Geração de constitution
@@ -2541,6 +2543,317 @@ status: em_progresso
 
 ---
 
+### 2.8 Spec (`SPEC_<NAME>.md`)
+
+#### 2.8.1 Localização
+
+Localização única: `<projeto>/.codeflow/specs/<slug>/SPEC_<NAME>.md`. Uma subpasta por spec; o `<slug>` é o do frontmatter. Gerada e **commitada** por `/create-spec` na **branch de trabalho da spec** `spec/<slug>` — é a fonte de verdade que `/execute-spec-phase` e `/evaluate-spec-phase` (chat zerado) leem nessa branch; uma spec não-commitada ou em branch errada deixa o pipeline sem fonte de verdade. No momento da criação, a subpasta contém **só** este arquivo — a pasta `artefatos/` (§2.9, §2.10) é criada depois por `/execute-spec-phase` na mesma branch.
+
+#### 2.8.2 Propósito
+
+Documento único autoexecutável que descreve **o quê**, **por quê** e **como executar** uma necessidade, ancorado no código real do repositório. Sua §5 (plano de fases) é o contrato que os demais workflows do pipeline consomem: cada fase declara `id`, `slug` e dependências por `id`.
+
+#### 2.8.3 Schema obrigatório
+
+**Frontmatter — artefato de runtime (§0.2): sem `versão`/`atualizado`; o `status` é o de domínio (ciclo de vida da spec):**
+
+- `id` — identificador `FEAT-XXXX` ou `null`.
+- `slug` — kebab-case; bate com o nome da subpasta.
+- `title` — string entre aspas.
+- `type` — `feature` | `refactor` | `infra` | … .
+- `status` — ciclo de vida: `draft` (criada por `/create-spec`) → `active` (avançado por `/execute-spec-phase` na 1ª execução) → `done` (avançado por `/execute-spec-phase` quando todas as fases concluem). Inicia em `draft`.
+- `priority` — `P0` | `P1` | `P2` | `P3`.
+- `size` — `S` | `M` | `L` | `XL`.
+- `domain`, `bounded_context` — contexto arquitetural.
+- `created_at`, `updated_at` — datas ISO.
+- `owner` — owner da spec.
+- `wave` — `single` | `multi` | `null`. Governa o formato do `id` das fases (§2.8.3 abaixo).
+- `quality_gate` — bloco com `scorer` (valor fixo `phase-evaluator`) e `threshold` (número 0–10, default `8.5`). É o threshold que `/evaluate-spec-phase` usa por padrão para aprovar cada fase. **Sem** campo `passed` (estado de fase vive nos artefatos §2.10, não aqui).
+
+Campos opcionais de frontmatter (`risk_level`, `risk_score`, `refine_mode`, `estimated_effort`, `cross_context`, `linked_adr`, `linked_feat`, `depends_on`, `blocks`, `related_bugs`) — ver §2.8.4.
+
+**Seções markdown — na ordem fixa:**
+
+1. `# <ID — título curto>` — título único.
+2. `## Resumo executivo (TL;DR)`.
+3. `## Sumário`.
+4. `## 1. Problema e contexto`, com sub-seção `### 1.x Princípios invioláveis`.
+5. `## 2. Requisitos` (FR-N e NFR-N numerados).
+6. `## 3. Critérios de aceite` (AC-N em Given/When/Then).
+7. `## 4. Abordagem técnica` (mapa NOVO/REUSADO/REMOVIDO).
+8. `## 5. Plano de desenvolvimento por fases`.
+9. `## 6. Riscos`.
+10. `## 7. Rollout`.
+11. `## 8. Open Questions`.
+12. `## 9. Definition of Done (gate por etapa)`.
+
+**Contrato de cada fase em `## 5` (consumido por §2.9/§2.10):**
+
+Cada fase é uma sub-seção `### Fase <id> — <nome>` com, no mínimo, os campos: `id`, `slug`, `Objetivo`, `Depende de`, arquivos novos/alterados, `Passos`, `Testes`, escopo travado/violações BLOQUEANTES, critério de conclusão (gate).
+
+- `id` — inteiro sequencial (`1`, `2`, …) quando `wave: single`/`null`; `<TRACK>.<n>` (`A.1`, `B.2`, …) quando `wave: multi`. Único na spec; é o que entra nos nomes dos artefatos.
+- `slug` — kebab-case curto, canônico; reusado verbatim por `/execute-spec-phase` e `/evaluate-spec-phase`.
+- `Depende de` — lista de `id`s de fase pré-requisito, ou `nenhuma`. Grafo acíclico; todo `id` referenciado existe na spec. Em `wave: multi`, dependência cruzada entre tracks é permitida (`B.2` depende de `A.7`).
+
+**Restrições adicionais:**
+
+- 3 a 8 fases **por track** em `## 5` (single-track: 3–8 no total; `wave: multi`: 3–8 por track, ex: `A.1`–`A.8` + `B.1`–`B.3`). Cada fase executável isoladamente por um agente lendo só a spec.
+- Cada caminho citado como REUSADO/alterado existe no repositório.
+
+#### 2.8.4 Schema opcional
+
+- Campos de frontmatter de refinamento: `risk_level` (`GREEN`/`YELLOW`/`RED`), `risk_score` (0–25 ou `null`), `refine_mode` (`SHALLOW`/`DEEP`), `estimated_effort`, `cross_context`, `linked_adr`, `linked_feat`, `depends_on`, `blocks`, `related_bugs`. Incluir quando aplicável; omitir (ou `null`/`[]`) quando não.
+- Estimativa de tamanho/esforço por fase no título da sub-seção (`*(tamanho M; ≈4h)*`).
+
+#### 2.8.5 Exemplo preenchido
+
+Frontmatter e §5 (demais seções elididas por brevidade — ver o esqueleto completo em `create-spec.md`):
+
+```markdown
+---
+id: FEAT-0042
+slug: whatsapp-evolution
+title: "Integração WhatsApp via Evolution API e hub de mensageria"
+type: feature
+status: draft
+priority: P1
+size: L
+domain: backend
+bounded_context: messaging
+wave: multi
+created_at: 2026-06-14
+updated_at: 2026-06-14
+owner: gabriel
+quality_gate:
+  scorer: phase-evaluator
+  threshold: 8.5
+---
+
+# FEAT-0042 — WhatsApp via Evolution
+
+## 5. Plano de desenvolvimento por fases
+
+### Fase A.1 — Adapter Evolution
+- **id:** `A.1`
+- **slug:** `evolution-adapter`
+- **Objetivo:** porta de saída para a Evolution API, espelhando o adapter de e-mail existente.
+- **Depende de:** nenhuma
+- **Arquivos novos:** `src/adapters/evolution.py`. **Arquivos alterados:** `src/ports/messaging.py`.
+- **Passos:** 1) definir a port … 2) implementar o adapter …
+- **Testes:** contrato da port (AC-1), retry idempotente (AC-3).
+- **Escopo travado / violações BLOQUEANTES:** não chamar a API fora do adapter; não vazar token em log.
+- **Critério de conclusão (gate):** testes da port verdes; `make check` zero.
+
+### Fase B.2 — Webhook de status no hub
+- **id:** `B.2`
+- **slug:** `hub-status-webhook`
+- **Objetivo:** consumir callbacks de status e propagar ao hub.
+- **Depende de:** `A.1`
+- **Passos:** 1) … 2) …
+- **Testes:** AC-5.
+- **Escopo travado / violações BLOQUEANTES:** não persistir payload bruto com PII.
+- **Critério de conclusão (gate):** round-trip status verde; `make check` zero.
+```
+
+#### 2.8.6 Regras de validação
+
+1. Frontmatter presente, com `slug` igual ao nome da subpasta e bloco `quality_gate` com `scorer: phase-evaluator` e `threshold` numérico. **Sem** `quality_gate.passed`.
+2. As doze seções obrigatórias presentes, na ordem de §2.8.3.
+3. `## 5` tem 3 a 8 sub-seções `### Fase <id> — <nome>` **por track** (`wave: multi` pode passar de 8 no total, desde que ≤ 8 por track), com o `<id>` **literal no heading** igual ao bullet `id` da fase (`### Fase A.1 — …` quando `id: A.1`).
+4. Cada fase declara `id` e `slug`; todos os `id` são únicos na spec; todos os `slug` são kebab-case.
+4b. Frontmatter **sem** `versão`/`atualizado` (§0.2); `status` ∈ {`draft`, `active`, `done`} (chave única, não o enum de framework).
+5. `wave: multi` ⇒ pelo menos um `id` no formato `<TRACK>.<n>`; `wave: single`/`null` ⇒ `id`s inteiros.
+6. Todo `id` citado em `Depende de` existe em `## 5`; o grafo de dependências é acíclico.
+7. Cada FR tem ao menos um AC correspondente em `## 3`.
+8. Nenhum caminho citado como alterado/REUSADO é inexistente no repositório (verificação fora do arquivo).
+
+#### 2.8.7 Anti-padrões
+
+- **`quality_gate.passed` ou `threshold: 3` legado.** O gate é `phase-evaluator` com threshold 0–10 consumido pelo avaliador; estado de aprovação vive nos artefatos de avaliação (§2.10), não em campo booleano órfão na spec.
+- **Fase sem `id`/`slug`.** Sem eles os nomes de `FASE-*-EXECUCAO.md`/`AVALIACAO.md` divergem entre chats e os artefatos ficam órfãos.
+- **Heading `### Fase 1 —` com `id: A.1`.** O `id` do heading e o do bullet têm de coincidir; heading órfão quebra a coerência do schema.
+- **Spec não-commitada ou em branch errada.** A fonte de verdade vive commitada em `spec/<slug>`; sem isso o executor/avaliador em chat zerado não a encontram.
+- **`status` eterno em `draft`.** O ciclo `draft → active → done` é avançado por `/execute-spec-phase`; uma spec concluída que segue `draft` é defeito de produtor.
+- **`Depende de: fases anteriores`.** Dependência é por `id` explícito; "anteriores" não expressa acoplamento cruzado entre tracks.
+- **Criar `artefatos/` aqui.** A spec nasce sozinha; a pasta de artefatos é da execução.
+- **Fase vaga.** Fase sem passos/testes/escopo travado/critério de conclusão não é executável isoladamente.
+
+### 2.9 Relatório de execução de fase (`FASE-<id>-<slug>-EXECUCAO.md`)
+
+#### 2.9.1 Localização
+
+Localização única: `<projeto>/.codeflow/specs/<slug-da-spec>/artefatos/FASE-<id>-<slug-da-fase>-EXECUCAO.md`. `<id>` e `<slug-da-fase>` vêm da §5 da spec (§2.8), reusados verbatim. Gerado e **commitado** por `/execute-spec-phase` na branch de trabalho `spec/<slug>` (a mesma onde o código da fase foi commitado), em **commit separado do código, em cima de `sha_final`** — por isso a ponta da branch é o commit-relatório, não `sha_final` (o avaliador valida por ancestralidade, ver §2.10.1). **Um único arquivo por fase**, sobrescrito a cada tentativa/rework (o histórico cumulativo sobrevive no campo `reprovacoes`, não em arquivos versionados por tentativa).
+
+#### 2.9.2 Propósito
+
+Deixar a fase **pronta para avaliação independente**: declara, de forma machine-readable, qual fase/tentativa foi executada e o range de commits a auditar; e, em prosa, o que foi feito, com evidência. É o handoff "execute → avalie em chat zerado".
+
+#### 2.9.3 Schema obrigatório
+
+**Frontmatter — artefato de runtime (§0.2): sem `versão`/`atualizado`; o `status` é o de domínio:**
+
+- `spec` — slug da spec.
+- `fase` — `id` da fase (`1` ou `A.1`), igual ao da §5.
+- `slug_fase` — `slug` da fase, igual ao da §5.
+- `status` — domínio: `executado` (nova execução) | `rework`.
+- `tentativa` — inteiro ≥ 1. Nova execução: `1`. Rework: anterior + 1.
+- `reprovacoes` — inteiro ≥ 0, **cumulativo**. Conta os vereditos **não-APROVADO** (`REPROVADO` **ou** `RESSALVAS` — ambos disparam rework) acumulados da fase. Nova execução: `0`. Rework: valor anterior + 1 (o veredito não-APROVADO que motivou este rework). É o que torna o teto de 3 reworks reconstruível mesmo com o arquivo sobrescrito. (O nome é histórico; nesta máquina de estados "reprovação" = qualquer veredito que não conclui a fase.)
+- `sha_inicial` — HEAD original no início da fase. Em rework, **reusar** o da tentativa anterior (não redefinir).
+- `sha_final` — HEAD após o trabalho desta tentativa.
+- `range` — `<sha_inicial>..<sha_final>`. Sempre do início original ao HEAD, para o avaliador ver a fase inteira.
+
+**Seções markdown — corpo (após o frontmatter):**
+
+Resumo do que foi feito; tabela de arquivos CRIADOS/ALTERADOS (caminho + propósito); confirmação do REUSO; decisões de design e qualquer desvio da spec/rules com justificativa; comandos rodados + **saídas reais** (`make check` ou `[—]` justificado se ausente); checklist dos ACs/critério de conclusão, cada item com evidência; em rework, o que mudou nesta tentativa; dúvidas para o avaliador.
+
+**Restrições adicionais:**
+
+- Sem comentários (`#`) dentro do frontmatter (§0.2).
+- `reprovacoes` nunca decresce entre tentativas da mesma fase.
+
+#### 2.9.4 Schema opcional
+
+- Campo `branch` no frontmatter quando a branch de trabalho não segue o default `spec/<slug>`. Quando presente, avaliador e spec-status o leem **antes** de cair na heurística do manifest, fechando o acoplamento de qual branch auditar.
+
+#### 2.9.5 Exemplo preenchido
+
+Nome do arquivo: `FASE-A.1-evolution-adapter-EXECUCAO.md`.
+
+```markdown
+---
+spec: whatsapp-evolution
+fase: A.1
+slug_fase: evolution-adapter
+status: rework
+tentativa: 2
+reprovacoes: 1
+sha_inicial: a1b2c3d
+sha_final: f6e5d4c
+range: a1b2c3d..f6e5d4c
+---
+
+## Resumo
+Rework da Fase A.1 após avaliação t1 (REPROVADO): token deixava de ser mascarado em log.
+
+## Arquivos
+| Caminho | Estado | Propósito |
+|---|---|---|
+| `src/adapters/evolution.py` | ALTERADO | mascarar token no logger; cobrir AC-3 |
+
+## Comandos
+- `make check` → exit 0 (saída colada abaixo) …
+
+## Critério de conclusão
+- [✓] AC-1 contrato da port (test_evolution_port.py::test_send)
+- [✓] AC-3 retry idempotente
+
+## O que mudou nesta tentativa
+- Corrigido o achado BLOQUEANTE da AVALIACAO t1.
+```
+
+#### 2.9.6 Regras de validação
+
+1. Frontmatter presente, com `spec`, `fase`, `slug_fase`, `status`, `tentativa`, `reprovacoes`, `sha_inicial`, `sha_final`, `range`.
+2. Nome do arquivo `FASE-<fase>-<slug_fase>-EXECUCAO.md`, com `<fase>` e `<slug_fase>` iguais aos campos do frontmatter e aos da §5 da spec.
+3. `status` ∈ {`executado`, `rework`}; `tentativa` ≥ 1; `reprovacoes` ≥ 0.
+4. `status: executado` ⇒ `tentativa: 1` e `reprovacoes: 0`. `status: rework` ⇒ `tentativa` ≥ 2 e `reprovacoes` ≥ 1.
+5. `range` é exatamente `<sha_inicial>..<sha_final>`.
+6. Corpo cola **saídas reais** dos comandos (ou `[—]` justificado), nunca apenas "passou".
+7. Sem comentários `#` no frontmatter.
+
+#### 2.9.7 Anti-padrões
+
+- **Versionar o arquivo por tentativa** (`...-EXECUCAO-t2.md`). O contrato é arquivo único + `reprovacoes` cumulativo; múltiplos arquivos quebram os consumidores (§2.10, spec-status).
+- **Redefinir `sha_inicial` em rework.** O range deixaria de cobrir a fase inteira e o avaliador veria só os commits de conserto.
+- **`reprovacoes` ausente ou resetado.** Sem ele o teto de 3 reworks vira inferência frágil a partir de `tentativa` (uma `tentativa: 3` pode ser a 3ª execução ainda não avaliada, não 3 reprovações).
+- **"passou" sem saída.** O avaliador re-roda tudo; relatório sem evidência é ruído.
+
+### 2.10 Avaliação de fase (`FASE-<id>-<slug>-AVALIACAO.md`)
+
+#### 2.10.1 Localização
+
+Localização única: `<projeto>/.codeflow/specs/<slug-da-spec>/artefatos/FASE-<id>-<slug-da-fase>-AVALIACAO.md`. `<id>` e `<slug-da-fase>` vêm do EXECUCAO avaliado (§2.9), reusados verbatim. Gerado e **commitado** por `/evaluate-spec-phase`, em chat zerado, independente do executor, **na ponta da branch de trabalho** (não em detached HEAD — senão o commit da avaliação fica órfão e o pipeline trava). Antes de auditar, o avaliador confirma que os commits do `range` são **ancestrais de HEAD** na branch (`git merge-base --is-ancestor <sha_final> HEAD`); em outra branch (ex: `main`) os artefatos não existem e as verificações rodariam contra a árvore errada. Note que `HEAD ≠ sha_final` no caminho feliz: o relatório de execução é um commit separado **em cima** de `sha_final` (só markdown), então a ponta da branch já contém o código da fase.
+
+#### 2.10.2 Propósito
+
+Registrar o veredito independente da tentativa avaliada, de forma machine-readable, fechando a máquina de estados da fase. O par `(fase, tentativa)` desta avaliação reconcilia com o EXECUCAO: só uma avaliação cuja `tentativa` casa com a do EXECUCAO classifica a tentativa corrente.
+
+#### 2.10.3 Schema obrigatório
+
+**Frontmatter — artefato de runtime (§0.2): sem `versão`/`atualizado`; não tem `status`, e sim `veredito`:**
+
+- `spec` — slug da spec.
+- `fase` — `id` da fase, igual ao do EXECUCAO.
+- `slug_fase` — `slug` da fase, igual ao do EXECUCAO.
+- `tentativa` — a tentativa **avaliada**; casa com `tentativa` do EXECUCAO.
+- `veredito` — `APROVADO` | `RESSALVAS` | `REPROVADO`. Apenas `APROVADO` conclui a fase; `RESSALVAS` e `REPROVADO` exigem rework.
+- `score` — número 0.0–10.0.
+- `threshold` — o threshold **efetivamente usado** (do `quality_gate.threshold` da spec ou override do usuário), não um literal.
+- `range_avaliado` — `<sha_inicial>..<sha_final>`, o range do EXECUCAO auditado.
+
+**Seções markdown — corpo, na ordem fixa:**
+
+1. veredito + score; 2. scorecard (dimensão | nota | peso | evidência); 3. achados BLOQUEANTES (arquivo:linha + correção); 4. IMPORTANTES; 5. sugestões; 6. comandos rodados + saídas reais; 7. itens da fase/DoD não atendidos; 8. divergências entre o relatório e o que o código faz.
+
+**Restrições adicionais:**
+
+- `veredito: APROVADO` exige `score ≥ threshold` **e** zero achados BLOQUEANTES.
+- `veredito: RESSALVAS` exige `score ≥ threshold` com pelo menos um IMPORTANTE.
+- `veredito: REPROVADO` quando `score < threshold` **ou** há qualquer BLOQUEANTE.
+- Sem comentários (`#`) dentro do frontmatter (§0.2).
+
+#### 2.10.4 Schema opcional
+
+Nenhum.
+
+#### 2.10.5 Exemplo preenchido
+
+Nome do arquivo: `FASE-A.1-evolution-adapter-AVALIACAO.md`.
+
+```markdown
+---
+spec: whatsapp-evolution
+fase: A.1
+slug_fase: evolution-adapter
+tentativa: 2
+veredito: APROVADO
+score: 9.1
+threshold: 8.5
+range_avaliado: a1b2c3d..f6e5d4c
+---
+
+## Veredito
+APROVADO — score 9.1 ≥ 8.5, zero BLOQUEANTES.
+
+## Scorecard
+| Dimensão | Nota | Peso | Evidência |
+|---|---|---|---|
+| Conformidade com a fase (ACs, escopo travado) | 5 | 3 | test_evolution_port.py verdes |
+| Segurança/LGPD | 5 | 3 | `grep token` em logs = 0 (saída colada) |
+
+## Comandos rodados
+- `make check` → exit 0 …
+```
+
+#### 2.10.6 Regras de validação
+
+1. Frontmatter presente, com `spec`, `fase`, `slug_fase`, `tentativa`, `veredito`, `score`, `threshold`, `range_avaliado`.
+2. Nome do arquivo `FASE-<fase>-<slug_fase>-AVALIACAO.md`, com `<fase>`/`<slug_fase>` iguais aos do EXECUCAO avaliado.
+3. `veredito` ∈ {`APROVADO`, `RESSALVAS`, `REPROVADO`}; coerência veredito × (`score`, `threshold`, BLOQUEANTES) conforme §2.10.3.
+4. `threshold` é o valor usado (numérico), nunca um literal de template fixo.
+5. `tentativa` casa com a `tentativa` de um `FASE-<fase>-*-EXECUCAO.md` existente.
+6. Corpo cola saídas reais dos comandos; scorecard tem evidência por dimensão.
+7. Sem comentários `#` no frontmatter.
+
+#### 2.10.7 Anti-padrões
+
+- **`threshold: 8.5` hardcoded** quando o gate real era outro. O campo registra o que foi de fato aplicado.
+- **`tentativa` desalinhada** da do EXECUCAO. Avaliar a tentativa T e gravar `tentativa: T-1` (ou omitir) reabre a ambiguidade reprovada/aguardando que o pareamento por tentativa fecha.
+- **`RESSALVAS` tratado como conclusão.** Neste pipeline `RESSALVAS` nunca fecha a fase nem libera a seguinte.
+- **O avaliador alterar código.** Este artefato só reporta; correções voltam ao chat executor.
+
+---
+
 ## Parte 3 — Regras transversais de validação
 
 Esta parte consolida as verificações que se aplicam a **qualquer arquivo do codeflow**, independentemente de tipo. Servem como camada base de validação antes (ou em paralelo) das regras específicas de cada artefato declaradas nas Partes 1 e 2. Qualquer automação de validação estrutural usa esta parte como fonte primária da camada base.
@@ -2559,14 +2872,16 @@ Aplicam-se a todos os arquivos `.md` do framework e dos projetos.
 
 ### 3.2 Frontmatter
 
-Aplica-se a todos os arquivos `.md` do framework e dos artefatos do projeto.
+Aplica-se a todos os arquivos `.md` do framework e dos artefatos do projeto. As regras 8–11 dos **campos universais** valem para conteúdo de framework (Parte 1) e docs duráveis (§2.1–§2.6); **artefatos de runtime/ciclo de vida** (§2.7 checkpoint, §2.8 spec, §2.9 execução, §2.10 avaliação) são governados pelas regras 8r–9r, conforme a §0.2.
 
 6. **Frontmatter presente.** Delimitado por `---` na primeira linha e em linha posterior. Sem espaços antes do `---` inicial.
 7. **YAML parseável.** Chaves em minúsculas, sem espaços (snake_case com `_` quando composto). Valores não-string sem aspas; strings sem aspas exceto quando contêm `:`, `#`, `[`, `]`, ou começam com número.
-8. **Campos universais obrigatórios presentes:** `versão`, `status`, `atualizado`.
+8. **(Framework e docs duráveis) Campos universais obrigatórios presentes:** `versão`, `status`, `atualizado`.
 9. **`versão` no formato `X.Y`.** Nunca `X.Y.Z`, nunca apenas `X`.
 10. **`status` em conjunto válido:** `estável`, `experimental`, `deprecated`. Em minúsculas.
 11. **`atualizado` em formato ISO `AAAA-MM-DD`.**
+8r. **(Artefatos de runtime/ciclo de vida) Sem `versão` nem `atualizado`.** Carregam um **único** campo `status` com enum de domínio próprio da seção (§2.7–§2.10; a avaliação §2.10 usa `veredito`, não `status`). Datas de domínio (`created_at`/`updated_at`, `timestamp`) em campos próprios.
+9r. **Chave `status` única.** Nunca duas ocorrências de `status` no mesmo frontmatter.
 12. **Sem comentários `#` dentro do frontmatter.**
 
 ### 3.3 Idioma e nomenclatura
