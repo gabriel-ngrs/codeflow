@@ -1,7 +1,7 @@
 ---
-versão: 1.1
+versão: 1.2
 status: estável
-atualizado: 2026-06-15
+atualizado: 2026-06-16
 granularidade: médio
 gera_decision: auto
 usa_checkpoints: no
@@ -30,7 +30,8 @@ Corrigir bug reproduzível em código existente. Há sintoma observável, hipót
 - .codeflow/manifest.md
 
 ## Antes de começar
-Se o bug toca em áreas com decisions arquivadas (auth, payments, schema), consultar `.codeflow/decisions/INDEX.md` e carregar decisions ATIVAS por tag.
+- Se o bug toca em áreas com decisions arquivadas (auth, payments, schema), consultar `.codeflow/decisions/INDEX.md` e carregar decisions ATIVAS por tag.
+- **Declarar o escopo esperado:** com base no relato, listar os arquivos que se espera tocar para corrigir. É uma âncora, não uma trava — refina-se durante a investigação —, mas tocar fora dela é **sinal de alerta** de refatoração lateral, e é contra essa lista que o `self-review` confere "diff dentro do escopo declarado" (Passo 5). Se a investigação obrigar a sair do escopo, declarar explicitamente por quê antes de fazê-lo.
 
 ## Protocolo
 
@@ -43,9 +44,11 @@ Se o bug toca em áreas com decisions arquivadas (auth, payments, schema), consu
 - Criar teste que captura o comportamento errado: falha agora, passa após o fix.
 - Não modificar código de produção ainda.
 - Gate: teste roda e falha pelo motivo esperado.
+- **Quando teste automatizado é inviável** (bug de UI, timing, configuração de ambiente, integração externa sem mock viável): não forçar um teste frágil só para cumprir o passo. Declarar a **sequência de reprodução manual** do Passo 1 como o gate de regressão (passos exatos que disparam o sintoma antes do fix e param de disparar depois) e **registrar por que o teste automatizado não cabe** — mesma honestidade do `[—]` justificado do Passo 5. Reprodução manual vira o critério de verificação; não pular para o fix sem ela.
 
 ### Passo 3 — Formar hipótese
 - Aplicar protocolo da skill `debug-protocol`: uma hipótese por vez, declarada explicitamente, com critério de teste claro.
+- **Ancorar a hipótese no código real:** a hipótese cita o `arquivo:linha` suspeito que foi efetivamente lido no repositório — não descreve uma causa abstrata "de cabeça". Sem âncora verificada no código, é palpite, não hipótese; ler o caminho antes de afirmar a causa.
 - Limite: três hipóteses no total. Se três falharem, aplicar política de falhas e parar.
 
 ### Passo 4 — Implementar fix
@@ -67,8 +70,10 @@ Se o bug toca em áreas com decisions arquivadas (auth, payments, schema), consu
 
 ## Definition of Done
 - [ ] Bug reproduzido no Passo 1.
-- [ ] Teste de regressão adicionado e falhando antes do fix.
-- [ ] Teste de regressão passando após o fix.
+- [ ] Escopo esperado declarado antes da investigação (Antes de começar).
+- [ ] Hipótese validada ancorada em `arquivo:linha` real (Passo 3).
+- [ ] Teste de regressão adicionado e falhando antes do fix — **ou** sequência de reprodução manual declarada como gate, com justificativa de por que o teste automatizado não cabe (Passo 2).
+- [ ] Teste de regressão passando após o fix — **ou** reprodução manual deixa de disparar o sintoma.
 - [ ] Comandos de validação do projeto retornaram zero (ou `[—]` justificado).
 - [ ] Diff dentro do escopo declarado.
 - [ ] Self-review aplicado.
