@@ -801,7 +801,7 @@ Conflito de prioridade: constitution > rules. Mas rules raramente conflitam com 
 
 #### 4.7.1 Tipos de artefatos
 
-Existem sete tipos de artefatos no codeflow:
+Os artefatos do codeflow são:
 
 **`INDEX.md`:** mapa de leitura prioritária do `.codeflow/`. Gerado por `discover` ou `bootstrap`. Indica à IA em que ordem ler os outros artefatos.
 
@@ -816,6 +816,8 @@ Existem sete tipos de artefatos no codeflow:
 **`decisions/INDEX.md`:** índice navegável de todas as decisões. Atualizado automaticamente toda vez que uma decision nova é gerada. Permite a IA filtrar decisões por tag, data, ou status sem carregar todos os arquivos.
 
 **`checkpoints/<workflow>-<timestamp>.md`:** estado intermediário de workflows detalhados em execução. Gerado automaticamente entre passos longos. Efêmero — deletado ao fim do workflow bem-sucedido. Vai para `.gitignore`.
+
+**`roteiro.md`:** norte de produto — visão, problema/público, mercado, escopo do MVP, riscos, marcos e backlog priorizado. Gerado pelo workflow `/ideacao`. Vivo e versionado (revisões bumpam `versão`; não é snapshot datado). Alimenta `/bootstrap` (deriva propósito/stack) e `/create-spec` (o backlog é fatiado em specs). Schema em `ARTIFACTS_SPEC.md` §2.12.
 
 **`specs/<slug>/SPEC_<NAME>.md`:** a spec — documento único autoexecutável gerado por `/create-spec`, com requisitos, abordagem técnica e plano de fases (§5). Versionada na branch atual. É artefato de ciclo de vida (`status: draft|active|done`).
 

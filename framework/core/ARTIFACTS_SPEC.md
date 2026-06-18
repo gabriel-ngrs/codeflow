@@ -43,6 +43,7 @@ audiência secundária: mantenedor do framework
   - 2.9 Relatório de execução de fase (`FASE-<id>-<slug>-EXECUCAO.md`)
   - 2.10 Avaliação de fase (`FASE-<id>-<slug>-AVALIACAO.md`)
   - 2.11 Máquina de estados da fase
+  - 2.12 Roteiro (`roteiro.md`)
 - [Parte 3 — Regras transversais de validação](#parte-3--regras-transversais-de-validação)
 
 ---
@@ -63,7 +64,7 @@ Esta parte define as convenções que se aplicam a **todos** os arquivos do code
 
 Todo arquivo markdown do codeflow começa com **frontmatter YAML** delimitado por `---` na primeira linha e em uma linha posterior.
 
-**Campos universais obrigatórios em conteúdo de framework e docs duráveis** (presentes no frontmatter de todo arquivo da Parte 1 e dos artefatos de projeto duráveis, versionados como documento — INDEX, constitution de projeto, manifest, discovered, decision, decisions/INDEX, §2.1–§2.6):
+**Campos universais obrigatórios em conteúdo de framework e docs duráveis** (presentes no frontmatter de todo arquivo da Parte 1 e dos artefatos de projeto duráveis, versionados como documento — INDEX, constitution de projeto, manifest, discovered, decision, decisions/INDEX e roteiro: §2.1–§2.6 e §2.12):
 
 - `versão` — formato `X.Y` (ex: `1.0`, `2.3`). Nunca `X.Y.Z`.
 - `status` — um de: `estável`, `experimental`, `deprecated`. Em minúsculas.
@@ -427,6 +428,13 @@ atualizado: 2026-05-17
 - **Onde mora:** `~/.codeflow/framework/meta/<nome>/SKILL.md`. Sempre universal.
 - **O que NÃO é:** não é workflow. Meta-skill é capacidade reutilizada por mais de uma forma de invocação.
 - **Exemplo concreto:** `/create-workflow` invoca a meta-skill `create-workflow`, que entrevista o usuário e gera arquivo novo em `framework/library/workflows/` ou `.codeflow/workflows/`.
+
+### Roteiro
+
+- **Definição:** **artefato** de planejamento de produto gerado pelo workflow `/ideacao`: o norte do que construir (visão, mercado, escopo do MVP, marcos, backlog priorizado), antes de qualquer plano de execução técnico.
+- **Onde mora:** `<projeto>/.codeflow/roteiro.md`. Um por projeto, vivo e versionado.
+- **O que NÃO é:** não é spec (spec é o "como executar" por fases) nem constitution (constitution são regras invariantes). Roteiro é o "o quê/por quê/em que ordem" do produto; seu backlog é fatiado em specs por `/create-spec`.
+- **Exemplo concreto:** `/ideacao` para um app de resumos em áudio produz um `roteiro.md` com o MVP recortado e um backlog (`extração de texto`, `resumo`, `TTS`); depois `/create-spec` transforma o item "extração de texto" numa spec.
 
 ### Rule
 
@@ -2883,6 +2891,136 @@ Só `APROVADO` conclui a fase; `RESSALVAS` e `REPROVADO` mantêm a fase em **rep
 - **Elegibilidade.** Uma fase só é elegível para **nova execução** quando **todas** as fases dos seus `Depende de` (por `id`) estão **concluídas** (AVALIACAO `APROVADO` da tentativa corrente). Vale entre tracks (`B.2` depende de `A.7`). Dependência apenas "aguardando avaliação" **não** libera quem depende dela.
 - **Teto de tentativas.** A fase para após **3 vereditos não-APROVADO** (= a 1ª avaliação não-APROVADO + 2 reworks). `reprovacoes` (§2.9.3) conta os vereditos não-APROVADO — `REPROVADO` **ou** `RESSALVAS`, ambos disparam rework e ambos contam. Gate: ao selecionar um rework, se `EXECUCAO.reprovacoes >= 2` (o veredito corrente fecharia o 3º), **parar** e escalar ao owner — estado terminal seguro (decisão humana), qualquer que seja o veredito. **Terminação garantida:** todo veredito não-APROVADO incrementa `reprovacoes`, então nenhuma sequência de vereditos faz o ciclo executor↔avaliador girar sem fim.
 - **Distinção.** Este teto é o do ciclo **executor↔avaliador**. Falhas Lógicas **dentro** de uma única execução seguem o limite de 2 tentativas da constitution (política de falhas), independente.
+
+### 2.12 Roteiro (`roteiro.md`)
+
+#### 2.12.1 Localização
+
+Localização única: `<projeto>/.codeflow/roteiro.md`. Um roteiro por projeto.
+
+Gerado pelo workflow `/ideacao` (planejamento de produto antes de haver código). **Vivo e versionado** no git do projeto: ao reabrir a ideia, `/ideacao` revisa o mesmo arquivo e faz bump de `versão` — **não** gera snapshot datado (ao contrário do `discovered`, §2.4, que é histórico imutável).
+
+#### 2.12.2 Propósito
+
+Registrar o **norte de produto**: o que se quer construir, para quem, por quê, e em que ordem — o "o quê" e o "por quê" do produto, antes de qualquer "como executar". Serve de fonte para fatiar trabalho em specs: o `## Backlog priorizado` é o elo com `/create-spec` (cada item vira uma spec quando chega a hora). `/bootstrap` consome o roteiro (se existir) para derivar propósito, escopo e proposta de stack sem re-perguntar.
+
+Fronteiras: o roteiro **não** declara regras invariantes (isso é constitution, §2.2) nem plano de execução técnico com arquivos/passos/testes (isso é spec, §2.8). É planejamento de produto, não de implementação.
+
+#### 2.12.3 Schema obrigatório
+
+**Frontmatter — campos além dos universais da §0.2:**
+
+- `projeto` — nome do projeto. Obrigatório.
+
+**Seções markdown — na ordem fixa abaixo:**
+
+1. `# Roteiro do projeto: <nome>` — título único, com `<nome>` idêntico ao `projeto` do frontmatter.
+2. `## Visão e propósito` — em uma a três frases: que produto é, para quem, e que mudança ele causa.
+3. `## Problema e público` — o problema concreto que justifica o produto e as personas/segmentos atendidos.
+4. `## Pesquisa de mercado e concorrentes` — panorama competitivo e de demanda. **Toda afirmação factual carrega rótulo de procedência: `[verificado: <fonte>]` ou `[não verificado]`** — nenhum número, concorrente ou tendência sem um dos dois rótulos.
+5. `## Escopo do MVP` — o que entra no primeiro corte e, **explicitamente**, o que fica **fora** (lista de fora-de-escopo, ou literal `Nada deliberadamente fora por ora.`).
+6. `## Riscos e premissas` — riscos (técnico, de mercado, de execução) e premissas que, se falsas, mudam o plano.
+7. `## Marcos` — fases de entrega em ordem (marco → objetivo), em grão grosso. Não é o "Plano de fases" da spec (§2.8 §5).
+8. `## Backlog priorizado` — lista ordenada de features/fatias que virarão spec. Cada item tem: identificador curto, título, prioridade, e estado de fatiamento — `a fatiar` ou `spec: <slug>` (quando já virou spec). Este é o elo com `/create-spec`.
+9. `## Métricas de sucesso` — como saber se o produto está dando certo (sinais observáveis).
+10. `## Decisões em aberto` — perguntas de **produto** ainda não resolvidas (distintas das Open Questions de design técnico, que vivem na spec, §2.8 §8).
+
+**Restrições adicionais:**
+
+- Roteiro é planejamento de produto: sem arquivos/passos/testes (isso é spec).
+- Afirmações de mercado são verificáveis e rotuladas (§2.12.3 item 4). Nada de dado inventado.
+- Item de backlog que virou spec referencia o `<slug>` da spec; a rastreabilidade inversa (spec→roteiro) usa o campo opcional `linked_feat` da spec (§2.8.4).
+- Vivo: revisões fazem bump de `versão` e atualizam `atualizado`. Não datar nem encadear `superseded_by`.
+
+#### 2.12.4 Schema opcional
+
+- Sub-seções `### <concorrente>` dentro de `## Pesquisa de mercado e concorrentes`, uma por concorrente analisado.
+- Seção `## Glossário de produto` definindo termos de domínio do produto.
+- Seção `## Linha do tempo` com uma tabela marco × período-alvo, quando há prazos.
+
+#### 2.12.5 Exemplo preenchido
+
+Exemplo: roteiro de um produto hipotético, para tornar concreto. Conteúdo realista, não é roteiro real entregue.
+
+```markdown
+---
+versão: 1.0
+status: experimental
+atualizado: 2026-06-18
+projeto: leituramente
+---
+
+# Roteiro do projeto: leituramente
+
+## Visão e propósito
+
+App que transforma artigos longos salvos em resumos diários de áudio, para profissionais que querem consumir conteúdo no deslocamento.
+
+## Problema e público
+
+Quem salva muito "para ler depois" raramente volta. Público inicial: profissionais 25–45 que ouvem podcast no trânsito e acumulam abas/artigos não lidos.
+
+## Pesquisa de mercado e concorrentes
+
+- Apps de "read it later" (Pocket, Instapaper) cobrem salvar, não resumir em áudio `[não verificado]`.
+- Mercado de audiolivros/podcast cresce de forma consistente `[não verificado]`.
+- Síntese de voz neural ficou barata o suficiente para uso por usuário `[verificado: tabela de preços pública dos provedores de TTS, jun/2026]`.
+
+## Escopo do MVP
+
+Entra: salvar URL, extração de texto, resumo, geração de áudio, feed diário.
+Fora do MVP: app nativo (começa web), recomendação social, suporte a PDF.
+
+## Riscos e premissas
+
+- Premissa: usuários aceitam resumo (não querem o texto íntegro). **Se falsa**, o produto vira leitor, não resumidor.
+- Risco técnico: qualidade do resumo em textos técnicos. Mitigar com avaliação humana no piloto.
+
+## Marcos
+
+1. **Piloto fechado** — fluxo salvar→resumo→áudio para 10 usuários.
+2. **Feed diário** — entrega automática do lote do dia.
+3. **Abertura** — cadastro público + cobrança.
+
+## Backlog priorizado
+
+1. [alta] Extração de texto de URL — `a fatiar`
+2. [alta] Resumo do artigo — `a fatiar`
+3. [média] Geração de áudio (TTS) — `a fatiar`
+4. [baixa] Feed diário agendado — `a fatiar`
+
+## Métricas de sucesso
+
+- % de itens salvos que viram áudio ouvido (meta inicial: > 40%).
+- Retenção semana 4 do piloto.
+
+## Decisões em aberto
+
+- Cobrança por assinatura ou por crédito de minutos de áudio?
+- Resumo extrativo ou abstrativo no MVP?
+```
+
+#### 2.12.6 Regras de validação
+
+1. Frontmatter presente, com `projeto` não-vazio e os universais da §0.2 (`versão`, `status`, `atualizado`).
+2. Título no formato `# Roteiro do projeto: <nome>`, com `<nome>` correspondendo ao `projeto`.
+3. As dez seções obrigatórias presentes na ordem listada em §2.12.3.
+4. `## Pesquisa de mercado e concorrentes`: cada afirmação factual tem `[verificado: <fonte>]` ou `[não verificado]`; nenhum número solto sem rótulo.
+5. `## Escopo do MVP` declara explicitamente o fora-de-escopo (lista ou literal `Nada deliberadamente fora por ora.`).
+6. `## Backlog priorizado` tem ao menos um item; cada item declara prioridade e estado de fatiamento (`a fatiar` ou `spec: <slug>`).
+7. Item marcado `spec: <slug>` corresponde a uma spec real em `.codeflow/specs/<slug>/` (rastreabilidade).
+8. O roteiro **não** contém plano de fases executável (arquivos/passos/testes por fase) — isso é spec (§2.8).
+9. Caminhos referenciados (se houver) são relativos à raiz do projeto.
+10. Sem frontmatter de snapshot: `roteiro.md` não usa `data_inspeção` nem `superseded_by` — é vivo, revisões bumpam `versão`.
+
+#### 2.12.7 Anti-padrões
+
+- **Roteiro virar spec.** Plano de fases com arquivos/passos/testes é spec (§2.8). Roteiro para no "o quê/por quê/em que ordem".
+- **Inventar dados de mercado.** Concorrente, número ou tendência sem `[verificado: <fonte>]` é alucinação; na dúvida, `[não verificado]`.
+- **Backlog vago.** "Melhorar a experiência" não é item; "extração de texto de URL" é. Item de backlog é fatia acionável que vira spec.
+- **Misturar regra invariante.** "Toda senha é hasheada com Argon2" é regra de constitution (§2.2), não item de roteiro.
+- **Tratar roteiro como snapshot.** Datar o arquivo, encadear `superseded_by` ou criar `roteiro-<data>.md` confunde com `discovered`. Roteiro é vivo: edita-se o mesmo arquivo e bumpa `versão`.
+- **Confundir decisão de produto com Open Question técnica.** "Assinatura vs. crédito" é decisão de produto (roteiro); "JWT vs. sessão" é Open Question de design (spec §8).
 
 ---
 
