@@ -1,7 +1,7 @@
 ---
-versão: 1.7
+versão: 1.8
 status: experimental
-atualizado: 2026-06-15
+atualizado: 2026-06-25
 granularidade: médio
 gera_decision: no
 usa_checkpoints: no
@@ -25,6 +25,9 @@ Avaliar, de forma **independente e cética**, a fase executada por `/execute-spe
 - ~/.codeflow/framework/core/rules/testing.md
 - ~/.codeflow/framework/core/rules/security.md
 - ~/.codeflow/framework/library/skills/self-review/SKILL.md
+- ~/.codeflow/framework/library/skills/avoid-ai-look/SKILL.md (carregar quando a fase avaliada toca interface gráfica)
+- ~/.codeflow/framework/library/skills/accessibility-audit/SKILL.md (carregar quando a fase avaliada toca interface gráfica)
+- ~/.codeflow/framework/library/skills/visual-consistency/SKILL.md (carregar quando a fase avaliada toca interface gráfica)
 - .codeflow/INDEX.md
 - .codeflow/constitution.md
 - .codeflow/manifest.md
