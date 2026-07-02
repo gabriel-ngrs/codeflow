@@ -201,11 +201,15 @@ Esta localização contém **tudo que é universal** ao framework.
 │       │   └── self-review/SKILL.md
 │       │
 │       └── workflows/              ← workflows universais (planos)
-│           ├── bugfix.md
+│           ├── bugfix.md               ← corrige um bug avulso
+│           ├── batch-bugfix.md         ← corrige um lote de bugs (QA); grava o ledger
+│           ├── double-check.md         ← confere um lote corrigido (não toca código)
+│           ├── ideacao.md              ← planejamento de produto: gera roteiro.md
 │           ├── create-spec.md          ← pipeline de spec: cria a spec executável
 │           ├── execute-spec-phase.md   ← pipeline de spec: executa uma fase
 │           ├── evaluate-spec-phase.md  ← pipeline de spec: avalia uma fase (chat zerado)
-│           └── spec-status.md          ← pipeline de spec: progresso das fases
+│           ├── spec-status.md          ← pipeline de spec: progresso das fases
+│           └── design-pass.md          ← passe de design/UI sobre a superfície tocada
 │
 ├── install.sh                      ← script de instalação em projeto-alvo
 └── README.md                       ← manual de uso geral
@@ -382,7 +386,7 @@ Formato de cada decisão:
 **Justificativa:** Esta organização escala bem: universais ficam fáceis de listar e gerenciar (sem prefixos artificiais), específicos ficam isolados em "ilhas" por projeto. Promover uma skill de projeto para universal é trivial (`git mv`). A separação entre origem e escopo é clara.
 
 **Implicações:**
-- Workflows universais (bugfix e o pipeline de spec — create-spec, execute-spec-phase, evaluate-spec-phase, spec-status) vivem em `framework/library/workflows/`.
+- Workflows universais (bugfix; o par de lote batch-bugfix + double-check; ideacao; o pipeline de spec — create-spec, execute-spec-phase, evaluate-spec-phase, spec-status; e design-pass) vivem em `framework/library/workflows/`.
 - Quando um projeto precisa de workflow específico, é criado em `.codeflow/workflows/` do projeto via `/create-workflow`.
 - Quando um workflow específico se prova útil em múltiplos projetos, é promovido manualmente para `framework/library/workflows/`.
 

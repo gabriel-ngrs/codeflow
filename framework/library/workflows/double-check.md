@@ -39,14 +39,14 @@ Verificar, contra um lote de bugs, se as correções realmente sanaram cada bug 
 - Gate: ledger carregado com ≥1 bug a verificar. Se nada é parseável, parar e pedir esclarecimento.
 
 ### Passo 2 — Reproduzir cada bug
-- Para cada bug do ledger, executar a **sequência de reprodução** registrada (do ledger ou do documento). Rodar o teste de regressão associado ao fix, quando existir.
+- Para cada bug do ledger, executar a **sequência de reprodução** registrada na coluna `repro/teste` (ou, sem ledger, a do documento). Rodar o teste de regressão apontado ali, quando existir.
 - Aplicar a disciplina do `debug-protocol`: reproduzir de fato antes de concluir qualquer coisa — não inferir "provavelmente sanado" de cabeça.
 - Gate: cada bug tem um resultado de reprodução observável (reproduz / não reproduz / repro indisponível).
 
 ### Passo 3 — Julgar a sanidade e marcar o ledger
 - Traduzir cada resultado do Passo 2 na coluna `verificação` do ledger:
   - `✓` — bug **não** reproduz mais: sanado.
-  - `✗` — bug **ainda** reproduz: não sanado ou regrediu.
+  - `✗` — bug **ainda** reproduz: não sanado ou regrediu. Reabrir a linha: setar `status: pendente` mantendo `verificação: ✗`, para que o `/batch-bugfix` a recolha na retomada. Mexer nessa coluna do ledger é coordenação, não código de produção — não viola a separação de responsabilidades.
   - `⚠` — sem reprodução determinística possível: inconclusivo (registrar por quê).
 - Carimbar cada linha com a data da verificação. Gate: nenhum bug fica com `verificação: —`.
 

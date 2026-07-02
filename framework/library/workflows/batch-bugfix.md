@@ -33,7 +33,7 @@ Corrigir uma **lista de bugs** entregue como documento (`.txt`, `.md`, `.csv` ou
 
 ## Antes de começar
 - Se qualquer bug toca em áreas com decisions arquivadas (auth, payments, schema), consultar `.codeflow/decisions/INDEX.md` e carregar decisions ATIVAS por tag antes de corrigir aquele bug.
-- **O ledger é a espinha dorsal deste workflow.** É o artefato `.codeflow/bug-batches/<slug>.md` que normaliza a lista bruta, guarda o status por bug e serve de contrato para o `/double-check`. Se um ledger com o mesmo `<slug>` já existe (lote retomado), reusar: pular os bugs já em estado terminal e corrigir só os `pendente`.
+- **O ledger é a espinha dorsal deste workflow.** É o artefato `.codeflow/bug-batches/<slug>.md` que normaliza a lista bruta, guarda o status por bug e serve de contrato para o `/double-check`. Se um ledger com o mesmo `<slug>` já existe (lote retomado), reusar: pular os bugs já em estado terminal e corrigir só os `pendente`. **Bug reaberto pelo `/double-check` volta como `pendente` carregando `verificação: ✗`** — é uma regressão a recorrigir; a coluna `fix` antiga é a primeira pista.
 
 ## Protocolo
 
@@ -43,14 +43,15 @@ Corrigir uma **lista de bugs** entregue como documento (`.txt`, `.md`, `.csv` ou
 - Gate: ledger criado com ≥1 bug e origem registrada. Se o documento não é parseável ou nenhum bug é identificável, parar e pedir esclarecimento — **não** adivinhar bugs.
 
 ### Passo 2 — Ordenar a fila e declarar escopo
-- Ordenar os bugs `pendente` (ordem do documento por padrão; agrupar por área quando severidade/módulo forem claros para redudir troca de contexto).
+- Ordenar os bugs `pendente` (ordem do documento por padrão; agrupar por área quando severidade/módulo forem claros para reduzir troca de contexto).
 - Para cada bug, declarar o **escopo esperado** (arquivos que se espera tocar) quando inferível do relato — âncora para o self-review, não trava.
 - Gate: fila ordenada, sem bug `pendente` órfão de posição.
 
 ### Passo 3 — Corrigir cada bug (loop `bugfix`)
 - Para cada bug `pendente`, aplicar o protocolo do `/bugfix` sobre aquele bug isoladamente: reproduzir → teste de regressão (ou repro manual justificada) → hipótese ancorada em `arquivo:linha` real via `debug-protocol` → fix mínimo → validar o subconjunto que prova o fix.
-- Ao terminar cada bug, atualizar seu status no ledger: `corrigido` (com `fix` = `arquivo:linha`), `bloqueado` (com motivo: repro falhou, ambíguo, exige decisão do usuário) ou `não-reproduz`.
+- Ao terminar cada bug, atualizar seu status no ledger: `corrigido` (com `fix` = `arquivo:linha`), `bloqueado` (com motivo: repro falhou, ambíguo, exige decisão do usuário) ou `não-reproduz`. Preencher também `repro/teste` — caminho do teste de regressão adicionado **ou** a sequência de reprodução manual — para que o `/double-check` saiba o que reexecutar.
 - **Bug bloqueado não trava o lote.** Registrar o motivo e seguir para o próximo. Bugs `bloqueado`/`não-reproduz` são reportados no fim para tratamento avulso via `/bugfix`.
+- **Persistir o ledger a cada bug** (não só no fim): como este workflow não usa checkpoints, o ledger atualizado por bug é o único ponto de retomada. Em lote grande, se o contexto encher, parar num bug em estado terminal e retomar em sessão nova — a retomada pula os terminais e continua nos `pendente`.
 - Gate: todo bug sai do loop em estado terminal no ledger (nenhum permanece `pendente`).
 
 ### Passo 4 — Validar o lote
@@ -60,7 +61,7 @@ Corrigir uma **lista de bugs** entregue como documento (`.txt`, `.md`, `.csv` ou
 
 ### Passo 5 — Resumir e gerar decisions
 - Apresentar o resumo final (cinco seções fixas) com o **placar do lote**: quantos `corrigido`, `bloqueado`, `não-reproduz`.
-- Gerar decision em `.codeflow/decisions/` para cada fix não-trivial (`gera_decision: auto`; mesmos gatilhos do `/bugfix`), e registrar o link da decision na linha do bug no ledger.
+- Gerar **uma decision consolidada do lote** em `.codeflow/decisions/` quando houver ≥1 fix não-trivial (`gera_decision: auto`; mesmos gatilhos do `/bugfix`), com uma linha por bug que a motivou — em vez de um arquivo por fix, que polui o índice num lote grande. Registrar o link dessa decision nas linhas dos bugs relevantes no ledger. Fix genuinamente arquitetural, que mereça rastreio próprio, pode ganhar decision individual.
 - Deixar o ledger salvo e atualizado — ele é a entrada do `/double-check`.
 
 ## Formato do ledger (`.codeflow/bug-batches/<slug>.md`)
@@ -68,21 +69,21 @@ Frontmatter: `versão`, `lote: <slug>`, `origem: <caminho do documento bruto>`, 
 
 ```markdown
 ## Bugs
-| id | título | status | fix (arquivo:linha) | decision | verificação |
-|----|--------|--------|---------------------|----------|-------------|
-| B1 | Login aceita senha vazia | corrigido | src/auth.py:88 | 2026-07-02-senha-vazia.md | — |
+| id | título | status | repro/teste | fix (arquivo:linha) | decision | verificação |
+|----|--------|--------|-------------|---------------------|----------|-------------|
+| B1 | Login aceita senha vazia | corrigido | tests/test_auth.py::test_senha_vazia | src/auth.py:88 | 2026-07-02-senha-vazia.md | — |
 ```
 
-Vocabulário de `status`: `pendente`, `corrigido`, `bloqueado`, `não-reproduz`. A coluna `verificação` é preenchida pelo `/double-check` (`✓` sanado, `✗` regrediu, `⚠` inconclusivo, `—` não verificado); o `batch-bugfix` a deixa `—`.
+Vocabulário de `status`: `pendente`, `corrigido`, `bloqueado`, `não-reproduz`. A coluna `repro/teste` guarda o que reproduz o bug — caminho do teste de regressão ou a sequência de reprodução manual — e é o que o `/double-check` reexecuta. A coluna `verificação` é preenchida pelo `/double-check` (`✓` sanado, `✗` regrediu, `⚠` inconclusivo, `—` não verificado); o `batch-bugfix` a deixa `—`.
 
 ## Definition of Done
 - [ ] Documento ingerido e normalizado no ledger com origem registrada (Passo 1).
 - [ ] Todo bug em estado terminal — nenhum permanece `pendente` (Passo 3).
-- [ ] Cada fix ancorado em `arquivo:linha` real e com teste de regressão (ou repro manual justificada).
+- [ ] Cada fix ancorado em `arquivo:linha` real e com teste de regressão (ou repro manual justificada), registrado na coluna `repro/teste` do ledger.
 - [ ] Bugs `bloqueado`/`não-reproduz` listados com motivo para tratamento avulso.
 - [ ] Comandos de validação do projeto retornaram zero (ou `[—]` justificado) sobre o lote.
 - [ ] Self-review aplicado ao diff acumulado, dentro do escopo declarado por bug.
-- [ ] Decisions geradas para fixes não-triviais e linkadas no ledger.
+- [ ] Decision consolidada do lote gerada se houve fix não-trivial e linkada no ledger.
 - [ ] Ledger salvo e atualizado, pronto para o `/double-check`.
 
 ## Resumo final
