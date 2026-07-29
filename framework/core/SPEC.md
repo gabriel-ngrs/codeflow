@@ -1,5 +1,5 @@
 ---
-versão: 3.1
+versão: 3.2
 status: estável
 atualizado: 2026-07-29
 documento: SPEC.md
@@ -213,6 +213,7 @@ Esta localização contém **tudo que é universal** ao framework.
 │
 ├── install.sh                      ← script de instalação em projeto-alvo
 ├── setup-slash-commands.sh         ← sincroniza wrappers para Claude Code
+├── setup-codex-skills.sh           ← sincroniza skills locais para Codex
 ├── setup-codex-prompts.sh          ← sincroniza prompts customizados para Codex
 └── README.md                       ← manual de uso geral
 ```
@@ -404,7 +405,7 @@ Formato de cada decisão:
 **Justificativa:** Disciplinar a IA exige tirar dela a decisão de "qual processo seguir". O usuário, ao invocar um workflow, está explicitamente declarando o tipo de tarefa e ativando o protocolo correspondente. Slash commands existem nativamente em Claude Code, Codex, Cursor — não inventamos mecanismo novo. O nome do arquivo do workflow é o nome do comando.
 
 **Implicações:**
-- Cada workflow em `framework/library/workflows/<nome>.md` se torna automaticamente um slash command na ferramenta de IA (`/<nome>` em Claude Code; `/prompts:<nome>` em Codex).
+- Cada workflow em `framework/library/workflows/<nome>.md` se torna automaticamente um slash command na ferramenta de IA (`/<nome>` em Claude Code; `$<nome>` ou `/skills` em Codex).
 - A IA não tenta classificar a tarefa do usuário em workflow — ela apenas executa o que foi invocado.
 - Se o usuário pedir tarefa sem invocar workflow, a IA opera em "modo livre" (sem protocolo), guiada apenas pela constitution.
 
@@ -441,48 +442,62 @@ A nível de projeto: cada workflow em `<projeto>/.codeflow/workflows/<nome>.md` 
 
 #### 3.6.2 Implementação em Codex
 
-O adapter de Codex materializa a mesma decisão usando **custom prompts** do Codex
-CLI. No Codex, a invocação fica `/prompts:<nome>` em vez de `/<nome>`.
+O adapter principal de Codex materializa a mesma decisão usando **skills locais**
+do Codex CLI. No Codex, a invocação fica `$<nome>` ou via menu `/skills`, em
+vez de `/<nome>`.
 
-**Mecanismo.** Codex descobre prompts customizados em:
+**Mecanismo.** Codex descobre skills locais em:
 
-- `~/.codex/prompts/<nome>.md` — disponível em qualquer projeto do usuário.
+- `~/.agents/skills/<nome>/SKILL.md` — disponível em qualquer projeto do usuário.
 
-O codeflow gera prompts curtos nesse caminho por meio de
-`setup-codex-prompts.sh`. Esses prompts apontam para os arquivos reais em
-`~/.codeflow/framework/` ou para workflows de projeto em `<projeto>/.codeflow/`.
+O codeflow gera skills-wrapper nesse caminho por meio de
+`setup-codex-skills.sh`. Essas skills não duplicam conteúdo: apontam para os
+arquivos reais em `~/.codeflow/framework/` ou para workflows de projeto em
+`<projeto>/.codeflow/`.
 
 **Mapeamento universal.** Para cada workflow
-`framework/library/workflows/<nome>.md`, existe prompt
-`~/.codex/prompts/<nome>.md`, invocado como `/prompts:<nome>`. Para cada
-meta-skill seed `framework/meta/<nome>/SKILL.md`, existe prompt homônimo.
-Skills regulares e agents não ganham prompt próprio.
+`framework/library/workflows/<nome>.md`, existe skill
+`~/.agents/skills/<nome>/SKILL.md`, invocada como `$<nome>`. Para cada
+meta-skill seed `framework/meta/<nome>/SKILL.md`, existe skill homônima.
+Skills regulares e agents do codeflow não ganham wrapper próprio.
 
-**Mapeamento de projeto.** Como os prompts do Codex são de escopo de usuário, o
-adapter registra workflows de projeto com prefixo explícito:
-`~/.codex/prompts/<prefixo>-<nome>.md`, invocado como
-`/prompts:<prefixo>-<nome>`. Exemplo: workflow
-`~/Projetos/ICC/.codeflow/workflows/deploy-staging.md` com prefixo `icc` vira
-`/prompts:icc-deploy-staging`.
+**Mapeamento de projeto.** Como as skills de usuário são globais, o adapter
+registra workflows de projeto com prefixo explícito:
+`~/.agents/skills/<prefixo>-<nome>/SKILL.md`, invocado como
+`$<prefixo>-<nome>`. Exemplo: workflow
+`~/Projetos/ICCNC/.codeflow/workflows/qa-staging.md` com prefixo `iccnc`
+vira `$iccnc-qa-staging`.
 
-**Conteúdo do prompt.** Formato literal definido em `ARTIFACTS_SPEC.md` §1.11.
-Resumo: frontmatter mínimo com `description` e marcador de geração, seguido de
-instrução em pt-BR para ler o arquivo real e executar o protocolo.
+**Conteúdo da skill-wrapper.** Formato literal definido em `ARTIFACTS_SPEC.md`
+§1.11. Resumo: frontmatter mínimo com `name`, `description` e marcador de
+geração, seguido de instrução em pt-BR para ler o arquivo real e executar o
+protocolo.
 
-**Nota de produto.** Custom prompts são compatibilidade para preservar o modelo
-mental de slash command do codeflow no Codex. Para workflows novos concebidos
-especificamente para Codex, skills nativas continuam sendo a forma recomendada
-pela ferramenta.
+**Setup universal: `setup-codex-skills.sh`.** Script na raiz do framework. Varre
+`framework/library/workflows/` e `framework/meta/`, gera/atualiza skills em
+`~/.agents/skills/`. Idempotente. Não toca em `.claude/`, `~/.claude/` nem
+em `~/.codex/prompts/`. Roda uma vez por máquina e novamente sempre que
+workflows ou meta-skills universais são adicionados ou removidos.
 
-**Setup universal: `setup-codex-prompts.sh`.** Script na raiz do framework. Varre `framework/library/workflows/` e `framework/meta/`, gera/atualiza prompts em `~/.codex/prompts/`. Idempotente. Não toca em `.claude/` nem em `~/.claude/`. Roda uma vez por máquina e novamente sempre que workflows ou meta-skills universais são adicionados ou removidos.
-
-**Setup de projeto: `setup-codex-prompts.sh --project-dir`.** Se `<projeto>/.codeflow/workflows/` existe e contém arquivos, o script gera prompts globais prefixados em `~/.codex/prompts/<prefixo>-<nome>.md`. O prefixo evita colisão entre projetos e universais.
+**Setup de projeto: `setup-codex-skills.sh --project-dir`.** Se
+`<projeto>/.codeflow/workflows/` existe e contém arquivos, o script gera
+skills globais prefixadas em `~/.agents/skills/<prefixo>-<nome>/SKILL.md`.
+O prefixo evita colisão entre projetos e universais.
 
 **Implicações operacionais em Codex:**
-- Editar conteúdo de workflow ou meta-skill **não** exige rodar o setup — prompts apontam para path, não copiam conteúdo.
-- Adicionar ou remover workflow/meta-skill universal exige rodar `setup-codex-prompts.sh`.
-- Adicionar ou remover workflow de projeto exige rodar `setup-codex-prompts.sh --project-dir <projeto> --project-prefix <prefixo>`.
-- Após criar ou alterar arquivos em `~/.codex/prompts/`, reiniciar o Codex ou abrir um chat novo para recarregar a lista.
+- Editar conteúdo de workflow ou meta-skill **não** exige rodar o setup — skills
+  apontam para path, não copiam conteúdo.
+- Adicionar ou remover workflow/meta-skill universal exige rodar
+  `setup-codex-skills.sh`.
+- Adicionar ou remover workflow de projeto exige rodar
+  `setup-codex-skills.sh --project-dir <projeto> --project-prefix <prefixo>`.
+- Após criar ou alterar arquivos em `~/.agents/skills/`, reiniciar o Codex ou
+  abrir um chat novo para recarregar a lista.
+
+**Compatibilidade: `setup-codex-prompts.sh`.** Custom prompts em
+`~/.codex/prompts/` são mantidos apenas para builds que exponham
+`/prompts:<nome>`. Na CLI local 0.146.0, esse namespace não é reconhecido; o
+caminho funcional é skills.
 
 **Anti-decisão (complementa §3.6):**
 - Não inventar registry, banco de dados, ou runtime para slash commands. O mecanismo é uma pasta com arquivos.

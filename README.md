@@ -1,5 +1,5 @@
 ---
-versão: 1.2
+versão: 1.3
 status: estável
 atualizado: 2026-07-29
 ---
@@ -46,38 +46,39 @@ em nenhum outro arquivo do projeto.
 - Projeto novo: invoque `/bootstrap` para criar estrutura mínima e os
   artefatos iniciais do `.codeflow/` a partir de uma ideia.
 
-## Slash commands no Codex
+## Workflows no Codex
 
-O adapter de Codex usa custom prompts em `~/.codex/prompts/`. A invocação no
-Codex fica com o prefixo nativo de prompts:
+O adapter principal de Codex usa skills locais em `~/.agents/skills/`. A
+invocação no Codex fica com `$<nome>` ou pelo menu `/skills`:
 
 ```
-bash ~/.codeflow/setup-codex-prompts.sh
+bash ~/.codeflow/setup-codex-skills.sh
 ```
 
 Depois reinicie o Codex ou abra um chat novo. No dia a dia:
 
 ```
-/prompts:bugfix Corrija o bug descrito...
-/prompts:create-spec Quero especificar...
-/prompts:execute-spec-phase Execute a fase 2...
+$bugfix Corrija o bug descrito...
+$create-spec Quero especificar...
+$execute-spec-phase Execute a fase 2...
 ```
 
 Para workflows específicos de um projeto, registre-os com prefixo para evitar
 colisão com comandos universais:
 
 ```
-bash ~/.codeflow/setup-codex-prompts.sh --project-dir ~/Projetos/ICC --project-prefix icc
+bash ~/.codeflow/setup-codex-skills.sh --project-dir ~/Projetos/ICCNC --project-prefix iccnc
 ```
 
 A invocação fica:
 
 ```
-/prompts:icc-<workflow>
+$iccnc-<workflow>
 ```
 
-Skills regulares não viram comandos próprios: elas continuam sendo carregadas
-pelos workflows via `## LEIA TAMBÉM`.
+Custom prompts em `~/.codex/prompts/` são mantidos apenas como adapter de
+compatibilidade para builds que exponham `/prompts:<nome>`. Na CLI local
+0.146.0, o caminho funcional é skills.
 
 ## Estrutura do framework
 
@@ -90,7 +91,9 @@ A árvore completa está descrita em `framework/core/SPEC.md` §2.2. Em alto ní
 - `framework/library/` — skills e workflows universais seed.
 - `install.sh` — script de instalação em projeto-alvo.
 - `setup-slash-commands.sh` — sincroniza wrappers para Claude Code.
-- `setup-codex-prompts.sh` — sincroniza prompts customizados para Codex.
+- `setup-codex-skills.sh` — sincroniza skills locais para Codex.
+- `setup-codex-prompts.sh` — sincroniza prompts customizados para builds de
+  Codex que exponham `/prompts:<nome>`.
 
 ## Documentação detalhada
 

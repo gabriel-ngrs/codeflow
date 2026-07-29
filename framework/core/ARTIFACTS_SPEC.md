@@ -1,5 +1,5 @@
 ---
-versão: 2.1
+versão: 2.2
 status: estável
 atualizado: 2026-07-29
 documento: ARTIFACTS_SPEC.md
@@ -1662,13 +1662,14 @@ Wrappers materializam a decisão de `SPEC.md` §3.6: cada workflow universal e c
 
 #### 1.11.1 Localização
 
-Três caminhos canônicos, conforme ferramenta e escopo:
+Quatro caminhos canônicos, conforme ferramenta e escopo:
 
 - **Claude Code universal:** `~/.claude/commands/<nome>.md` — disponível em qualquer projeto.
 - **Claude Code projeto:** `<projeto>/.claude/commands/<nome>.md` — disponível apenas dentro do projeto; sobrescreve homônimo universal.
-- **Codex universal e projeto:** `~/.codex/prompts/<nome>.md` — disponível em qualquer projeto via `/prompts:<nome>`. Workflows de projeto devem usar prefixo explícito (`<prefixo>-<nome>.md`) porque o Codex não tem prompts de escopo local por projeto.
+- **Codex skills universal e projeto:** `~/.agents/skills/<nome>/SKILL.md` — disponível em qualquer projeto via `$<nome>` ou menu `/skills`. Workflows de projeto devem usar prefixo explícito (`<prefixo>-<nome>`) porque skills de usuário são globais.
+- **Codex prompts compatibilidade:** `~/.codex/prompts/<nome>.md` — disponível apenas em builds que exponham `/prompts:<nome>`.
 
-Wrappers **não** vivem em `~/.codeflow/framework/` nem em `<projeto>/.codeflow/` — são gerados em `~/.claude/commands/` (pelo `setup-slash-commands.sh`), em `<projeto>/.claude/commands/` (pelo `install.sh`) ou em `~/.codex/prompts/` (pelo `setup-codex-prompts.sh`).
+Wrappers **não** vivem em `~/.codeflow/framework/` nem em `<projeto>/.codeflow/` — são gerados em `~/.claude/commands/` (pelo `setup-slash-commands.sh`), em `<projeto>/.claude/commands/` (pelo `install.sh`), em `~/.agents/skills/` (pelo `setup-codex-skills.sh`) ou em `~/.codex/prompts/` (pelo `setup-codex-prompts.sh`, adapter de compatibilidade).
 
 #### 1.11.2 Propósito
 
@@ -1676,7 +1677,7 @@ Fechar o gap entre a decisão arquitetural de `SPEC.md` §3.6 (workflows via sla
 
 #### 1.11.3 Schema obrigatório
 
-**Frontmatter:** opcional para Claude Code; recomendado para Codex. Se presente em wrappers Claude, segue os campos universais de §0.2 (versão, status, atualizado). Em prompts Codex, pode conter metadata própria da ferramenta (`description`, `argument-hint`) e marcador de geração (`codeflow-generated`, `codeflow-source`).
+**Frontmatter:** opcional para Claude Code; obrigatório para Codex skills e recomendado para Codex prompts. Se presente em wrappers Claude, segue os campos universais de §0.2 (versão, status, atualizado). Em Codex skills, contém `name`, `description`, `codeflow-generated` e `codeflow-source`. Em Codex prompts, pode conter `description`, `argument-hint`, `codeflow-generated` e `codeflow-source`.
 
 **Corpo:**
 
@@ -1689,7 +1690,7 @@ Fechar o gap entre a decisão arquitetural de `SPEC.md` §3.6 (workflows via sla
 
 - Tamanho-alvo: 2 a 4 linhas. Acima de 6 sinaliza que conteúdo do workflow vazou para o wrapper.
 - Nome do arquivo (`<nome>.md`) **deve** bater com o nome do workflow/meta-skill referenciado.
-- Em Codex, workflows de projeto podem usar nome prefixado (`<prefixo>-<nome>.md`) para evitar colisão no escopo global de `~/.codex/prompts/`.
+- Em Codex, workflows de projeto devem usar nome prefixado (`<prefixo>-<nome>` em skills; `<prefixo>-<nome>.md` em prompts de compatibilidade) para evitar colisão no escopo global.
 
 #### 1.11.4 Schema opcional
 
@@ -1719,7 +1720,22 @@ Leia ~/projetos/meu-projeto/.codeflow/workflows/deploy-staging.md e execute
 o protocolo descrito ali. Carregue ## LEIA TAMBÉM antes de começar.
 ```
 
-Prompt Codex para um workflow universal:
+Skill Codex para um workflow universal:
+
+```markdown
+---
+name: bugfix
+description: Execute o workflow codeflow bugfix; use quando o usuário invocar $bugfix ou pedir explicitamente este workflow.
+codeflow-generated: setup-codex-skills.sh
+codeflow-source: ~/.codeflow/framework/library/workflows/bugfix.md
+---
+
+Leia ~/.codeflow/framework/library/workflows/bugfix.md e execute o protocolo
+descrito ali, aplicando ao projeto atual. Carregue todos os arquivos listados
+em ## LEIA TAMBÉM antes de começar.
+```
+
+Prompt Codex de compatibilidade para um workflow universal:
 
 ```markdown
 ---
@@ -1738,7 +1754,7 @@ em ## LEIA TAMBÉM antes de começar.
 1. Corpo tem entre 2 e 6 linhas (alvo: 2-4).
 2. O corpo contém exatamente uma referência começando com `~/.codeflow/framework/` (universal) ou caminho absoluto para `<projeto>/.codeflow/` (projeto).
 3. Path referenciado existe no disco (verificação dinâmica feita pelos scripts de sincronização ao gerar/atualizar).
-4. Nome do arquivo `<nome>.md` bate com nome do arquivo referenciado (last segment do path, sem `.md` ou sem `/SKILL.md`). Em Codex para workflow de projeto, o nome pode ser `<prefixo>-<nome>.md`, desde que o sufixo `<nome>` bata com o workflow referenciado.
+4. Nome do wrapper bate com o nome do workflow/meta-skill referenciado: `<nome>.md` em Claude/prompts, ou diretório `<nome>/SKILL.md` em Codex skills. Em Codex para workflow de projeto, o nome pode ser `<prefixo>-<nome>`, desde que o sufixo `<nome>` bata com o workflow referenciado.
 5. Conteúdo é em pt-BR (conforme §0.4).
 6. Nenhuma seção markdown (`##`, `###`) — wrapper é prosa curta, não documento estruturado.
 7. Não contém código, scripts, nem instruções operacionais além de "leia X e execute".
@@ -1748,8 +1764,8 @@ em ## LEIA TAMBÉM antes de começar.
 - **Duplicar conteúdo do workflow no wrapper.** Wrapper apenas aponta; conteúdo vive no arquivo referenciado. Atualização do workflow propaga automaticamente.
 - **Lógica condicional no wrapper.** "Se for projeto Python, leia X; senão Y." Lógica vive no workflow. Wrapper é dispatch puro.
 - **Wrapper para skill regular ou agent.** Skills são carregadas por workflows via `## LEIA TAMBÉM`; agents são invocados de dentro de workflows. Criar slash command próprio quebra o modelo de composição (`SPEC.md` §4.3.4, §4.5.2).
-- **Frontmatter com campos exóticos.** Em Claude, apenas os universais de §0.2 quando presente. Em Codex, limitar aos campos de metadata do prompt e aos marcadores `codeflow-generated`/`codeflow-source`.
-- **Modificar wrappers à mão.** São gerados por `setup-slash-commands.sh` e `install.sh`. Edições manuais são sobrescritas na próxima sincronização.
+- **Frontmatter com campos exóticos.** Em Claude, apenas os universais de §0.2 quando presente. Em Codex skills, limitar a `name`, `description` e marcadores `codeflow-generated`/`codeflow-source`. Em Codex prompts, limitar aos campos de metadata do prompt e aos mesmos marcadores.
+- **Modificar wrappers à mão.** São gerados por `setup-slash-commands.sh`, `install.sh`, `setup-codex-skills.sh` e `setup-codex-prompts.sh`. Edições manuais são sobrescritas na próxima sincronização.
 
 ---
 

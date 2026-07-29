@@ -1,5 +1,5 @@
 ---
-versão: 1.1
+versão: 1.2
 status: estável
 atualizado: 2026-07-29
 descrição: Entrevista o usuário e gera workflow novo no formato correto.
@@ -51,10 +51,10 @@ Workflow novo nasce de necessidade concreta e usada, não de especulação. A en
 ### Passo 7 — Registrar slash command
 - Se o workflow gerado foi salvo em `~/.codeflow/framework/library/workflows/`, registrar conforme a ferramenta em uso:
   - Claude Code: executar `bash ~/.codeflow/setup-slash-commands.sh` para criar o wrapper em `~/.claude/commands/<nome>.md`.
-  - Codex: executar `bash ~/.codeflow/setup-codex-prompts.sh` para criar o prompt em `~/.codex/prompts/<nome>.md`, invocado como `/prompts:<nome>`.
+  - Codex: executar `bash ~/.codeflow/setup-codex-skills.sh` para criar a skill em `~/.agents/skills/<nome>/SKILL.md`, invocada como `$<nome>` ou via `/skills`.
 - Se o workflow foi salvo em `<projeto>/.codeflow/workflows/`, registrar conforme a ferramenta em uso:
   - Claude Code: **não** rodar o script universal; o wrapper local é criado por `install.sh` na próxima vez que rodar no projeto (ou pode-se rodar `bash ~/.codeflow/install.sh` imediatamente para sincronizar).
-  - Codex: executar `bash ~/.codeflow/setup-codex-prompts.sh --project-dir <projeto> --project-prefix <prefixo>` para criar `/prompts:<prefixo>-<nome>`.
+  - Codex: executar `bash ~/.codeflow/setup-codex-skills.sh --project-dir <projeto> --project-prefix <prefixo>` para criar `$<prefixo>-<nome>`.
 - Confirmar com o usuário que o slash command da ferramenta atual está disponível antes de encerrar.
 
 ## Proibições durante esta meta-skill
