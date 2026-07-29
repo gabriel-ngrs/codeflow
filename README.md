@@ -1,7 +1,7 @@
 ---
-versão: 1.1
+versão: 1.2
 status: estável
-atualizado: 2026-06-15
+atualizado: 2026-07-29
 ---
 
 # codeflow
@@ -46,6 +46,39 @@ em nenhum outro arquivo do projeto.
 - Projeto novo: invoque `/bootstrap` para criar estrutura mínima e os
   artefatos iniciais do `.codeflow/` a partir de uma ideia.
 
+## Slash commands no Codex
+
+O adapter de Codex usa custom prompts em `~/.codex/prompts/`. A invocação no
+Codex fica com o prefixo nativo de prompts:
+
+```
+bash ~/.codeflow/setup-codex-prompts.sh
+```
+
+Depois reinicie o Codex ou abra um chat novo. No dia a dia:
+
+```
+/prompts:bugfix Corrija o bug descrito...
+/prompts:create-spec Quero especificar...
+/prompts:execute-spec-phase Execute a fase 2...
+```
+
+Para workflows específicos de um projeto, registre-os com prefixo para evitar
+colisão com comandos universais:
+
+```
+bash ~/.codeflow/setup-codex-prompts.sh --project-dir ~/Projetos/ICC --project-prefix icc
+```
+
+A invocação fica:
+
+```
+/prompts:icc-<workflow>
+```
+
+Skills regulares não viram comandos próprios: elas continuam sendo carregadas
+pelos workflows via `## LEIA TAMBÉM`.
+
 ## Estrutura do framework
 
 A árvore completa está descrita em `framework/core/SPEC.md` §2.2. Em alto nível:
@@ -56,6 +89,8 @@ A árvore completa está descrita em `framework/core/SPEC.md` §2.2. Em alto ní
 - `framework/meta/` — meta-skills (`discover`, `bootstrap`, `create-*`).
 - `framework/library/` — skills e workflows universais seed.
 - `install.sh` — script de instalação em projeto-alvo.
+- `setup-slash-commands.sh` — sincroniza wrappers para Claude Code.
+- `setup-codex-prompts.sh` — sincroniza prompts customizados para Codex.
 
 ## Documentação detalhada
 

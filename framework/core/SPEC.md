@@ -1,7 +1,7 @@
 ---
-versão: 3.0
+versão: 3.1
 status: estável
-atualizado: 2026-06-15
+atualizado: 2026-07-29
 documento: SPEC.md
 projeto: codeflow
 localização: framework/core/SPEC.md (instalado em ~/.codeflow/framework/core/SPEC.md)
@@ -212,6 +212,8 @@ Esta localização contém **tudo que é universal** ao framework.
 │           └── design-pass.md          ← passe de design/UI sobre a superfície tocada
 │
 ├── install.sh                      ← script de instalação em projeto-alvo
+├── setup-slash-commands.sh         ← sincroniza wrappers para Claude Code
+├── setup-codex-prompts.sh          ← sincroniza prompts customizados para Codex
 └── README.md                       ← manual de uso geral
 ```
 
@@ -402,7 +404,7 @@ Formato de cada decisão:
 **Justificativa:** Disciplinar a IA exige tirar dela a decisão de "qual processo seguir". O usuário, ao invocar um workflow, está explicitamente declarando o tipo de tarefa e ativando o protocolo correspondente. Slash commands existem nativamente em Claude Code, Codex, Cursor — não inventamos mecanismo novo. O nome do arquivo do workflow é o nome do comando.
 
 **Implicações:**
-- Cada workflow em `framework/library/workflows/<nome>.md` se torna automaticamente `/nome` na ferramenta de IA.
+- Cada workflow em `framework/library/workflows/<nome>.md` se torna automaticamente um slash command na ferramenta de IA (`/<nome>` em Claude Code; `/prompts:<nome>` em Codex).
 - A IA não tenta classificar a tarefa do usuário em workflow — ela apenas executa o que foi invocado.
 - Se o usuário pedir tarefa sem invocar workflow, a IA opera em "modo livre" (sem protocolo), guiada apenas pela constitution.
 
@@ -413,7 +415,7 @@ Formato de cada decisão:
 
 #### 3.6.1 Implementação em Claude Code
 
-A decisão acima delegou à ferramenta de IA o disparo de workflows. Esta subseção documenta como o disparo é materializado **em Claude Code**. Outras ferramentas (Codex, Cursor) suportam mecanismo análogo; adapters específicos ficam fora do escopo da v1.0.0.
+A decisão acima delegou à ferramenta de IA o disparo de workflows. Esta subseção documenta como o disparo é materializado **em Claude Code**. O adapter de Codex é documentado na §3.6.2; adapters para outras ferramentas ficam fora do escopo atual.
 
 **Mecanismo.** Claude Code descobre slash commands custom em dois caminhos nativos:
 
@@ -432,10 +434,55 @@ A nível de projeto: cada workflow em `<projeto>/.codeflow/workflows/<nome>.md` 
 
 **Setup de projeto: extensão de `install.sh`.** Após criar `.codeflow/` no projeto, se `<projeto>/.codeflow/workflows/` existe e contém arquivos, `install.sh` gera wrappers em `<projeto>/.claude/commands/`. Roda toda vez que `install.sh` é invocado (idempotente).
 
-**Implicações operacionais:**
+**Implicações operacionais em Claude Code:**
 - Editar conteúdo de workflow ou meta-skill **não** exige rodar o setup — wrappers apontam para path, não copiam conteúdo.
 - Adicionar ou remover workflow/meta-skill universal exige rodar `setup-slash-commands.sh` (ou usar `create-workflow` que dispara automaticamente).
 - Trocar de máquina exige rodar `setup-slash-commands.sh` uma vez no setup inicial.
+
+#### 3.6.2 Implementação em Codex
+
+O adapter de Codex materializa a mesma decisão usando **custom prompts** do Codex
+CLI. No Codex, a invocação fica `/prompts:<nome>` em vez de `/<nome>`.
+
+**Mecanismo.** Codex descobre prompts customizados em:
+
+- `~/.codex/prompts/<nome>.md` — disponível em qualquer projeto do usuário.
+
+O codeflow gera prompts curtos nesse caminho por meio de
+`setup-codex-prompts.sh`. Esses prompts apontam para os arquivos reais em
+`~/.codeflow/framework/` ou para workflows de projeto em `<projeto>/.codeflow/`.
+
+**Mapeamento universal.** Para cada workflow
+`framework/library/workflows/<nome>.md`, existe prompt
+`~/.codex/prompts/<nome>.md`, invocado como `/prompts:<nome>`. Para cada
+meta-skill seed `framework/meta/<nome>/SKILL.md`, existe prompt homônimo.
+Skills regulares e agents não ganham prompt próprio.
+
+**Mapeamento de projeto.** Como os prompts do Codex são de escopo de usuário, o
+adapter registra workflows de projeto com prefixo explícito:
+`~/.codex/prompts/<prefixo>-<nome>.md`, invocado como
+`/prompts:<prefixo>-<nome>`. Exemplo: workflow
+`~/Projetos/ICC/.codeflow/workflows/deploy-staging.md` com prefixo `icc` vira
+`/prompts:icc-deploy-staging`.
+
+**Conteúdo do prompt.** Formato literal definido em `ARTIFACTS_SPEC.md` §1.11.
+Resumo: frontmatter mínimo com `description` e marcador de geração, seguido de
+instrução em pt-BR para ler o arquivo real e executar o protocolo.
+
+**Nota de produto.** Custom prompts são compatibilidade para preservar o modelo
+mental de slash command do codeflow no Codex. Para workflows novos concebidos
+especificamente para Codex, skills nativas continuam sendo a forma recomendada
+pela ferramenta.
+
+**Setup universal: `setup-codex-prompts.sh`.** Script na raiz do framework. Varre `framework/library/workflows/` e `framework/meta/`, gera/atualiza prompts em `~/.codex/prompts/`. Idempotente. Não toca em `.claude/` nem em `~/.claude/`. Roda uma vez por máquina e novamente sempre que workflows ou meta-skills universais são adicionados ou removidos.
+
+**Setup de projeto: `setup-codex-prompts.sh --project-dir`.** Se `<projeto>/.codeflow/workflows/` existe e contém arquivos, o script gera prompts globais prefixados em `~/.codex/prompts/<prefixo>-<nome>.md`. O prefixo evita colisão entre projetos e universais.
+
+**Implicações operacionais em Codex:**
+- Editar conteúdo de workflow ou meta-skill **não** exige rodar o setup — prompts apontam para path, não copiam conteúdo.
+- Adicionar ou remover workflow/meta-skill universal exige rodar `setup-codex-prompts.sh`.
+- Adicionar ou remover workflow de projeto exige rodar `setup-codex-prompts.sh --project-dir <projeto> --project-prefix <prefixo>`.
+- Após criar ou alterar arquivos em `~/.codex/prompts/`, reiniciar o Codex ou abrir um chat novo para recarregar a lista.
 
 **Anti-decisão (complementa §3.6):**
 - Não inventar registry, banco de dados, ou runtime para slash commands. O mecanismo é uma pasta com arquivos.

@@ -1,7 +1,7 @@
 ---
-versão: 1.0
+versão: 1.1
 status: estável
-atualizado: 2026-05-23
+atualizado: 2026-07-29
 descrição: Entrevista o usuário e gera workflow novo no formato correto.
 é_meta_skill: yes
 granularidade: médio
@@ -48,10 +48,14 @@ Workflow novo nasce de necessidade concreta e usada, não de especulação. A en
 ### Passo 6 — Validar e apresentar
 - Aplicar `## Validação pós-geração`. Se qualquer check falha, corrigir antes de apresentar.
 
-### Passo 7 — Registrar slash command (apenas workflows universais)
-- Se o workflow gerado foi salvo em `~/.codeflow/framework/library/workflows/`, executar `bash ~/.codeflow/setup-slash-commands.sh` para criar o wrapper em `~/.claude/commands/<nome>.md` conforme `SPEC.md` §3.6.1 e `ARTIFACTS_SPEC.md` §1.11.
-- Se o workflow foi salvo em `<projeto>/.codeflow/workflows/`, **não** rodar o script universal. O wrapper local é criado por `install.sh` na próxima vez que rodar no projeto (ou pode-se rodar `bash ~/.codeflow/install.sh` imediatamente para sincronizar).
-- Confirmar com o usuário que o slash command (`/<nome>`) está disponível antes de encerrar.
+### Passo 7 — Registrar slash command
+- Se o workflow gerado foi salvo em `~/.codeflow/framework/library/workflows/`, registrar conforme a ferramenta em uso:
+  - Claude Code: executar `bash ~/.codeflow/setup-slash-commands.sh` para criar o wrapper em `~/.claude/commands/<nome>.md`.
+  - Codex: executar `bash ~/.codeflow/setup-codex-prompts.sh` para criar o prompt em `~/.codex/prompts/<nome>.md`, invocado como `/prompts:<nome>`.
+- Se o workflow foi salvo em `<projeto>/.codeflow/workflows/`, registrar conforme a ferramenta em uso:
+  - Claude Code: **não** rodar o script universal; o wrapper local é criado por `install.sh` na próxima vez que rodar no projeto (ou pode-se rodar `bash ~/.codeflow/install.sh` imediatamente para sincronizar).
+  - Codex: executar `bash ~/.codeflow/setup-codex-prompts.sh --project-dir <projeto> --project-prefix <prefixo>` para criar `/prompts:<prefixo>-<nome>`.
+- Confirmar com o usuário que o slash command da ferramenta atual está disponível antes de encerrar.
 
 ## Proibições durante esta meta-skill
 
