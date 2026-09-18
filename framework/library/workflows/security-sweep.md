@@ -123,7 +123,11 @@ Colher o sinal barato e determinístico dos scanners estáticos antes de gastar 
    (`npm audit` / `pnpm audit` / equivalente), saída em JSON.
 4. **Lint de segurança do próprio projeto**, se houver (`eslint-plugin-security`, checagem de
    fronteiras, `contract:check`) — rodar os comandos do `.codeflow/manifest.md`.
-5. **Normalizar** todas as saídas numa lista única de candidatos, cada um com arquivo:linha, regra e
+5. **Onde gravar a saída bruta:** todo relatório de scanner (`.json`/`.sarif`/dumps) vai para um
+   diretório de trabalho **fora do controle de versão** — o scratchpad da sessão ou um `.codeflow/`
+   path já no `.gitignore`. Nunca dentro de diretório versionado. Essa saída é **apagada na Fase 6**;
+   só o ledger curado é versionado.
+6. **Normalizar** todas as saídas numa lista única de candidatos, cada um com arquivo:linha, regra e
    severidade bruta. Não julgar ainda — julgar é a Fase 5. Marcar no ledger de cobertura as linhas que
    cada scanner tocou.
 
@@ -205,7 +209,9 @@ finalizar.
 3. Atualizar `.codeflow/decisions/INDEX.md`.
 4. **Encaminhar** os confirmados: apontar que o próximo passo é `/batch-bugfix` sobre o ledger gerado,
    e depois `/double-check` para verificar cada fix.
-5. Apresentar o resumo final no formato fixo de cinco seções. Concluído com sucesso, deletar os
+5. **Apagar a saída bruta dos scanners** (os `.json`/`.sarif`/dumps da Fase 3): ela cumpriu o papel de
+   alimentar a triagem e não é versionada. O que fica é o ledger curado e a decision.
+6. Apresentar o resumo final no formato fixo de cinco seções. Concluído com sucesso, deletar os
    checkpoints da execução.
 
 ## Proibições durante este workflow
@@ -216,6 +222,8 @@ finalizar.
 - Não reportar achado bruto de scanner como vulnerabilidade sem passar pela triagem da Fase 5.
 - Não colar segredo real, payload de exploração ou dump sensível em log, ticket ou arquivo versionado
   em claro.
+- Não gravar saída bruta de scanner dentro de diretório versionado: ela vive em scratch fora do git e
+  é apagada na Fase 6. Só o ledger curado é versionado.
 - Não aplicar fix de produção aqui: este workflow descobre e valida; corrigir é `/batch-bugfix`.
 - Não pular a Fase 2 (mapa) e sair caçando — sem superfície mapeada não há cobertura, só achados
   soltos.
