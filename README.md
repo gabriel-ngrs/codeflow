@@ -15,7 +15,9 @@ deixando ao projeto-alvo apenas o que é específico dele.
 Use o codeflow em projetos onde uma IA executa tarefas estruturadas — correção
 de bug (`/bugfix`) e o pipeline de spec (especificar, executar e avaliar uma
 feature fase a fase, com `/create-spec`, `/execute-spec-phase`,
-`/evaluate-spec-phase` e `/spec-status`) — e você quer respostas consistentes,
+`/evaluate-spec-phase` e `/spec-status`), o ciclo de mudança para melhorias e
+features pequenas e médias (planejar, implementar e revisar, com `/plan-change`,
+`/implement-change` e `/review-change`) — e você quer respostas consistentes,
 diff mínimo e decisões registradas.
 
 ## Pré-requisitos
