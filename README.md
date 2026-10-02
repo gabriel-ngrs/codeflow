@@ -17,8 +17,9 @@ de bug (`/bugfix`) e o pipeline de spec (especificar, executar e avaliar uma
 feature fase a fase, com `/create-spec`, `/execute-spec-phase`,
 `/evaluate-spec-phase` e `/spec-status`), o ciclo de mudança para melhorias e
 features pequenas e médias (planejar, implementar e revisar, com `/plan-change`,
-`/implement-change` e `/review-change`) — e você quer respostas consistentes,
-diff mínimo e decisões registradas.
+`/implement-change` e `/review-change`) e a auditoria de repositório por
+dimensão (`/audit` e `/verify-audit`, com `/security-sweep` para segurança) —
+e você quer respostas consistentes, diff mínimo e decisões registradas.
 
 ## Pré-requisitos
 
