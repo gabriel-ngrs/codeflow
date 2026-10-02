@@ -1,7 +1,7 @@
 ---
-versão: 1.0
+versão: 1.1
 status: experimental
-atualizado: 2026-10-01
+atualizado: 2026-10-02
 descrição: Executar um workflow despachado por um orquestrador (Maestro) — gates humanos respondidos pelas decisões delegadas, o resto volta como PARADO, sem subagente, retorno curto.
 ---
 
@@ -54,6 +54,9 @@ Quando o workflow mandar confirmar, perguntar ou aguardar o dono:
 
 ### 5. Commit, e só commit
 - Commitar no ramo do despacho, seguindo as rules de commit do projeto (inclusive a de atribuição).
+- Adicionar ao commit **só os arquivos que o trabalho tocou**, pelo caminho (`git add <caminho>...`),
+  e conferir com `git status` antes. Nunca `git add -A` nem `git add .`: a pasta pode ter arquivos
+  locais (configuração, segredo, saída de ferramenta) que não são do trabalho.
   Se o workflow não commita por padrão e o despacho manda commitar, commitar.
 - **Não** fazer push, abrir PR nem merge, a menos que o despacho mande explicitamente.
 
@@ -84,6 +87,7 @@ Quando o workflow mandar confirmar, perguntar ou aguardar o dono:
 - Não decidir escopo, nem nada irreversível, por conta própria — isso é o caso (c).
 - Não trocar de ramo, nem trabalhar em `dev`, `main` ou `master`.
 - Não fazer push, PR ou merge sem ordem explícita no despacho.
+- Não usar `git add -A` nem `git add .` — só os caminhos que o trabalho tocou.
 - Não colar segredo, credencial ou dado real no retorno, no relatório ou no canvas.
 - Não mandar ao orquestrador o relatório inteiro: o detalhe fica em disco, o retorno tem até 15 linhas.
 
