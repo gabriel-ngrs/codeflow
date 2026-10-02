@@ -1,5 +1,5 @@
 ---
-versão: 1.1
+versão: 1.2
 status: experimental
 atualizado: 2026-10-02
 descrição: Executar um workflow despachado por um orquestrador (Maestro) — gates humanos respondidos pelas decisões delegadas, o resto volta como PARADO, sem subagente, retorno curto.
@@ -29,6 +29,10 @@ silencioso, nunca vira pergunta esperando no terminal. A delegação troca **que
   relativos (`.codeflow/...`) e quebram fora dela.
 - Conferir o ramo: tem de ser **o ramo declarado no despacho**. Se o ramo atual for outro, ou for
   `dev`/`main`/`master`, parar em `PARADO` — não trocar de ramo por conta própria.
+- **Exceção — `Ramo: somente leitura`.** Quando o despacho declara isso (investigação, levantamento,
+  leitura de código), o trabalho **não escreve no repositório**: a conferência de ramo não se aplica,
+  e fica proibido editar arquivo versionado, commitar ou trocar de ramo. A saída vai para o caminho
+  **fora do repositório** que o despacho indicar.
 - Ler o bloco de despacho e guardar: o **nome do orquestrador**, o **workflow**, as **decisões
   delegadas** (numeradas) e as **regras do projeto** que vieram nele.
 
