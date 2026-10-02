@@ -1,7 +1,7 @@
 ---
 versão: 3.2
 status: estável
-atualizado: 2026-07-29
+atualizado: 2026-10-02
 documento: SPEC.md
 projeto: codeflow
 localização: framework/core/SPEC.md (instalado em ~/.codeflow/framework/core/SPEC.md)
@@ -33,7 +33,7 @@ audiência secundária: desenvolvedores que mantêm/evoluem o framework
 - [Parte 3 — Decisões fundamentais](#parte-3--decisões-fundamentais)
   - [3.1 Stack de implementação: bash + markdown](#31-stack-de-implementação-bash--markdown)
   - [3.2 Idioma: pt-BR](#32-idioma-pt-br)
-  - [3.3 Distribuição: GitHub privado com atualização via git pull](#33-distribuição-github-privado-com-atualização-via-git-pull)
+  - [3.3 Distribuição: GitHub público com atualização via git pull](#33-distribuição-github-público-com-atualização-via-git-pull)
   - [3.4 Localização única: `~/.codeflow/` (via symlink)](#34-localização-única-codeflow-via-symlink)
   - [3.5 Organização: universais planas + projetos isolados (Abordagem 3)](#35-organização-universais-planas--projetos-isolados-abordagem-3)
   - [3.6 Invocação: slash commands disparados pelo usuário](#36-invocação-slash-commands-disparados-pelo-usuário)
@@ -155,7 +155,7 @@ O codeflow opera em duas localizações físicas separadas, cada uma com papel d
 
 ```
 ~/.codeflow/                    ← DEFINIÇÕES reutilizáveis
-  (clone do GitHub privado)
+  (clone do GitHub público)
   (atualiza via git pull)
   (única na máquina, serve todos os projetos)
 
@@ -220,7 +220,7 @@ Esta localização contém **tudo que é universal** ao framework.
 
 **Atualização:** uma vez via `git pull` em `~/.codeflow/`. Todos os projetos que usam o framework veem a mudança imediatamente (não há cópia local).
 
-**Edição:** somente pelo mantenedor do framework (você). Workflows do dia a dia nunca modificam `~/.codeflow/`. Modificar exige operações deliberadas: `cd ~/.codeflow && git pull`, edição manual, commit, push.
+**Edição:** somente pelo mantenedor do framework (você). Workflows do dia a dia nunca modificam `~/.codeflow/`. Modificar exige operações deliberadas, numa worktree de trilha do repositório: ramo, commit, pull request e merge. O clone que `~/.codeflow` expõe só recebe `git pull --ff-only` depois do merge (`.codeflow/constitution.md` do repositório).
 
 ### 2.3 `.codeflow/` no projeto — Estado específico
 
@@ -346,17 +346,17 @@ Formato de cada decisão:
 - Não misturar idiomas dentro do mesmo arquivo.
 - Não traduzir termos técnicos consagrados em inglês (ex: "commit", "diff", "workflow" permanecem).
 
-### 3.3 Distribuição: GitHub privado com atualização via git pull
+### 3.3 Distribuição: GitHub público com atualização via git pull
 
-**Decisão:** O framework deve ser distribuído como repositório Git privado no GitHub. Atualizações chegam aos usuários via `git pull` natural.
+**Decisão:** O framework deve ser distribuído como repositório Git público no GitHub. Atualizações chegam aos usuários via `git pull` natural.
 
-**Justificativa:** Git é universal, gratuito, versionado, e suporta privacidade nativa. Não há necessidade de empacotador (npm, pip, brew), servidor próprio, ou mecanismo customizado de update. Repositório privado evita exposição prematura enquanto framework amadurece. Pode ser tornado público no futuro com um clique.
+**Justificativa:** Git é universal, gratuito e versionado. Não há necessidade de empacotador (npm, pip, brew), servidor próprio, ou mecanismo customizado de update. Como o repositório é público, nada versionado nele carrega segredo, credencial, dado real ou nome de cliente ou de pessoa.
 
 **Implicações:**
-- Mantenedor edita em `~/Projetos/codeflow/`, commit, push.
+- Mantenedor edita numa worktree de trilha, com pull request e merge; o clone principal só recebe `git pull --ff-only` (`.codeflow/constitution.md` do repositório).
 - Usuários atualizam com `cd ~/.codeflow && git pull` (ou equivalente via symlink).
 - Versionamento de release segue tags git semânticas quando aplicável.
-- Colaboradores recebem acesso via GitHub collaborator (read-only por padrão).
+- A leitura é aberta; a escrita é dada via GitHub collaborator.
 
 **Anti-decisão:**
 - Não publicar em npm, pip, brew, ou qualquer package manager.
