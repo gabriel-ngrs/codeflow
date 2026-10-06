@@ -1330,7 +1330,7 @@ Decisões significativas são gravadas em `.codeflow/decisions/`. Uma decisão p
 Workflows declaram em seu cabeçalho:
 - `gera_decision: yes` → sempre gera ao concluir.
 - `gera_decision: no` → nunca gera (ex: spec-status, create-spec, execute-spec-phase).
-- `gera_decision: auto` → IA decide com base na natureza da tarefa (ex: bugfix de typo não gera; bugfix com mudança arquitetural gera).
+- `gera_decision: auto` → IA decide pelos gatilhos que o workflow declara (ex: bugfix comum não gera — o porquê vai no commit; default após incerteza do dono ou divergência da constitution gera).
 
 #### 6.5.2 Formato
 
