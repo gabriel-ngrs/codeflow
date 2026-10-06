@@ -1,7 +1,7 @@
 ---
-versão: 3.2
+versão: 3.3
 status: estável
-atualizado: 2026-10-02
+atualizado: 2026-10-05
 documento: SPEC.md
 projeto: codeflow
 localização: framework/core/SPEC.md (instalado em ~/.codeflow/framework/core/SPEC.md)
@@ -705,10 +705,10 @@ A maioria dos workflows é **independente**: uma invocação resolve a tarefa in
 
 - **`/create-spec`** (detalhado) — sonda o repositório e produz **um único documento autoexecutável** (`SPEC_<NAME>.md`) com requisitos, abordagem técnica e um **plano de desenvolvimento por fases** (§5). Vive na branch atual (o pipeline não cria nem troca de branch; quem gerencia a branch é o owner).
 - **`/execute-spec-phase`** (médio) — executa **uma fase por vez** (TDD, escopo fechado), commita e grava o relatório `FASE-<id>-<slug>-EXECUCAO.md` com frontmatter machine-readable.
-- **`/evaluate-spec-phase`** (médio) — avalia a fase **em chat zerado independente**, sem confiar no relatório: verifica tudo contra o código real e emite um **veredito** (`APROVADO`/`RESSALVAS`/`REPROVADO`). Só `APROVADO` conclui a fase.
+- **`/evaluate-spec-phase`** (médio) — avalia a fase **em chat zerado independente**, sem confiar no relatório: verifica tudo contra o código real e emite um **veredito** (`APROVADO`/`REPROVADO`/`PENDENTE-EXTERNO`). `APROVADO` (zero BLOQUEANTE) conclui a fase, e os IMPORTANTES abertos seguem como herdados para a fase seguinte; o `RESSALVAS` de artefatos antigos se lê como `APROVADO`.
 - **`/spec-status`** (magro) — read-only; deriva o estado de cada fase e aponta o próximo passo.
 
-**Por que isto não vira um runtime.** Os quatro workflows não compartilham um processo: cada um roda numa sessão de IA separada e se comunica com os outros **apenas por arquivos versionados** (a spec, os relatórios `EXECUCAO`/`AVALIACAO` e seus frontmatters). O estado de cada fase (pendente / aguardando avaliação / reprovada / concluída) é **derivado** desses arquivos pela IA segundo a **máquina de estados da fase** (`ARTIFACTS_SPEC.md` §2.11) — uma definição declarativa, não um motor em execução. O único auxiliar mecânico é `run-structural.sh`, um validador read-only em bash que checa a forma da §5 (`ARTIFACTS_SPEC.md` §2.8.6) antes de qualquer classificação. Isso preserva a anti-decisão de §1.4 e §3.1: a inteligência continua nos arquivos markdown e a execução, na IA que os lê.
+**Por que isto não vira um runtime.** Os quatro workflows não compartilham um processo: cada um roda numa sessão de IA separada e se comunica com os outros **apenas por arquivos versionados** (a spec, os relatórios `EXECUCAO`/`AVALIACAO` e seus frontmatters). O estado de cada fase (pendente / aguardando avaliação / reprovada / pendente externo / concluída) é **derivado** desses arquivos pela IA segundo a **máquina de estados da fase** (`ARTIFACTS_SPEC.md` §2.11) — uma definição declarativa, não um motor em execução. O único auxiliar mecânico é `run-structural.sh`, um validador read-only em bash que checa a forma da §5 (`ARTIFACTS_SPEC.md` §2.8.6) antes de qualquer classificação. Isso preserva a anti-decisão de §1.4 e §3.1: a inteligência continua nos arquivos markdown e a execução, na IA que os lê.
 
 Os schemas exatos de cada artefato do pipeline estão em `ARTIFACTS_SPEC.md` §2.8–§2.11; o vocabulário (spec, fase, track/wave, veredito, gate estrutural, máquina de estados) está no `glossary.md`.
 
@@ -887,9 +887,9 @@ Os artefatos do codeflow são:
 
 **`specs/<slug>/SPEC_<NAME>.md`:** a spec — documento único autoexecutável gerado por `/create-spec`, com requisitos, abordagem técnica e plano de fases (§5). Versionada na branch atual. É artefato de ciclo de vida (`status: draft|active|done`).
 
-**`specs/<slug>/artefatos/FASE-<id>-<slug>-EXECUCAO.md`:** relatório de execução de uma fase, gerado por `/execute-spec-phase`, com frontmatter machine-readable (`tentativa`, `reprovacoes`, `range` de commits) e evidências.
+**`specs/<slug>/artefatos/FASE-<id>-<slug>-EXECUCAO.md`:** relatório de execução de uma fase, gerado por `/execute-spec-phase`, com frontmatter machine-readable (`tentativa`, `reprovacoes`, `range` de commits) e evidências, inclusive o desfecho de cada herdado recebido.
 
-**`specs/<slug>/artefatos/FASE-<id>-<slug>-AVALIACAO.md`:** avaliação independente de uma fase, gerada por `/evaluate-spec-phase` em chat zerado, com scorecard e `veredito` (`APROVADO`/`RESSALVAS`/`REPROVADO`). Estado da fase deriva do par EXECUCAO+AVALIACAO (`ARTIFACTS_SPEC.md` §2.11).
+**`specs/<slug>/artefatos/FASE-<id>-<slug>-AVALIACAO.md`:** avaliação independente de uma fase, gerada por `/evaluate-spec-phase` em chat zerado, com achados por severidade, conferência dos herdados e `veredito` (`APROVADO`/`REPROVADO`/`PENDENTE-EXTERNO`; o legado `RESSALVAS` se lê como `APROVADO`). Estado da fase deriva do par EXECUCAO+AVALIACAO (`ARTIFACTS_SPEC.md` §2.11).
 
 #### 4.7.2 Regras universais de artefatos
 

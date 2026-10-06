@@ -1,7 +1,7 @@
 ---
-versão: 1.0
+versão: 1.1
 status: estável
-atualizado: 2026-07-02
+atualizado: 2026-10-05
 granularidade: médio
 gera_decision: auto
 usa_checkpoints: no
@@ -33,7 +33,7 @@ Corrigir uma **lista de bugs** entregue como documento (`.txt`, `.md`, `.csv` ou
 
 ## Antes de começar
 - Se qualquer bug toca em áreas com decisions arquivadas (auth, payments, schema), consultar `.codeflow/decisions/INDEX.md` e carregar decisions ATIVAS por tag antes de corrigir aquele bug.
-- **O ledger é a espinha dorsal deste workflow.** É o artefato `.codeflow/bug-batches/<slug>.md` que normaliza a lista bruta, guarda o status por bug e serve de contrato para o `/double-check`. Se um ledger com o mesmo `<slug>` já existe (lote retomado), reusar: pular os bugs já em estado terminal e corrigir só os `pendente`. **Bug reaberto pelo `/double-check` volta como `pendente` carregando `verificação: ✗`** — é uma regressão a recorrigir; a coluna `fix` antiga é a primeira pista.
+- **O ledger é a espinha dorsal deste workflow.** É o artefato `.codeflow/bug-batches/<slug>.md` que normaliza a lista bruta, guarda o status por bug e serve de contrato para o `/double-check`. Se um ledger com o mesmo `<slug>` já existe (lote retomado), reusar: pular os bugs já em estado terminal e corrigir só os `pendente`. **Bug reaberto pelo `/double-check` volta como `pendente` carregando `verificação: ✗`** e a coluna `reaberturas` somada — é uma regressão a recorrigir; a coluna `fix` antiga é a primeira pista. Bug que esgotou o teto de 2 reaberturas chega como `bloqueado` e não se recorrige aqui: vai ao dono.
 
 ## Protocolo
 
@@ -69,12 +69,12 @@ Frontmatter: `versão`, `lote: <slug>`, `origem: <caminho do documento bruto>`, 
 
 ```markdown
 ## Bugs
-| id | título | status | repro/teste | fix (arquivo:linha) | decision | verificação |
-|----|--------|--------|-------------|---------------------|----------|-------------|
-| B1 | Login aceita senha vazia | corrigido | tests/test_auth.py::test_senha_vazia | src/auth.py:88 | 2026-07-02-senha-vazia.md | — |
+| id | título | status | repro/teste | fix (arquivo:linha) | decision | verificação | reaberturas |
+|----|--------|--------|-------------|---------------------|----------|-------------|-------------|
+| B1 | Login aceita senha vazia | corrigido | tests/test_auth.py::test_senha_vazia | src/auth.py:88 | 2026-07-02-senha-vazia.md | — | 0 |
 ```
 
-Vocabulário de `status`: `pendente`, `corrigido`, `bloqueado`, `não-reproduz`. A coluna `repro/teste` guarda o que reproduz o bug — caminho do teste de regressão ou a sequência de reprodução manual — e é o que o `/double-check` reexecuta. A coluna `verificação` é preenchida pelo `/double-check` (`✓` sanado, `✗` regrediu, `⚠` inconclusivo, `—` não verificado); o `batch-bugfix` a deixa `—`.
+Vocabulário de `status`: `pendente`, `corrigido`, `bloqueado`, `não-reproduz`. A coluna `repro/teste` guarda o que reproduz o bug — caminho do teste de regressão ou a sequência de reprodução manual — e é o que o `/double-check` reexecuta. A coluna `verificação` é preenchida pelo `/double-check` (`✓` sanado, `✗` regrediu, `⚠` inconclusivo, `—` não verificado); o `batch-bugfix` a deixa `—`. A coluna `reaberturas` conta quantas vezes o `/double-check` devolveu o bug a `pendente` (nasce `0`; ledger antigo sem a coluna vale `0`). **Teto: 2 reaberturas** — o bug que falha a verificação depois da 2ª reabertura vai a `bloqueado`, com o motivo "teto de reabertura: decisão do dono", e não volta à fila.
 
 ## Definition of Done
 - [ ] Documento ingerido e normalizado no ledger com origem registrada (Passo 1).

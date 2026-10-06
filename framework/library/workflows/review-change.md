@@ -1,7 +1,7 @@
 ---
-versão: 1.0
+versão: 1.1
 status: experimental
-atualizado: 2026-10-02
+atualizado: 2026-10-05
 granularidade: médio
 gera_decision: no
 usa_checkpoints: no
@@ -11,7 +11,7 @@ politica_falhas: padrão
 # Workflow: review-change
 
 ## Quando usar
-Revisar, de forma **independente e cética**, uma melhoria ou feature executada por `/implement-change`: o diff da mudança, o `EXECUCAO.md` e o `PLANO.md` aprovado. **Sempre em chat zerado**, separado de quem implementou — o relatório é ponto de partida, não prova. Grava `.codeflow/changes/<slug>/REVISAO-<tentativa>.md` com o veredito: `APROVADO` (zero BLOQUEANTE) ou `AJUSTAR`.
+Revisar, de forma **independente e cética**, uma melhoria ou feature executada por `/implement-change`: o diff da mudança, o `EXECUCAO.md` e o `PLANO.md` aprovado. **Sempre em chat zerado**, separado de quem implementou — o relatório é ponto de partida, não prova. Grava `.codeflow/changes/<slug>/REVISAO-<tentativa>.md` com o veredito: `APROVADO` (zero BLOQUEANTE), `AJUSTAR` ou `PENDENTE-EXTERNO`.
 
 ## Quando NÃO usar
 - No mesmo chat que implementou → quebra a independência. Abra um chat novo.
@@ -52,23 +52,25 @@ Revisar, de forma **independente e cética**, uma melhoria ou feature executada 
 - **Conformidade:** cada CA atendido com evidência; as etapas entregues como planejado; nada fora do escopo.
 - **Qualidade:** aplicar a skill `self-review` como revisor; rules e decisions do projeto respeitadas; testes que testam de fato (falham sem a mudança); reuso em vez de duplicação.
 - Classificar cada achado: **BLOQUEANTE** (CA não atendido, rule violada, regressão, risco de segurança ou de dado), **IMPORTANTE** (problema real que não impede a entrega), **SUGESTÃO**. Cada um com `arquivo:linha` e a régua violada.
+- **Escalada:** vira BLOQUEANTE o IMPORTANTE da revisão anterior com destino "corrigir agora" que segue aberto (o mesmo IMPORTANTE pela 2ª vez), e o conjunto quando há **3 ou mais IMPORTANTES abertos** ao mesmo tempo.
+- **Erro só de registro** (frontmatter, `range`, lista de arquivos, link) vai à parte e não entra no veredito: o implementador o corrige num commit só de documento, sem nova revisão.
 - Gate: todo achado classificado e com evidência.
 
 ### Passo 4 — Veredito
-- **APROVADO** se não há nenhum BLOQUEANTE; **AJUSTAR** se há pelo menos um. É o único critério — nota não decide veredito.
-- Cada IMPORTANTE sai com destino: corrigir agora, se for barato (vai para o rework, se houver um), ou registrar como melhoria. SUGESTÃO se descarta por padrão.
+- Precedência estrita `AJUSTAR` > `PENDENTE-EXTERNO` > `APROVADO`: **AJUSTAR** se há pelo menos um BLOQUEANTE, contada a escalada; senão **PENDENTE-EXTERNO** se uma verificação não pôde ser fechada por depender de algo fora da mudança (cota, push ou CI remoto, ação física do dono, outra mudança que precisa entrar antes) — nomear a condição e quem a resolve; senão **APROVADO**. Nota não decide veredito.
+- Cada IMPORTANTE sai com destino: corrigir agora, se for barato — no rework, se houver um; com `APROVADO`, num commit próprio antes do PR, sem nova revisão —, ou registrar como melhoria. SUGESTÃO se descarta por padrão.
 - Gate: veredito coerente com a contagem de BLOQUEANTES.
 
 ### Passo 5 — Gravar e commitar a revisão
 - Preencher `REVISAO-<tentativa>.md` a partir do molde, com as divergências entre o relatório e o código. Commitar. **O revisor não altera código.**
-- Se `AJUSTAR`, instruir: os BLOQUEANTES voltam ao `/implement-change` em rework, e a próxima revisão é em chat zerado de novo.
+- Se `AJUSTAR`, instruir: os BLOQUEANTES voltam ao `/implement-change` em rework, e a próxima revisão é em chat zerado de novo. Se `PENDENTE-EXTERNO`, instruir: resolver a condição nomeada e revisar de novo a mesma tentativa, sem rework; não conta para o teto.
 
 ## Definition of Done
 - [ ] Independência garantida (chat zerado); plano e relatório lidos; nada a revisar sem `EXECUCAO.md`.
 - [ ] Commits do `range` ancestrais do HEAD; diff de código lido na íntegra e comparado ao mapa do plano.
 - [ ] Validação completa do projeto rodada pelo revisor (ou `[—]` justificado), com saídas reais; greps de segredo e dado pessoal zerados; árvore limpa.
 - [ ] Cada CA conferido com prova própria; todo achado classificado com `arquivo:linha` e régua.
-- [ ] Veredito `APROVADO` só com zero BLOQUEANTE; IMPORTANTES com destino.
+- [ ] Escalada aplicada e erros de registro à parte; veredito `APROVADO` só com zero BLOQUEANTE, `PENDENTE-EXTERNO` só com a condição de fora nomeada; IMPORTANTES com destino.
 - [ ] `REVISAO-<tentativa>.md` gravado a partir do molde e commitado; nenhum código alterado.
 
 ## Resumo final

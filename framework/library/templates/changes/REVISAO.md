@@ -1,14 +1,19 @@
 ---
 mudanca: <slug>
 tentativa: <n da tentativa revisada>
-veredito: <APROVADO | AJUSTAR>
+veredito: <APROVADO | AJUSTAR | PENDENTE-EXTERNO>
 range_revisado: <sha_inicial>..<sha_final>
 ---
 
 <!-- Preenchido pelo REVISOR (/review-change), em chat zerado. O revisor não
      altera código: só julga e registra.
 
-     veredito: APROVADO quando não há nenhum BLOQUEANTE; AJUSTAR quando há ≥1.
+     veredito, por precedência AJUSTAR > PENDENTE-EXTERNO > APROVADO: AJUSTAR
+     quando há ≥1 BLOQUEANTE (contada a escalada: IMPORTANTE da revisão
+     anterior ainda aberto, ou 3+ IMPORTANTES abertos, vira BLOQUEANTE);
+     PENDENTE-EXTERNO quando uma verificação depende de algo fora da mudança
+     (cota, push/CI remoto, ação física do dono); senão APROVADO.
+     Erro só de registro não entra no veredito.
      IMPORTANTE não segura o veredito — cada um sai com destino (corrigir agora,
      se for barato, ou registrar como melhoria). SUGESTÃO se descarta por padrão. -->
 
@@ -16,7 +21,8 @@ range_revisado: <sha_inicial>..<sha_final>
 
 ## 1. Veredito
 
-**<APROVADO | AJUSTAR>** — (1–2 linhas do porquê.)
+**<APROVADO | AJUSTAR | PENDENTE-EXTERNO>** — (1–2 linhas do porquê; em
+PENDENTE-EXTERNO, a condição de fora e quem a resolve.)
 
 ## 2. Critérios de aceite, conferidos no código
 
@@ -40,12 +46,17 @@ range_revisado: <sha_inicial>..<sha_final>
 
 - (opcional; descartadas por padrão)
 
-## 7. Comandos rodados e saídas reais
+## 7. Erros de registro
+
+- (frontmatter, range, lista de arquivos, link — corrigidos pelo implementador num
+  commit só de documento, sem nova revisão; "nenhum" se for o caso)
+
+## 8. Comandos rodados e saídas reais
 
 ```text
 # o que o revisor rodou ele mesmo, com a saída real
 ```
 
-## 8. Divergências entre o relatório e o código
+## 9. Divergências entre o relatório e o código
 
 - (o que o relatório de execução afirma e o código não confirma; "nenhuma" se for o caso)

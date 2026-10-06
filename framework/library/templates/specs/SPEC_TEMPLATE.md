@@ -28,7 +28,8 @@ quality_gate:
 ---
 
 <!-- Campos opcionais de refinamento (risk_*, refine_mode, estimated_effort,
-     cross_context, linked_*, depends_on, blocks, related_bugs): preencher só
+     cross_context, linked_*, depends_on, blocks, related_bugs) e quality_gate
+     (só informativo: o threshold não decide o veredito, §2.10.3): preencher só
      quando aplicável; caso contrário omitir a linha ou usar null/[]. Não
      inventar risk_score numérico para spec trivial. (ARTIFACTS_SPEC §2.8.4) -->
 
@@ -77,8 +78,8 @@ como REUSADO/alterado existe de fato no repo.
 > "Depende de"** estão concluídas (não basta ordem textual). O `id` e o `slug`
 > de cada fase são canônicos: `/execute-spec-phase` e `/evaluate-spec-phase` os
 > reusam verbatim nos nomes dos artefatos (`FASE-<id>-<slug>-EXECUCAO.md`,
-> `FASE-<id>-<slug>-AVALIACAO.md`). O `threshold` que aprova cada fase é o
-> `quality_gate.threshold` do frontmatter (default 8.5).
+> `FASE-<id>-<slug>-AVALIACAO.md`). Uma fase conclui com zero BLOQUEANTE na
+> avaliação; os IMPORTANTES abertos seguem como herdados para a fase seguinte.
 > Single-track (`wave: single`) usa `id` inteiro (`1`, `2`, …); multi-track
 > (`wave: multi`) usa `<TRACK>.<n>` (`A.1`, `B.2`, …) com dependência cruzada
 > explícita por `id`. Alvo: **3 a 8 fases por track**.

@@ -23,7 +23,9 @@ O `<slug>` é kebab-case e vem de quem invoca — o registro do projeto, quando 
 3. **`/implement-change`** executa as etapas do plano em ordem — TDD, um commit por etapa, o gate
    de cada etapa verde — e grava o `EXECUCAO.md`.
 4. **`/review-change`**, num **chat zerado**, confere contra o código real, roda a validação do
-   projeto e grava a `REVISAO-<tentativa>.md`: `APROVADO` (zero BLOQUEANTE) ou `AJUSTAR`.
+   projeto e grava a `REVISAO-<tentativa>.md`: `APROVADO` (zero BLOQUEANTE), `AJUSTAR` ou
+   `PENDENTE-EXTERNO` (a verificação depende de algo fora da mudança: revisar de novo a mesma
+   tentativa depois, sem rework e sem contar para o teto).
 5. **`AJUSTAR`** → os BLOQUEANTES voltam ao implementador (rework) → nova revisão em chat zerado.
    Teto: duas reprovações; na terceira, o dono decide.
 

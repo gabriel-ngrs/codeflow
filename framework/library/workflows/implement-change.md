@@ -1,7 +1,7 @@
 ---
-versão: 1.0
+versão: 1.1
 status: experimental
-atualizado: 2026-10-02
+atualizado: 2026-10-05
 granularidade: médio
 gera_decision: auto
 usa_checkpoints: no
@@ -11,7 +11,7 @@ politica_falhas: padrão
 # Workflow: implement-change
 
 ## Quando usar
-Executar um plano **aprovado** de melhoria ou feature (`.codeflow/changes/<slug>/PLANO.md`, `status: aprovado`), etapa por etapa, na ordem do plano: TDD, só os arquivos da etapa, o gate da etapa verde, **um commit por etapa**. Grava o relatório `EXECUCAO.md` para a revisão independente. Também opera em **modo rework**: recebida uma `REVISAO-<n>.md` com `veredito: AJUSTAR`, corrige só os BLOQUEANTES dela.
+Executar um plano **aprovado** de melhoria ou feature (`.codeflow/changes/<slug>/PLANO.md`, `status: aprovado`), etapa por etapa, na ordem do plano: TDD, só os arquivos da etapa, o gate da etapa verde, **um commit por etapa**. Grava o relatório `EXECUCAO.md` para a revisão independente. Também opera em **modo rework**: recebida uma `REVISAO-<n>.md` com `veredito: AJUSTAR`, corrige os BLOQUEANTES dela e os IMPORTANTES com destino "corrigir agora".
 
 ## Quando NÃO usar
 - Sem plano aprovado → `/plan-change`, e a aprovação do dono. Plano `proposto` não se executa.
@@ -32,7 +32,7 @@ Executar um plano **aprovado** de melhoria ou feature (`.codeflow/changes/<slug>
 
 ## Antes de começar
 - Ler o `PLANO.md` **na íntegra**. Se `status` não for `aprovado`, **parar**: nada se implementa sem a aprovação do dono.
-- Modo: sem `EXECUCAO.md` → primeira execução, a partir da etapa 1. `EXECUCAO.md` com `etapas_concluidas` incompleto → retomar na primeira etapa não concluída. `REVISAO-<n>.md` com `AJUSTAR` → **rework**; se `reprovacoes >= 2`, **parar** e escalar ao dono (teto do ciclo).
+- Modo: sem `EXECUCAO.md` → primeira execução, a partir da etapa 1. `EXECUCAO.md` com `etapas_concluidas` incompleto → retomar na primeira etapa não concluída. `REVISAO-<n>.md` com `AJUSTAR` → **rework**; se `reprovacoes >= 2`, **parar** e escalar ao dono (teto do ciclo; só `AJUSTAR` conta). `REVISAO-<n>.md` com `PENDENTE-EXTERNO` não é rework nem conta para o teto: resolvida a condição de fora, a mesma tentativa volta à revisão. Erros de registro apontados pela revisão se corrigem num commit só de documento, sem rework.
 - Consultar `.codeflow/decisions/INDEX.md` e carregar as decisions ATIVAS das áreas tocadas. Trabalhar na branch atual; se for a default, confirmar antes de commitar.
 
 ## Protocolo
@@ -43,7 +43,7 @@ Executar um plano **aprovado** de melhoria ou feature (`.codeflow/changes/<slug>
 - Gate: plano aprovado, caminhos conferidos, `sha_inicial` conhecido.
 
 ### Passo 2 — Executar cada etapa, em ordem
-- Para cada etapa ainda não concluída: teste vermelho → implementação → verde, tocando **só** os arquivos da etapa (diff mínimo). Em rework, corrigir **só** os BLOQUEANTES da revisão.
+- Para cada etapa ainda não concluída: teste vermelho → implementação → verde, tocando **só** os arquivos da etapa (diff mínimo). Em rework, corrigir **só** os BLOQUEANTES da revisão e os IMPORTANTES com destino "corrigir agora" — IMPORTANTE deixado aberto reaparece e vira BLOQUEANTE.
 - Rodar o **gate da etapa**. Falha Lógica → retentar com o erro como contexto, limite de duas tentativas (constitution); falha de Escopo ou Ambiente → parar.
 - **Commitar a etapa** (Conventional Commits do projeto), adicionando só os arquivos dela, e marcar o id em `etapas_concluidas`. Não antecipar trabalho da etapa seguinte.
 - Gate: cada etapa verde e commitada antes da próxima.
