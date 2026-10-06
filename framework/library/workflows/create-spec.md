@@ -1,7 +1,7 @@
 ---
-versão: 1.6
+versão: 1.7
 status: experimental
-atualizado: 2026-06-15
+atualizado: 2026-10-05
 granularidade: detalhado
 gera_decision: no
 usa_checkpoints: yes
@@ -14,12 +14,12 @@ politica_falhas: padrão
 Uma spec nasce de sondagem do código real, não de suposição. Descreve **o quê**, **por quê** e **como executar** — incluindo um **plano de desenvolvimento por fases** detalhado e separado, de modo que um agente de IA leia este único documento e execute as fases uma a uma até concluir. Decisão de escopo aberta é resolvida com o owner antes de escrever, nunca chutada.
 
 ## Quando usar
-Transformar uma necessidade ou descrição do usuário (ex: "integração WhatsApp via Evolution API") em uma **spec robusta e assertiva** no formato canônico do framework (molde `.codeflow/specs/_TEMPLATES/SPEC_TEMPLATE.md`; contrato normativo em `ARTIFACTS_SPEC.md §2.8`), ancorada na arquitetura e nos padrões do repositório atual. Pré-requisitos: o repositório alvo tem `.codeflow/` inicializado (rode `/bootstrap` antes, se não tiver) e o owner está disponível para confirmar escopo e resolver Open Questions durante a execução.
+Transformar uma necessidade **grande** (G pela skill `change-sizing`: 5 ou mais etapas, fases com dependência, contrato que muda ou quebra, migração destrutiva, ADR nova), descrita pelo usuário (ex: "integração WhatsApp via Evolution API"), em uma **spec robusta e assertiva** no formato canônico do framework (molde `.codeflow/specs/_TEMPLATES/SPEC_TEMPLATE.md`; contrato normativo em `ARTIFACTS_SPEC.md §2.8`), ancorada na arquitetura e nos padrões do repositório atual. Pré-requisitos: o repositório alvo tem `.codeflow/` inicializado (rode `/bootstrap` antes, se não tiver) e o owner está disponível para confirmar escopo e resolver Open Questions durante a execução.
 
 ## Quando NÃO usar
 - Para executar/implementar as fases de uma spec já escrita → este workflow **produz** o documento executável; a execução de cada fase é feita depois por `/execute-spec-phase` (uma fase por vez, avaliada por `/evaluate-spec-phase`).
 - Para corrigir/ampliar uma spec já escrita sem novas decisões abertas → editar direto, sem workflow.
-- Quando a necessidade é trivial (uma função, um typo de regra) → resolver ad hoc; spec é overhead.
+- Para mudança que a skill `change-sizing` não classifica como **grande (G)** → spec é overhead: direta (P) vai direto, com o trailer `Tamanho: P` no commit; pequena ou média (M) vai para `/plan-change`. Este workflow é só para G.
 
 ## LEIA TAMBÉM
 - ~/.codeflow/framework/core/constitution.md

@@ -2,7 +2,8 @@
 
 > Moldes preenchíveis para o ciclo de mudança do codeflow — melhorias e features **pequenas e
 > médias**. Os workflows `/plan-change`, `/implement-change` e `/review-change` **copiam o molde e
-> preenchem** em vez de gerar o formato do zero. Mudança grande não passa por aqui: vira spec.
+> preenchem** em vez de gerar o formato do zero. Mudança grande (G) não passa por aqui: vira spec;
+> mudança direta (P) também não: vai direto, sem plano, com o trailer `Tamanho: P` no commit.
 
 ## Moldes
 
@@ -18,8 +19,9 @@ O `<slug>` é kebab-case e vem de quem invoca — o registro do projeto, quando 
 ## Fluxo (planejador → dono → implementador → revisor independente)
 
 1. **`/plan-change`** classifica o pedido (skill `change-sizing`), sonda o código e escreve o
-   `PLANO.md` com `status: proposto`. Mudança grande para aqui e vai para spec.
-2. **O dono aprova o plano.** O `status` vira `aprovado`, com quem e quando.
+   `PLANO.md`. Mudança grande para aqui e vai para spec; mudança direta para aqui e vai direto.
+2. **Aprovação.** Pedido claro (diz o quê e o porquê, sem decisão aberta) → o plano já nasce
+   `aprovado`. Senão nasce `proposto` e **o dono aprova**: o `status` vira `aprovado`, com quem e quando.
 3. **`/implement-change`** executa as etapas do plano em ordem — TDD, um commit por etapa, o gate
    de cada etapa verde — e grava o `EXECUCAO.md`.
 4. **`/review-change`**, num **chat zerado**, confere contra o código real, roda a validação do

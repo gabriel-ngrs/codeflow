@@ -1,9 +1,9 @@
 ---
-versão: 1.0
+versão: 1.1
 status: experimental
-atualizado: 2026-07-10
+atualizado: 2026-10-05
 granularidade: detalhado
-gera_decision: yes
+gera_decision: auto
 usa_checkpoints: yes
 politica_falhas: padrão
 ---
@@ -35,7 +35,7 @@ Reorganizar código existente que já funciona: extrair função ou módulo, ren
 - .codeflow/decisions/INDEX.md (filtrar pelas tags da área a refatorar)
 
 ## Estrutura do workflow
-Seis fases sequenciais com checkpoint ao fim de cada uma. Pausa obrigatória para o owner em dois momentos: confirmação do objetivo e do **modo** (Fase 1) e aprovação do plano de refatoração (Fase 4). A execução (Fase 5) só começa depois do plano aprovado. A última fase gera decision e o resumo. Investigar sempre precede propor; propor sempre precede tocar código.
+Seis fases sequenciais com checkpoint ao fim de cada uma. Pausa obrigatória para o owner em dois momentos: confirmação do objetivo e do **modo** (Fase 1) e aprovação do plano de refatoração (Fase 4). A execução (Fase 5) só começa depois do plano aprovado. A última fase gera o resumo, e a decision só quando um gatilho da Fase 6 ocorrer. Investigar sempre precede propor; propor sempre precede tocar código.
 
 ## Retomada
 `refactor` usa checkpoints (`SPEC.md` §6.6). Ao iniciar, verificar se existe `.codeflow/checkpoints/refactor-*.md` recente: se sim, apresentar o resumo e perguntar ao owner se deseja retomar daquele ponto ou começar do zero. Retomar carrega a fase em pausa, o modo escolhido, o plano aprovado e o último passo verde; começar do zero deleta o checkpoint antigo.
@@ -119,11 +119,11 @@ Atualizar o checkpoint com: passos executados e seu resultado (verde/revertido),
 ## Fase 6 — Geração de artefatos
 
 ### Objetivo
-Registrar a decisão de refatoração e finalizar.
+Registrar o que sobrevive ao código e finalizar.
 
 ### Ações
-1. **Gerar decision** em `.codeflow/decisions/<data>-<titulo>.md` (data da Fase 1) com as tags da área e do modo, registrando: o que foi refatorado e por quê, o modo, as mudanças quebradoras (se houve) e as alternativas de abordagem descartadas.
-2. Atualizar `.codeflow/decisions/INDEX.md`.
+1. **Gerar decision** (`gera_decision: auto`) em `.codeflow/decisions/<data>-<titulo>.md` (data da Fase 1), com as tags da área e do modo, **quando qualquer um ocorrer**: (a) modo **reestruturação** com mudança quebradora confirmada pelo owner; (b) default aplicado depois de incerteza do owner; (c) divergência consciente da constitution. A decision registra o que foi refatorado e por quê, o modo, as mudanças quebradoras e as alternativas de abordagem descartadas. Fora desses gatilhos — refatoração pura sem divergência —, não há decision: o porquê vai no corpo da mensagem de commit.
+2. Se gerou decision, atualizar `.codeflow/decisions/INDEX.md`.
 3. Apresentar o resumo final no formato fixo de cinco seções.
 4. Concluído com sucesso, deletar os checkpoints da execução.
 
@@ -144,7 +144,7 @@ Registrar a decisão de refatoração e finalizar.
 - [ ] Plano de passos pequenos aprovado pelo owner; mudanças quebradoras confirmadas (Fase 4).
 - [ ] Refatoração executada passo a passo com a rede verde ao fim de cada passo; `self-review` aplicado (Fase 5).
 - [ ] Comandos de validação do projeto retornaram zero (ou `[—]` justificado).
-- [ ] Decision gerada com as tags da área e do modo; `decisions/INDEX.md` atualizado; checkpoints da execução deletados (Fase 6).
+- [ ] Decision gerada, com as tags da área e do modo e `decisions/INDEX.md` atualizado, quando um gatilho da Fase 6 ocorreu (senão, o porquê no corpo do commit); checkpoints da execução deletados (Fase 6).
 
 ## Resumo final
 Apresentar nas cinco seções fixas do `SPEC.md` §5.6.4.

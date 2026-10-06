@@ -4,7 +4,7 @@ status: estável
 atualizado: 2026-10-05
 data: 2026-10-05
 workflow: implement-change
-tags: [veredito, avaliacao, schema, herdados, teto, retrocompatibilidade]
+tags: [veredito, avaliacao, schema, herdados, teto, retrocompatibilidade, tamanho, decisions]
 status_decisão: ativa
 supersede: null
 relaciona-com: [2026-10-02-operacao-por-trilhas, 2026-10-05-proposta-glossary-veredito]
@@ -77,6 +77,29 @@ O glossary é core (gate duro, operação item 6): a nova redação vai como pro
 glossary cita como referência canônica do veredito.
 **Por quê:** nenhum orquestrador nem decisão delegada destrava o core.
 **Alternativa rejeitada:** editar o glossary neste pull request.
+
+### 7. Tamanho P (direta) na `change-sizing`
+Mudança pequena vira **P** quando o diff cabe numa frase, toca uma área e não tem nenhum sinal de risco
+(contrato, migração, auth/tenant, dinheiro, dado pessoal, deploy). P vai direto: teste do que mudou, check
+verde, `self-review`, sem plano nem documento, com o trailer `Tamanho: P` no commit. Pequena e média
+formam o **M** (ciclo de mudança); grande é **G** (spec). Dúvida entre P e M vai para M.
+**Por quê:** é a R3; a medição achou a mudança pequena mais cara que um bugfix, e o ciclo novo foi usado uma vez.
+**Alternativa rejeitada:** renomear pequena/média para P/M — quebraria o campo `tamanho` dos PLANO já escritos.
+
+### 8. M sem aprovação formal quando o pedido é claro
+O `/plan-change` faz o plano nascer `aprovado` (`aprovado_por: pedido claro do dono`) quando o pedido diz
+o quê e o porquê e o plano não deixa decisão para o dono; senão, `proposto`. O `/create-spec` passa a ser só
+para G.
+**Por quê:** é a R3; a aprovação de um pedido já claro era um commit e um despacho a mais sem decisão nova.
+**Alternativa rejeitada:** dispensar a aprovação em todo M — esconderia do dono as decisões abertas.
+
+### 9. Decision só para o que sobrevive ao código
+O `/bugfix` perde o gatilho "mudança não-trivial" (o porquê do fix vai no corpo do commit); o `/refactor` passa
+de `gera_decision: yes` para `auto`, com gatilhos: reestruturação com mudança quebradora, default após
+incerteza do owner, divergência da constitution. O texto gêmeo do `/batch-bugfix` ("fix não-trivial") e do
+`/implement-change` ("escolha técnica não-trivial") foi alinhado aos gatilhos do `/bugfix`.
+**Por quê:** é a R3; o gatilho "não-trivial" cobria quase todo fix e enchia o índice de decisions.
+**Alternativa rejeitada:** deixar o `/implement-change` com o gatilho próprio — ele declara usar "os mesmos gatilhos do `/bugfix`", e a regra ficaria dupla.
 
 ## Próximos passos sugeridos
 

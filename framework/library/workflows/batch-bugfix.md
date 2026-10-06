@@ -61,7 +61,7 @@ Corrigir uma **lista de bugs** entregue como documento (`.txt`, `.md`, `.csv` ou
 
 ### Passo 5 — Resumir e gerar decisions
 - Apresentar o resumo final (cinco seções fixas) com o **placar do lote**: quantos `corrigido`, `bloqueado`, `não-reproduz`.
-- Gerar **uma decision consolidada do lote** em `.codeflow/decisions/` quando houver ≥1 fix não-trivial (`gera_decision: auto`; mesmos gatilhos do `/bugfix`), com uma linha por bug que a motivou — em vez de um arquivo por fix, que polui o índice num lote grande. Registrar o link dessa decision nas linhas dos bugs relevantes no ledger. Fix genuinamente arquitetural, que mereça rastreio próprio, pode ganhar decision individual.
+- Gerar **uma decision consolidada do lote** em `.codeflow/decisions/` quando algum fix casar com os gatilhos do `/bugfix` (`gera_decision: auto`: default após incerteza do usuário, divergência consciente da constitution), com uma linha por bug que a motivou — em vez de um arquivo por fix, que polui o índice num lote grande. Registrar o link dessa decision nas linhas dos bugs relevantes no ledger. Fix genuinamente arquitetural, que mereça rastreio próprio, pode ganhar decision individual.
 - Deixar o ledger salvo e atualizado — ele é a entrada do `/double-check`.
 
 ## Formato do ledger (`.codeflow/bug-batches/<slug>.md`)
@@ -83,7 +83,7 @@ Vocabulário de `status`: `pendente`, `corrigido`, `bloqueado`, `não-reproduz`.
 - [ ] Bugs `bloqueado`/`não-reproduz` listados com motivo para tratamento avulso.
 - [ ] Comandos de validação do projeto retornaram zero (ou `[—]` justificado) sobre o lote.
 - [ ] Self-review aplicado ao diff acumulado, dentro do escopo declarado por bug.
-- [ ] Decision consolidada do lote gerada se houve fix não-trivial e linkada no ledger.
+- [ ] Decision consolidada do lote gerada se algum fix casou com os gatilhos do `/bugfix`, e linkada no ledger.
 - [ ] Ledger salvo e atualizado, pronto para o `/double-check`.
 
 ## Resumo final

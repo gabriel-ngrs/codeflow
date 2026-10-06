@@ -1,8 +1,8 @@
 ---
-versão: 1.0
+versão: 1.1
 status: experimental
-atualizado: 2026-10-02
-descrição: Classificar um pedido de mudança — tipo (melhoria, feature, ou fora do ciclo) e tamanho (pequena, média, grande) — por critérios objetivos, antes de planejar.
+atualizado: 2026-10-05
+descrição: Classificar um pedido de mudança — tipo (melhoria, feature, ou fora do ciclo) e tamanho (P direta, M pequena ou média, G grande) — por critérios objetivos, antes de planejar.
 ---
 
 # Skill: change-sizing
@@ -10,15 +10,16 @@ descrição: Classificar um pedido de mudança — tipo (melhoria, feature, ou f
 ## Quando usar
 
 Workflows devem carregar esta skill no início do ciclo de mudança (`/plan-change`) e sempre que um
-orquestrador precisa decidir para onde um pedido vai: o ciclo de mudança (pequena ou média), a
-trilha de spec (grande), ou outra trilha (bug, regra de negócio). É a porta de entrada que impede
-uma feature grande de entrar como "melhoria" e uma correção de entrar como "feature".
+orquestrador precisa decidir para onde um pedido vai: direto, sem plano (P), o ciclo de mudança
+(M: pequena ou média), a trilha de spec (G: grande), ou outra trilha (bug, regra de negócio). É a
+porta de entrada que impede uma feature grande de entrar como "melhoria", uma correção de entrar
+como "feature" e um ajuste de uma frase de pagar a cerimônia de um plano.
 
 ## Princípio guia
 
 Tamanho não é impressão, é contagem de riscos: quantas etapas, quantas fronteiras, quanto se pode
 desfazer. Uma mudança só é pequena ou média se **todos** os sinais disserem isso; um sinal de grande
-basta para ela ser grande.
+basta para ela ser grande. E só é direta se, além de pequena, não tiver **nenhum** sinal de risco.
 
 ## Protocolo
 
@@ -55,15 +56,31 @@ Avaliar cada sinal e anotar o valor. **Qualquer** sinal na coluna "grande" torna
 - Somar às réguas do projeto: se o projeto declara fronteiras ou áreas sensíveis (rules, ADRs,
   método), tocar uma delas **de forma não compatível** é sinal de grande.
 
-### 4. Registrar a classificação
+### 4. Separar a direta (P)
+Uma mudança **pequena** é **direta (P)** quando cumpre as três condições:
+- o diff cabe numa frase ("trocar o texto do botão X", "aceitar `null` em Y");
+- toca **uma** área;
+- **nenhum sinal de risco**: contrato ou fronteira, migração de dado ou de banco, autenticação ou
+  isolamento de tenant, dinheiro, dado pessoal, deploy ou configuração de produção. Sinal de risco
+  **nunca** é P — no mínimo M, mesmo com uma etapa.
+
+Fica assim a régua de processo: **P** (direta) · **M** (pequena ou média, ciclo de mudança) · **G**
+(grande, spec).
+
+### 5. Registrar a classificação e o destino
 - Uma linha por sinal, com o valor encontrado e a evidência (arquivo, contrato, ADR).
-- A conclusão: tipo, tamanho, e o destino — ciclo de mudança (pequena/média) ou trilha de spec
-  (grande).
+- A conclusão: tipo, tamanho, e o destino:
+  - **P** → direto, sem plano e sem documento: implementar com o teste do que mudou, o check do
+    projeto verde e a skill `self-review`; o commit leva o trailer `Tamanho: P`.
+  - **M** → ciclo de mudança: `/plan-change`, `/implement-change` e `/review-change`.
+  - **G** → `/create-spec`, ou o fluxo de spec do projeto.
 - Quando um sinal está na fronteira entre duas faixas, classificar na faixa **maior** e dizer por quê.
+  A dúvida entre P e M é fronteira: vai para M.
 
 ## Proibições durante esta skill
 
 - Não classificar por impressão de esforço ("parece rápido") — só pelos sinais.
+- Não classificar como P mudança com qualquer sinal de risco.
 - Não rebaixar uma mudança grande para caber no ciclo de mudança; grande é spec.
 - Não tratar regra de negócio como mudança de código antes de o dono decidir a regra.
 - Não deixar sinal sem evidência: sinal que não se verificou no código é registrado como "não
@@ -71,6 +88,6 @@ Avaliar cada sinal e anotar o valor. **Qualquer** sinal na coluna "grande" torna
 
 ## Saídas válidas
 
-- **Classificação:** tipo (melhoria ou feature), tamanho (pequena, média ou grande), a tabela de
-  sinais com valor e evidência, e o destino recomendado.
+- **Classificação:** tipo (melhoria ou feature), tamanho (P direta, M pequena ou média, G grande), a
+  tabela de sinais com valor e evidência, e o destino.
 - **Fora do ciclo:** o pedido é bug, regra de negócio ou configuração, com o motivo e a trilha certa.
