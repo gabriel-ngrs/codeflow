@@ -1,12 +1,12 @@
 ---
 mudanca: aceleracao-do-ciclo
-status: executado
-tentativa: 1
-reprovacoes: 0
+status: rework
+tentativa: 2
+reprovacoes: 1
 etapas_concluidas: [1, 2, 3]
 sha_inicial: af22ea5
-sha_final: 103ac6d
-range: af22ea5..103ac6d
+sha_final: 301c389
+range: af22ea5..301c389
 ---
 
 <!-- Preenchido pelo IMPLEMENTADOR (/implement-change). É declaração, não prova:
@@ -35,7 +35,9 @@ contrato, com o gate estrutural no `/create-spec` (R8). Um quarto commit fecha u
 | 1 — Veredito (R1) | `c3b36a8` | bloco `lint` do manifest | verde (`lint rc=0`) |
 | 2 — Tamanho (R3) | `43435ab` | bloco `lint` do manifest | verde (`lint rc=0`) |
 | 3 — Contexto e shift-left (R8) | `ba1ea45` | `check` do manifest | verde (lint, test, security `rc=0`) |
-| correção da etapa 1 | `103ac6d` | `check` do manifest | verde (saída na §5) |
+| correção da etapa 1 | `103ac6d` | `check` do manifest | verde |
+| rework B-1, B-2 (REVISAO-1) | `4bb991f` | `check` do manifest | verde (saída na §5) |
+| rework I-1 (REVISAO-1) | `301c389` | `check` do manifest | verde (saída na §5) |
 
 ## 3. Arquivos criados e alterados
 
@@ -73,18 +75,18 @@ contrato, com o gate estrutural no `/create-spec` (R8). Um quarto commit fecha u
 ## 5. Comandos rodados e saídas reais
 
 ```text
-# check do manifest (lint, test, security) em 103ac6d
+# check do manifest (lint, test, security) em 301c389 (tentativa 2)
 == lint
 lint rc=0
 == test
 specs comparadas: 55, divergências: 0
   órfãos detectados: 0 (rode com --prune para remover)
 ✓ Sincronização concluída.
-  criados:     21
+  criados:     21 (slash commands) · criados: 21 (skills Codex)
 ✓ Sincronização concluída. Reinicie o Codex ou abra um chat novo para recarregar as skills.
 test rc=0
 == security
-INF 5 commits scanned.
+INF 9 commits scanned.
 INF no leaks found
 security rc=0
 
@@ -116,12 +118,15 @@ $ sed -n '/^### 2\.12 /,/^## Parte 3/p' framework/core/ARTIFACTS_SPEC.md | wc -l
 
 ## 7. No rework: o que mudou nesta tentativa
 
-- Não se aplica (primeira execução).
+- **B-1** (escalada com quatro definições) → uma definição só na §2.10.3 do ARTIFACTS_SPEC ("o IMPORTANTE de uma avaliação anterior da mesma fase (rework), ou herdado destinado à fase, que segue aberto"), citada por evaluate-spec-phase, execute-spec-phase, TEMPLATE-AVALIACAO (seção 2 confere também os IMPORTANTES da avaliação anterior) e a decision; no ciclo de mudança só escala o de destino "corrigir agora" (review-change e REVISAO alinhados) → `4bb991f`.
+- **B-2** (destino dos herdados) → execute-spec-phase e evaluate-spec-phase seguem a §2.11.5: só a primeira fase dependente; sem dependente, o fechamento (ratificação D9.1 do orquestrador) → `4bb991f`.
+- **I-1** (SPEC §6.5.1, exemplo de `gera_decision: auto`) → alinhado aos gatilhos do bugfix → `301c389`.
+- Sugestões da REVISAO-1 não aplicadas (descartadas por padrão; não pedidas no rework).
 
 ## 8. Dúvidas para o revisor
 
-- Destino dos herdados (§2.11.5): a fase dependente; sem dependente, o fechamento da spec, que os corrige sem
-  nova avaliação. Conferir se o fechamento sem avaliador basta (a R1 diz "o próximo avaliador confere").
+- Destino dos herdados (§2.11.5): ratificado pelo orquestrador (D9.1). O fechamento corrige sem
+  nova avaliação, o que a REVISAO-1 (§8) confirmou como conforme à R1.
 - O `review-change` com `APROVADO` manda corrigir os IMPORTANTES "corrigir agora" num commit antes do PR, sem
   nova revisão. É a leitura da R1 para o ciclo de mudança, que não tem "próxima fase".
 - O glossary segue com a definição antiga até a adoção da proposta; a decision registra a divergência.
