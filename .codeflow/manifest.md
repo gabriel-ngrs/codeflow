@@ -1,10 +1,10 @@
 ---
-versão: 1.1
+versão: 1.2
 status: estável
-atualizado: 2026-10-05
+atualizado: 2026-10-06
 projeto: codeflow
-last_validated: 2026-10-02
-validation_hash: f18d8193d30a973443cdc00b09ce972d6a7da11d51629107bedd5e8e2a586c01
+last_validated: 2026-10-06
+validation_hash: 13b3e50d2ca105785eaf63bb06066fe14f27a8741d700460698f702ce2aefc89
 ---
 
 # Manifest do projeto: codeflow
@@ -16,7 +16,7 @@ validation_hash: f18d8193d30a973443cdc00b09ce972d6a7da11d51629107bedd5e8e2a586c0
 - **Utilitários:** GNU coreutils 9.4 (`sha256sum`, `grep`, `sed`, `awk`)
 - **Varredura de segredo:** gitleaks 8.21.2 — binário da máquina, só no gate `security`
 - **Pull request e merge:** gh 2.45.0
-- **Contrato normativo:** `framework/core/SPEC.md` 3.3, `framework/core/ARTIFACTS_SPEC.md` 2.3
+- **Contrato normativo:** `framework/core/SPEC.md` 3.4, `framework/core/ARTIFACTS_SPEC.md` 2.4
 - **Lint de shell:** shellcheck não instalado
 
 ## Comandos de validação

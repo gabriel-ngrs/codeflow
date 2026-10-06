@@ -1,7 +1,7 @@
 ---
-versão: 2.3
+versão: 2.4
 status: estável
-atualizado: 2026-10-05
+atualizado: 2026-10-06
 documento: ARTIFACTS_SPEC.md
 projeto: codeflow
 localização: framework/core/ARTIFACTS_SPEC.md (instalado em ~/.codeflow/framework/core/ARTIFACTS_SPEC.md)
@@ -1682,7 +1682,7 @@ Fechar o gap entre a decisão arquitetural de `SPEC.md` §3.6 (workflows via sla
 **Corpo:**
 
 - 2 a 4 linhas em pt-BR.
-- O corpo contém **exatamente uma** referência a path começando com `~/.codeflow/framework/` (universal) ou `<projeto>/.codeflow/` (projeto).
+- O corpo contém **exatamente uma** referência a path começando com `~/.codeflow/framework/` (universal) ou `<projeto>/.codeflow/` (projeto; absoluto ou relativo à raiz, conforme §1.11.6 regra 2).
 - Instrui a IA a ler o arquivo referenciado e executar o protocolo, carregando `## LEIA TAMBÉM` antes.
 - Sem lógica adicional, sem duplicação de conteúdo, sem reformulação do workflow.
 
@@ -1752,7 +1752,7 @@ em ## LEIA TAMBÉM antes de começar.
 #### 1.11.6 Regras de validação
 
 1. Corpo tem entre 2 e 6 linhas (alvo: 2-4).
-2. O corpo contém exatamente uma referência começando com `~/.codeflow/framework/` (universal) ou caminho absoluto para `<projeto>/.codeflow/` (projeto).
+2. O corpo contém exatamente uma referência começando com `~/.codeflow/framework/` (universal) ou com o caminho para `<projeto>/.codeflow/` (projeto). Em wrapper de projeto o caminho é absoluto (o que o `install.sh` gera) ou relativo à raiz do projeto (`.codeflow/workflows/<nome>.md`). O relativo é o exigido quando o projeto opera por trilhas em worktrees: cada worktree tem a própria cópia do workflow, e o caminho relativo resolve na worktree onde o comando roda.
 3. Path referenciado existe no disco (verificação dinâmica feita pelos scripts de sincronização ao gerar/atualizar).
 4. Nome do wrapper bate com o nome do workflow/meta-skill referenciado: `<nome>.md` em Claude/prompts, ou diretório `<nome>/SKILL.md` em Codex skills. Em Codex para workflow de projeto, o nome pode ser `<prefixo>-<nome>`, desde que o sufixo `<nome>` bata com o workflow referenciado.
 5. Conteúdo é em pt-BR (conforme §0.4).
@@ -1765,7 +1765,7 @@ em ## LEIA TAMBÉM antes de começar.
 - **Lógica condicional no wrapper.** "Se for projeto Python, leia X; senão Y." Lógica vive no workflow. Wrapper é dispatch puro.
 - **Wrapper para skill regular ou agent.** Skills são carregadas por workflows via `## LEIA TAMBÉM`; agents são invocados de dentro de workflows. Criar slash command próprio quebra o modelo de composição (`SPEC.md` §4.3.4, §4.5.2).
 - **Frontmatter com campos exóticos.** Em Claude, apenas os universais de §0.2 quando presente. Em Codex skills, limitar a `name`, `description` e marcadores `codeflow-generated`/`codeflow-source`. Em Codex prompts, limitar aos campos de metadata do prompt e aos mesmos marcadores.
-- **Modificar wrappers à mão.** São gerados por `setup-slash-commands.sh`, `install.sh`, `setup-codex-skills.sh` e `setup-codex-prompts.sh`. Edições manuais são sobrescritas na próxima sincronização.
+- **Modificar wrappers à mão.** São gerados por `setup-slash-commands.sh`, `install.sh`, `setup-codex-skills.sh` e `setup-codex-prompts.sh`. Nos universais e nos de Codex, edições manuais são sobrescritas na próxima sincronização. Exceção: o `install.sh` só cria o wrapper de projeto que falta — o existente é preservado, e o script avisa quando o conteúdo difere do gerado —, e o wrapper de projeto com caminho relativo da regra 2 de §1.11.6 é escrito à mão.
 
 ---
 
