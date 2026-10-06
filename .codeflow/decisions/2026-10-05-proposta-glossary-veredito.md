@@ -6,7 +6,7 @@ data: 2026-10-05
 workflow: implement-change
 tags: [core, glossary, veredito, proposta]
 status_decisão: superseded
-supersede: null
+supersede: 2026-10-06-adocao-glossary-veredito
 relaciona-com: [2026-10-05-aceleracao-do-ciclo, 2026-10-02-operacao-por-trilhas]
 ---
 
