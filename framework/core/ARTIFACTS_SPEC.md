@@ -1007,7 +1007,7 @@ Se o bug toca em áreas com decisions arquivadas (auth, payments, schema), consu
 
 ### Passo 6 — Resumir e (se aplicável) gerar decision
 - Apresentar resumo final no formato fixo de cinco seções.
-- Se o fix envolveu mudança não-trivial (não foi typo, não foi off-by-one isolado), gerar decision em `.codeflow/decisions/`.
+- Gerar decision em `.codeflow/decisions/` só nos gatilhos do workflow: default aplicado após incerteza do usuário, ou divergência consciente da constitution. Fora deles, o porquê do fix vai no corpo da mensagem de commit.
 
 ## Definition of Done
 - [ ] Bug reproduzido no Passo 1.
@@ -2258,7 +2258,7 @@ Localização única: `<projeto>/.codeflow/decisions/<data>-<titulo-curto>.md`.
 
 Formato do nome: `AAAA-MM-DD-<titulo-em-kebab-case>.md`. Exemplo: `2026-05-17-jwt-curto-vs-longo.md`.
 
-Gerada por workflow que declara `gera_decision: yes` no frontmatter, ou por workflow `gera_decision: auto` quando a IA julga necessário (tipicamente: mudança não-trivial, escolha entre alternativas, registro de aprovação do usuário para mudança quebradora).
+Gerada por workflow que declara `gera_decision: yes` no frontmatter, ou por workflow `gera_decision: auto` pelos gatilhos que o workflow declara (ex.: default após incerteza do dono, divergência consciente da constitution, mudança quebradora aprovada).
 
 #### 2.5.2 Propósito
 
@@ -2880,8 +2880,9 @@ range_avaliado: a1b2c3d..f6e5d4c
 ## Veredito
 APROVADO — zero BLOQUEANTE; 1 IMPORTANTE vira herdado da fase B.2.
 
-## Herdados conferidos
-- nenhum destinado a A.1
+## Herdados e IMPORTANTES anteriores conferidos
+- nenhum herdado destinado a A.1 (não depende de outra fase)
+- IMPORTANTES da avaliação t1: nenhum
 
 ## IMPORTANTES
 - **I-1** — `src/adapters/evolution.py:88` — timeout fixo no código; mover para a configuração.

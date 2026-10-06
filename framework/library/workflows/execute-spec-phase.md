@@ -11,7 +11,7 @@ politica_falhas: padrão
 # Workflow: execute-spec-phase
 
 ## Quando usar
-Executar a **próxima fase pendente** de uma spec gerada por `/create-spec` (em `.codeflow/specs/<slug>/SPEC_<NAME>.md`), deixando-a **pronta para avaliação** por `/evaluate-spec-phase`. Uma fase por execução: lê a spec e os documentos referenciados, executa só a fase da vez, **commita** o trabalho e grava o relatório `FASE-<id>-<slug>-EXECUCAO.md` (com frontmatter machine-readable e range de commits). Também opera em **modo rework**: ao receber uma avaliação `REPROVADO`, corrige a mesma fase. Em nova execução, resolve também os IMPORTANTES **herdados** das fases de que depende. O `<id>` e o `<slug>` da fase vêm da spec (§5) e são reusados verbatim. Pré-requisito: a spec tem `## 5. Plano de desenvolvimento por fases`.
+Executar a **próxima fase pendente** de uma spec gerada por `/create-spec` (em `.codeflow/specs/<slug>/SPEC_<NAME>.md`), deixando-a **pronta para avaliação** por `/evaluate-spec-phase`. Uma fase por execução: lê a spec e os documentos referenciados, executa só a fase da vez, **commita** o trabalho e grava o relatório `FASE-<id>-<slug>-EXECUCAO.md` (com frontmatter machine-readable e range de commits). Também opera em **modo rework**: ao receber uma avaliação `REPROVADO`, corrige a mesma fase. Em nova execução, resolve também os IMPORTANTES **herdados** destinados a ela (ARTIFACTS_SPEC §2.11.5). O `<id>` e o `<slug>` da fase vêm da spec (§5) e são reusados verbatim. Pré-requisito: a spec tem `## 5. Plano de desenvolvimento por fases`.
 
 ## Quando NÃO usar
 - Para criar a spec → use `/create-spec`.
