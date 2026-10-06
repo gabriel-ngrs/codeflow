@@ -147,4 +147,4 @@ Registrar o que sobrevive ao código e finalizar.
 - [ ] Decision gerada, com as tags da área e do modo e `decisions/INDEX.md` atualizado, quando um gatilho da Fase 6 ocorreu (senão, o porquê no corpo do commit); checkpoints da execução deletados (Fase 6).
 
 ## Resumo final
-Apresentar nas cinco seções fixas do `SPEC.md` §5.6.4.
+Apresentar no formato do resumo final do `SPEC.md` §5.6.4, sem abrir o arquivo para isso: o título `## ✓ CONCLUÍDO: <workflow> — <escopo>` e as cinco seções, na ordem — `### O que foi feito`, `### Checklist Definition of Done`, `### Riscos e notas`, `### Próximos passos sugeridos`, `### Decisão registrada (se aplicável)`.

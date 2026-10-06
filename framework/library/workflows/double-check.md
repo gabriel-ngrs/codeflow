@@ -69,4 +69,4 @@ Verificar, contra um lote de bugs, se as correções realmente sanaram cada bug 
 - [ ] Ledger salvo com os vereditos de verificação.
 
 ## Resumo final
-Apresentar nas cinco seções fixas do `SPEC.md` §5.6.4, incluindo o placar de verificação na seção "O que foi feito".
+Apresentar no formato do resumo final do `SPEC.md` §5.6.4, sem abrir o arquivo para isso: o título `## ✓ CONCLUÍDO: <workflow> — <escopo>` e as cinco seções, na ordem — `### O que foi feito`, `### Checklist Definition of Done`, `### Riscos e notas`, `### Próximos passos sugeridos`, `### Decisão registrada (se aplicável)`, incluindo o placar de verificação na seção "O que foi feito".

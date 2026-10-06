@@ -70,4 +70,4 @@ Planejar uma **melhoria** (mudar, ajustar ou melhorar o que já existe) ou uma *
 - [ ] Plano commitado com `status: aprovado` (pedido claro) ou `status: proposto` (decisão aberta para o dono); nenhum código de produção alterado.
 
 ## Resumo final
-Apresentar nas cinco seções fixas do `SPEC.md` §5.6.4. Em **Próximos passos**, o `/implement-change` — antes dele, a aprovação do dono quando o plano saiu `proposto`.
+Apresentar no formato do resumo final do `SPEC.md` §5.6.4, sem abrir o arquivo para isso: o título `## ✓ CONCLUÍDO: <workflow> — <escopo>` e as cinco seções, na ordem — `### O que foi feito`, `### Checklist Definition of Done`, `### Riscos e notas`, `### Próximos passos sugeridos`, `### Decisão registrada (se aplicável)`. Em **Próximos passos**, o `/implement-change` — antes dele, a aprovação do dono quando o plano saiu `proposto`.

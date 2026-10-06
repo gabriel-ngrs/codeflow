@@ -74,4 +74,4 @@ Revisar, de forma **independente e cética**, uma melhoria ou feature executada 
 - [ ] `REVISAO-<tentativa>.md` gravado a partir do molde e commitado; nenhum código alterado.
 
 ## Resumo final
-Apresentar nas cinco seções fixas do `SPEC.md` §5.6.4, com o veredito explícito e a contagem de achados por severidade.
+Apresentar no formato do resumo final do `SPEC.md` §5.6.4, sem abrir o arquivo para isso: o título `## ✓ CONCLUÍDO: <workflow> — <escopo>` e as cinco seções, na ordem — `### O que foi feito`, `### Checklist Definition of Done`, `### Riscos e notas`, `### Próximos passos sugeridos`, `### Decisão registrada (se aplicável)`, com o veredito explícito e a contagem de achados por severidade.

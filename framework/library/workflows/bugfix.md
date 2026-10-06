@@ -79,4 +79,4 @@ Corrigir bug reproduzível em código existente. Há sintoma observável, hipót
 - [ ] Decision gerada se aplicável (gera_decision: auto) — incluindo default após "não sei" do usuário e divergência consciente da constitution.
 
 ## Resumo final
-Apresentar nas cinco seções fixas do `SPEC.md` §5.6.4.
+Apresentar no formato do resumo final do `SPEC.md` §5.6.4, sem abrir o arquivo para isso: o título `## ✓ CONCLUÍDO: <workflow> — <escopo>` e as cinco seções, na ordem — `### O que foi feito`, `### Checklist Definition of Done`, `### Riscos e notas`, `### Próximos passos sugeridos`, `### Decisão registrada (se aplicável)`.

@@ -71,4 +71,4 @@ Executar um plano **aprovado** de melhoria ou feature (`.codeflow/changes/<slug>
 - [ ] `EXECUCAO.md` gravado a partir do molde, com saídas reais e evidência por CA, e commitado.
 
 ## Resumo final
-Apresentar nas cinco seções fixas do `SPEC.md` §5.6.4. Em **Próximos passos**, o `/review-change` em chat zerado.
+Apresentar no formato do resumo final do `SPEC.md` §5.6.4, sem abrir o arquivo para isso: o título `## ✓ CONCLUÍDO: <workflow> — <escopo>` e as cinco seções, na ordem — `### O que foi feito`, `### Checklist Definition of Done`, `### Riscos e notas`, `### Próximos passos sugeridos`, `### Decisão registrada (se aplicável)`. Em **Próximos passos**, o `/review-change` em chat zerado.

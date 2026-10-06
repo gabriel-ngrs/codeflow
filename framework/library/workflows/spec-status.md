@@ -19,7 +19,7 @@ Mostrar o progresso de uma spec gerada por `/create-spec`: quais fases estão pe
 
 ## LEIA TAMBÉM
 - ~/.codeflow/framework/core/constitution.md
-- ~/.codeflow/framework/core/ARTIFACTS_SPEC.md (§2.8.6 gate estrutural; §2.11 máquina de estados da fase)
+- ~/.codeflow/framework/core/ARTIFACTS_SPEC.md — **só §2.11** (máquina de estados da fase; cerca de 40 linhas), nunca o arquivo inteiro: `sed -n '/^### 2\.11 /,/^### 2\.12 /p' ~/.codeflow/framework/core/ARTIFACTS_SPEC.md`. A forma da §5 da spec (§2.8.6) é checada pelo `run-structural.sh`, não por leitura.
 - .codeflow/INDEX.md
 - .codeflow/constitution.md
 - .codeflow/manifest.md
@@ -38,4 +38,4 @@ Para cada fase de §5, derivar **um único** estado (**pendente** / **aguardando
 - [ ] Tabela de progresso + próximo passo apresentados; nada modificado.
 
 ## Resumo final
-Apresentar nas cinco seções fixas do `SPEC.md` §5.6.4.
+Apresentar no formato do resumo final do `SPEC.md` §5.6.4, sem abrir o arquivo para isso: o título `## ✓ CONCLUÍDO: <workflow> — <escopo>` e as cinco seções, na ordem — `### O que foi feito`, `### Checklist Definition of Done`, `### Riscos e notas`, `### Próximos passos sugeridos`, `### Decisão registrada (se aplicável)`.

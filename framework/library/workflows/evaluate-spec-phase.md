@@ -20,7 +20,7 @@ Avaliar, de forma **independente e cética**, a fase executada por `/execute-spe
 
 ## LEIA TAMBÉM
 - ~/.codeflow/framework/core/constitution.md
-- ~/.codeflow/framework/core/ARTIFACTS_SPEC.md (§2.8.6 gate estrutural; §2.10.3 cascata de veredito; §2.11 máquina de estados da fase)
+- ~/.codeflow/framework/core/ARTIFACTS_SPEC.md — **só §2.9 a §2.11** (relatório de execução, avaliação e máquina de estados da fase; cerca de 230 linhas), nunca o arquivo inteiro: `sed -n '/^### 2\.9 /,/^### 2\.12 /p' ~/.codeflow/framework/core/ARTIFACTS_SPEC.md`. A forma da §5 da spec (§2.8.6) é checada pelo `run-structural.sh`, não por leitura.
 - ~/.codeflow/framework/core/rules/code-quality.md
 - ~/.codeflow/framework/core/rules/testing.md
 - ~/.codeflow/framework/core/rules/security.md
@@ -91,4 +91,4 @@ Avaliar, de forma **independente e cética**, a fase executada por `/execute-spe
 - [ ] Nenhuma alteração de código feita pelo avaliador (só relatório).
 
 ## Resumo final
-Apresentar nas cinco seções fixas do `SPEC.md` §5.6.4.
+Apresentar no formato do resumo final do `SPEC.md` §5.6.4, sem abrir o arquivo para isso: o título `## ✓ CONCLUÍDO: <workflow> — <escopo>` e as cinco seções, na ordem — `### O que foi feito`, `### Checklist Definition of Done`, `### Riscos e notas`, `### Próximos passos sugeridos`, `### Decisão registrada (se aplicável)`.

@@ -101,9 +101,25 @@ incerteza do owner, divergência da constitution. O texto gêmeo do `/batch-bugf
 **Por quê:** é a R3; o gatilho "não-trivial" cobria quase todo fix e enchia o índice de decisions.
 **Alternativa rejeitada:** deixar o `/implement-change` com o gatilho próprio — ele declara usar "os mesmos gatilhos do `/bugfix`", e a regra ficaria dupla.
 
+### 10. Ler só a seção do contrato e validar a spec na origem
+`/execute-spec-phase` e `/evaluate-spec-phase` citam só §2.9 a §2.11 do `ARTIFACTS_SPEC.md`, `/spec-status`
+só §2.11 e `/ideacao` só §2.12, cada um com o comando `sed` que extrai a seção. O resumo final dos
+workflows tocados nomeia o título e as cinco seções do `SPEC.md` §5.6.4, sem mandar abrir o arquivo. O
+`/create-spec` roda o `run-structural.sh` antes do commit e não commita a spec com exit `1`; o script não
+muda o que valida.
+**Por quê:** é a R8; o arquivo inteiro custava cerca de 50 mil tokens por sessão para um trecho de 4 mil, e
+o defeito de forma da §5 só aparecia na primeira execução de fase.
+**Alternativa rejeitada:** dividir o `ARTIFACTS_SPEC.md` em contrato de runtime e manual do mantenedor —
+mudança maior, fora do pacote aprovado.
+
 ## Próximos passos sugeridos
 
 - No deploy: avisar os orquestradores dos projetos consumidores da mudança de veredito e pedir o re-rodar
   de `bash ~/.codeflow/install.sh` (os moldes de `templates/specs/` mudaram).
 - Avaliar, nas trilhas dos projetos, os workflows de projeto que leem `quality_gate.threshold` ou `RESSALVAS`.
 - Adotar a proposta do glossary a partir de 2026-11-04, com bump major.
+
+## Notas
+
+- Os workflows `audit`, `verify-audit`, `design-pass` e `security-sweep` não foram tocados: seguem citando o
+  `SPEC.md` §5.6.4 pela seção; a mesma forma do resumo final pode ir a eles num pull request da trilha de Auditoria.
