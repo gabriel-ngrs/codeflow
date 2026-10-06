@@ -1,16 +1,19 @@
 ---
-versão: 1.0
+versão: 1.1
 status: estável
-atualizado: 2026-10-05
+atualizado: 2026-10-06
 data: 2026-10-05
 workflow: implement-change
 tags: [core, glossary, veredito, proposta]
-status_decisão: ativa
-supersede: null
+status_decisão: superseded
+supersede: 2026-10-06-adocao-glossary-veredito
 relaciona-com: [2026-10-05-aceleracao-do-ciclo, 2026-10-02-operacao-por-trilhas]
 ---
 
 # Decisões: proposta de mudança no glossary — veredito e avaliação de fase
+
+> **Adotada em 2026-10-06** pela decision `2026-10-06-adocao-glossary-veredito`, que a substitui: as três
+> entradas estão no `framework/core/glossary.md` 2.0.
 
 ## Contexto
 
