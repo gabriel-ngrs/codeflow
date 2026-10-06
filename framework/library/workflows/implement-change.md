@@ -1,7 +1,7 @@
 ---
-versão: 1.1
+versão: 1.2
 status: experimental
-atualizado: 2026-10-05
+atualizado: 2026-10-06
 granularidade: médio
 gera_decision: auto
 usa_checkpoints: no
@@ -50,7 +50,7 @@ Executar um plano **aprovado** de melhoria ou feature (`.codeflow/changes/<slug>
 - Gate: cada etapa verde e commitada antes da próxima.
 
 ### Passo 3 — Validar a mudança inteira
-- Rodar os comandos de validação do projeto (do manifest) que provam o conjunto — não a suíte inteira por reflexo; a suíte completa é do revisor. Gate ausente → `[—]` com justificativa.
+- Rodar os comandos de validação do projeto (do manifest) que provam o conjunto — não a suíte inteira por reflexo; a validação final é do revisor (`/review-change`, Passo 2). Gate ausente → `[—]` com justificativa.
 - Aplicar a skill `self-review` ao diff `sha_inicial..HEAD`, conferindo que tudo cai no escopo do plano.
 - Gate: validação verde (ou `[—]` justificado) e self-review limpo.
 

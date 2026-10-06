@@ -1,5 +1,5 @@
 ---
-versão: 2.4
+versão: 2.5
 status: estável
 atualizado: 2026-10-06
 documento: ARTIFACTS_SPEC.md
@@ -2031,6 +2031,7 @@ Regras de aplicação:
 - Sub-seções `### <categoria>` na seção de padrões (`## Padrões detectados` / `## Padrões definidos`) agrupando por tema (testes, imports, naming, estrutura).
 - Seção `## Comandos auxiliares` listando comandos úteis além dos gates de validação (ex: `migrate`, `seed`, `dev-up`).
 - Seção `## Limitações conhecidas` declarando o que `discover` não conseguiu inferir e precisa de confirmação manual do usuário.
+- Seção `## CI` declarando o CI como **gate de merge** (o merge exige o CI verde no PR) e listando o que ele cobre: os gates de `## Comandos de validação` que roda, pelo nome, e o que fica só local. Com ela, o revisor (`/review-change`) e o conferente (`/double-check`) rodam localmente só o que o CI não cobre e conferem o CI verde do PR, ou do mesmo sha, como evidência; sem ela, rodam a validação completa local.
 
 #### 2.3.5 Exemplo preenchido
 
