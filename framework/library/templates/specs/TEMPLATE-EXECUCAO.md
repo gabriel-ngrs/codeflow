@@ -16,8 +16,8 @@ range: <sha_inicial>..<sha_final>
 
      status: "executado" (nova execução) ou "rework".
      Nova execução: tentativa=1, reprovacoes=0, sha_inicial = HEAD no início da fase.
-     Rework: tentativa = anterior+1; reprovacoes = anterior+1 (o veredito
-       não-APROVADO que motivou o rework); sha_inicial = REUSAR o do EXECUCAO
+     Rework: tentativa = anterior+1; reprovacoes = anterior+1 (o REPROVADO
+       que motivou o rework); sha_inicial = REUSAR o do EXECUCAO
        anterior. range é sempre sha_inicial..sha_final (a fase inteira).
      Sem campo de branch: o pipeline trabalha na branch atual. -->
 
@@ -45,7 +45,15 @@ range: <sha_inicial>..<sha_final>
 - Decisões de design e **qualquer desvio** da spec/rules: o quê, por quê, se foi
   conversado. "Nenhum desvio" é resposta válida — se for verdade.
 
-## 5. Comandos rodados + saídas reais
+## 5. Herdados
+
+(IMPORTANTES abertos de fases anteriores destinados a esta fase — ARTIFACTS_SPEC
+§2.11.5. Corrigi-los é escopo autorizado da fase. Um por linha; o avaliador
+confere, e o que ficar aberto vira BLOQUEANTE. "nenhum", se não houver.)
+
+- `FASE <id> I-<n>` — o problema — resolvido em `<sha>` | não resolvido: <motivo>
+
+## 6. Comandos rodados + saídas reais
 
 > Rode os **comandos de validação do projeto** (do `.codeflow/manifest.md`; se um
 > gate não existir, marque `[—]` com justificativa). Cole as **saídas reais** —
@@ -68,12 +76,12 @@ range: <sha_inicial>..<sha_final>
 ...
 ```
 
-## 6. Critérios de aceite da fase (com evidência)
+## 7. Critérios de aceite da fase (com evidência)
 
 - [ ] AC-… — evidência: ...
 - [ ] AC-… — evidência: ...
 
-## 7. Definition of Done da fase
+## 8. Definition of Done da fase
 
 - [ ] Testes da fase verdes
 - [ ] Comandos de validação do projeto limpos nos arquivos tocados (ou `[—]` justificado)
@@ -81,10 +89,10 @@ range: <sha_inicial>..<sha_final>
 - [ ] Nenhum segredo/PII em log/DTO/exceção
 - [ ] Commits em pt-BR (Conventional Commits)
 
-## 8. (Em rework) O que mudou nesta tentativa
+## 9. (Em rework) O que mudou nesta tentativa
 
 (Quais achados BLOQUEANTES/IMPORTANTES da avaliação foram corrigidos e como.)
 
-## 9. Itens em aberto / dúvidas para o avaliador
+## 10. Itens em aberto / dúvidas para o avaliador
 
 (O que ficou incerto, incompleto ou precisa de olhar externo. Seja honesto.)

@@ -30,9 +30,12 @@ a **materialização preenchível** desses schemas; em caso de divergência, o
    relatório `FASE-…-EXECUCAO.md`.
 3. **`/evaluate-spec-phase`**, num **chat zerado e separado**, lê o relatório como
    ponto de partida mas **verifica contra o código real**, roda as verificações e
-   emite um veredito (`APROVADO` / `RESSALVAS` / `REPROVADO`).
-4. **`RESSALVAS`/`REPROVADO`** → achados voltam ao executor → corrige → reavalia.
-   **`APROVADO`** → próxima fase.
+   emite um veredito (`APROVADO` / `REPROVADO` / `PENDENTE-EXTERNO`).
+4. **`REPROVADO`** (há BLOQUEANTE) → achados voltam ao executor → corrige → reavalia;
+   teto de 3 `REPROVADO`. **`PENDENTE-EXTERNO`** → resolver a condição de fora e
+   reavaliar a mesma tentativa, sem rework. **`APROVADO`** (zero BLOQUEANTE) →
+   próxima fase, que recebe os IMPORTANTES abertos como **herdados**. O `RESSALVAS`
+   de artefatos antigos se lê como `APROVADO`.
 
 > O relatório é **declaração, não prova**. O avaliador não confia nele — confere
 > contra o código. Tudo acontece na branch atual; quem gerencia a branch é você.

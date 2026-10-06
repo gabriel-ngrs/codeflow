@@ -1,7 +1,7 @@
 ---
-versão: 2.2
+versão: 2.3
 status: estável
-atualizado: 2026-07-29
+atualizado: 2026-10-05
 documento: ARTIFACTS_SPEC.md
 projeto: codeflow
 localização: framework/core/ARTIFACTS_SPEC.md (instalado em ~/.codeflow/framework/core/ARTIFACTS_SPEC.md)
@@ -1007,7 +1007,7 @@ Se o bug toca em áreas com decisions arquivadas (auth, payments, schema), consu
 
 ### Passo 6 — Resumir e (se aplicável) gerar decision
 - Apresentar resumo final no formato fixo de cinco seções.
-- Se o fix envolveu mudança não-trivial (não foi typo, não foi off-by-one isolado), gerar decision em `.codeflow/decisions/`.
+- Gerar decision em `.codeflow/decisions/` só nos gatilhos do workflow: default aplicado após incerteza do usuário, ou divergência consciente da constitution. Fora deles, o porquê do fix vai no corpo da mensagem de commit.
 
 ## Definition of Done
 - [ ] Bug reproduzido no Passo 1.
@@ -2258,7 +2258,7 @@ Localização única: `<projeto>/.codeflow/decisions/<data>-<titulo-curto>.md`.
 
 Formato do nome: `AAAA-MM-DD-<titulo-em-kebab-case>.md`. Exemplo: `2026-05-17-jwt-curto-vs-longo.md`.
 
-Gerada por workflow que declara `gera_decision: yes` no frontmatter, ou por workflow `gera_decision: auto` quando a IA julga necessário (tipicamente: mudança não-trivial, escolha entre alternativas, registro de aprovação do usuário para mudança quebradora).
+Gerada por workflow que declara `gera_decision: yes` no frontmatter, ou por workflow `gera_decision: auto` pelos gatilhos que o workflow declara (ex.: default após incerteza do dono, divergência consciente da constitution, mudança quebradora aprovada).
 
 #### 2.5.2 Propósito
 
@@ -2608,9 +2608,7 @@ Documento único autoexecutável que descreve **o quê**, **por quê** e **como 
 - `created_at`, `updated_at` — datas ISO.
 - `owner` — owner da spec.
 - `wave` — `single` | `multi` | `null`. Governa o formato do `id` das fases (§2.8.3 abaixo).
-- `quality_gate` — bloco com `scorer` (valor fixo `phase-evaluator`) e `threshold` (número 0–10, default `8.5`). É o threshold que `/evaluate-spec-phase` usa por padrão para aprovar cada fase. **Sem** campo `passed` (estado de fase vive nos artefatos §2.10, não aqui).
-
-Campos opcionais de frontmatter (`risk_level`, `risk_score`, `refine_mode`, `estimated_effort`, `cross_context`, `linked_adr`, `linked_feat`, `depends_on`, `blocks`, `related_bugs`) — ver §2.8.4.
+Campos opcionais de frontmatter (`quality_gate`, `risk_level`, `risk_score`, `refine_mode`, `estimated_effort`, `cross_context`, `linked_adr`, `linked_feat`, `depends_on`, `blocks`, `related_bugs`) — ver §2.8.4.
 
 **Seções markdown — na ordem fixa:**
 
@@ -2642,6 +2640,7 @@ Cada fase é uma sub-seção `### Fase <id> — <nome>` com, no mínimo, os camp
 
 #### 2.8.4 Schema opcional
 
+- `quality_gate` — bloco com `scorer` (valor fixo `phase-evaluator`) e `threshold` (número 0–10). **Informativo:** desde 2026-10-05 o threshold não decide o veredito da fase (§2.10.3); spec que traz o bloco continua válida, e spec nova pode omiti-lo. **Sem** campo `passed` (estado de fase vive nos artefatos §2.10, não aqui).
 - Campos de frontmatter de refinamento: `risk_level` (`GREEN`/`YELLOW`/`RED`), `risk_score` (0–25 ou `null`), `refine_mode` (`SHALLOW`/`DEEP`), `estimated_effort`, `cross_context`, `linked_adr`, `linked_feat`, `depends_on`, `blocks`, `related_bugs`. Incluir quando aplicável; omitir (ou `null`/`[]`) quando não.
 - Estimativa de tamanho/esforço por fase no título da sub-seção (`*(tamanho M; ≈4h)*`).
 - Cabeçalho de track em `wave: multi`: `### Track <X> — <nome>` antes das fases daquele track (legibilidade, como no padrão-ouro). Não é fase — a contagem de fases (§2.8.6 #3) ignora esses cabeçalhos; só `### Fase <id> — …` conta.
@@ -2698,7 +2697,7 @@ quality_gate:
 
 #### 2.8.6 Regras de validação
 
-1. Frontmatter presente, com `slug` igual ao nome da subpasta e bloco `quality_gate` com `scorer: phase-evaluator` e `threshold` numérico. **Sem** `quality_gate.passed`.
+1. Frontmatter presente, com `slug` igual ao nome da subpasta. O bloco `quality_gate`, se presente, tem `scorer: phase-evaluator` e `threshold` numérico. **Sem** `quality_gate.passed`.
 2. As doze seções obrigatórias presentes, na ordem de §2.8.3.
 3. `## 5` tem 3 a 8 sub-seções `### Fase <id> — <nome>` **por track** (`wave: multi` pode passar de 8 no total, desde que ≤ 8 por track), com o `<id>` **literal no heading** igual ao bullet `id` da fase (`### Fase A.1 — …` quando `id: A.1`).
 4. Cada fase declara `id` e `slug`; todos os `id` são únicos na spec; todos os `slug` são kebab-case.
@@ -2710,7 +2709,7 @@ quality_gate:
 
 #### 2.8.7 Anti-padrões
 
-- **`quality_gate.passed` ou `threshold: 3` legado.** O gate é `phase-evaluator` com threshold 0–10 consumido pelo avaliador; estado de aprovação vive nos artefatos de avaliação (§2.10), não em campo booleano órfão na spec.
+- **`quality_gate.passed` ou `threshold: 3` legado.** O bloco, quando existe, é `phase-evaluator` com threshold 0–10, só informativo; estado de aprovação vive nos artefatos de avaliação (§2.10), não em campo booleano órfão na spec.
 - **Fase sem `id`/`slug`.** Sem eles os nomes de `FASE-*-EXECUCAO.md`/`AVALIACAO.md` divergem entre chats e os artefatos ficam órfãos.
 - **Heading `### Fase 1 —` com `id: A.1`.** O `id` do heading e o do bullet têm de coincidir; heading órfão quebra a coerência do schema.
 - **Spec não-commitada.** A fonte de verdade precisa estar commitada na branch atual; sem isso o executor/avaliador em chat zerado não a encontram.
@@ -2739,19 +2738,22 @@ Deixar a fase **pronta para avaliação independente**: declara, de forma machin
 - `slug_fase` — `slug` da fase, igual ao da §5.
 - `status` — domínio: `executado` (nova execução) | `rework`. Denormalizado (redundante com `tentativa`: `rework` ⇔ `tentativa ≥ 2`); a regra de validação 4 garante a coerência, então não pode divergir silenciosamente.
 - `tentativa` — inteiro ≥ 1. Nova execução: `1`. Rework: anterior + 1.
-- `reprovacoes` — inteiro ≥ 0, **cumulativo**. Conta os vereditos **não-APROVADO** (`REPROVADO` **ou** `RESSALVAS` — ambos disparam rework e ambos contam para o teto) acumulados da fase. Nova execução: `0`. Rework: valor anterior + 1 (o veredito não-APROVADO que motivou este rework). É o que torna o **teto de 3 tentativas (= 1ª avaliação não-APROVADO + 2 reworks)** reconstruível mesmo com o arquivo sobrescrito (gate: parar quando `reprovacoes >= 2` — ver §2.11.4). (O nome é histórico; nesta máquina de estados "reprovação" = qualquer veredito que não conclui a fase.)
+- `reprovacoes` — inteiro ≥ 0, **cumulativo**. Conta os vereditos `REPROVADO` acumulados da fase — o único veredito que dispara rework. `PENDENTE-EXTERNO` não conta (§2.10.3). Nova execução: `0`. Rework: valor anterior + 1 (o `REPROVADO` que motivou este rework). É o que torna o **teto de 3 tentativas (= 1º `REPROVADO` + 2 reworks)** reconstruível mesmo com o arquivo sobrescrito (gate: parar quando `reprovacoes >= 2` — ver §2.11.4). Artefato anterior a 2026-10-05 pode ter contado também `RESSALVAS`; o valor fica como está (nunca decresce), e o teto só fica mais conservador.
 - `sha_inicial` — HEAD original no início da fase. Em rework, **reusar** o da tentativa anterior (não redefinir).
 - `sha_final` — HEAD após o trabalho desta tentativa.
 - `range` — `<sha_inicial>..<sha_final>`. Sempre do início original ao HEAD, para o avaliador ver a fase inteira.
 
 **Seções markdown — corpo (após o frontmatter):**
 
-Resumo do que foi feito; tabela de arquivos CRIADOS/ALTERADOS (caminho + propósito); confirmação do REUSO; decisões de design e qualquer desvio da spec/rules com justificativa; comandos rodados + **saídas reais** (os comandos de validação do projeto, ou `[—]` justificado se ausente); checklist dos ACs/critério de conclusão, cada item com evidência; em rework, o que mudou nesta tentativa; dúvidas para o avaliador.
+Resumo do que foi feito; tabela de arquivos CRIADOS/ALTERADOS (caminho + propósito); confirmação do REUSO; decisões de design e qualquer desvio da spec/rules com justificativa; **Herdados**; comandos rodados + **saídas reais** (os comandos de validação do projeto, ou `[—]` justificado se ausente); checklist dos ACs/critério de conclusão, cada item com evidência; em rework, o que mudou nesta tentativa; dúvidas para o avaliador.
+
+**Herdados.** Lista dos IMPORTANTES abertos que esta fase recebeu (§2.11.5), um por linha: a origem (`FASE <id> I-<n>`), o problema e o desfecho — `resolvido em <sha>` ou `não resolvido: <motivo>`. Sem herdado recebido, a seção diz "nenhum". Corrigir um herdado é escopo autorizado da fase que o recebe, mesmo fora dos arquivos que ela declara.
 
 **Restrições adicionais:**
 
 - Sem comentários (`#`) dentro do frontmatter (§0.2).
 - `reprovacoes` nunca decresce entre tentativas da mesma fase.
+- Artefato anterior a 2026-10-05, sem a seção **Herdados**, continua válido.
 
 #### 2.9.4 Schema opcional
 
@@ -2782,6 +2784,9 @@ Rework da Fase A.1 após avaliação t1 (REPROVADO): token deixava de ser mascar
 |---|---|---|
 | `src/adapters/evolution.py` | ALTERADO | mascarar token no logger; cobrir AC-3 |
 
+## Herdados
+- nenhum (A.1 não depende de outra fase)
+
 ## Comandos
 - `ruff check src/ && mypy src/ && pytest tests/adapters/test_evolution.py` → exit 0 (saída colada abaixo) …
 
@@ -2798,16 +2803,18 @@ Rework da Fase A.1 após avaliação t1 (REPROVADO): token deixava de ser mascar
 1. Frontmatter presente, com `spec`, `fase`, `slug_fase`, `status`, `tentativa`, `reprovacoes`, `sha_inicial`, `sha_final`, `range`.
 2. Nome do arquivo `FASE-<fase>-<slug_fase>-EXECUCAO.md`, com `<fase>` e `<slug_fase>` iguais aos campos do frontmatter e aos da §5 da spec.
 3. `status` ∈ {`executado`, `rework`}; `tentativa` ≥ 1; `reprovacoes` ≥ 0.
-4. `status: executado` ⇒ `tentativa: 1` e `reprovacoes: 0`. `status: rework` ⇒ `tentativa` ≥ 2 e `reprovacoes` ≥ 1 (todo rework vem de um veredito não-APROVADO, que conta).
+4. `status: executado` ⇒ `tentativa: 1` e `reprovacoes: 0`. `status: rework` ⇒ `tentativa` ≥ 2 e `reprovacoes` ≥ 1 (todo rework vem de um `REPROVADO`, que conta).
 5. `range` é exatamente `<sha_inicial>..<sha_final>`.
 6. Corpo cola **saídas reais** dos comandos (ou `[—]` justificado), nunca apenas "passou".
 7. Sem comentários `#` no frontmatter.
+8. Todo herdado destinado à fase (§2.11.5) aparece na seção **Herdados**, com desfecho.
 
 #### 2.9.7 Anti-padrões
 
 - **Versionar o arquivo por tentativa** (`...-EXECUCAO-t2.md`). O contrato é arquivo único + `reprovacoes` cumulativo; múltiplos arquivos quebram os consumidores (§2.10, spec-status).
 - **Redefinir `sha_inicial` em rework.** O range deixaria de cobrir a fase inteira e o avaliador veria só os commits de conserto.
-- **`reprovacoes` ausente ou resetado.** Sem ele o teto de 3 tentativas vira inferência frágil a partir de `tentativa` (uma `tentativa: 3` pode ser a 3ª execução ainda não avaliada, não 3 vereditos não-APROVADO).
+- **`reprovacoes` ausente ou resetado.** Sem ele o teto de 3 tentativas vira inferência frágil a partir de `tentativa` (uma `tentativa: 3` pode ser a 3ª execução ainda não avaliada, não 3 `REPROVADO`).
+- **Herdado sumido.** Herdado recebido e omitido da seção **Herdados** conta como não resolvido para o avaliador (§2.10.3).
 - **"passou" sem saída.** O avaliador re-roda tudo; relatório sem evidência é ruído.
 
 ### 2.10 Avaliação de fase (`FASE-<id>-<slug>-AVALIACAO.md`)
@@ -2828,26 +2835,33 @@ Registrar o veredito independente da tentativa avaliada, de forma machine-readab
 - `fase` — `id` da fase, igual ao do EXECUCAO.
 - `slug_fase` — `slug` da fase, igual ao do EXECUCAO.
 - `tentativa` — a tentativa **avaliada**; casa com `tentativa` do EXECUCAO.
-- `veredito` — `APROVADO` | `RESSALVAS` | `REPROVADO`. Apenas `APROVADO` conclui a fase; `RESSALVAS` e `REPROVADO` exigem rework.
-- `score` — número 0.0–10.0.
-- `threshold` — o threshold **efetivamente usado** (do `quality_gate.threshold` da spec ou override do usuário), não um literal.
+- `veredito` — `APROVADO` | `REPROVADO` | `PENDENTE-EXTERNO`. `APROVADO` conclui a fase; `REPROVADO` exige rework; `PENDENTE-EXTERNO` espera uma condição de fora da fase e é reavaliado na mesma tentativa. **Legado:** `RESSALVAS`, emitido antes de 2026-10-05, continua válido e se lê como `APROVADO` com os IMPORTANTES daquela avaliação como herdados (§2.11.5). Avaliação nova não emite `RESSALVAS`.
 - `range_avaliado` — `<sha_inicial>..<sha_final>`, o range do EXECUCAO auditado.
+
+Campos `score` e `threshold` — opcionais (§2.10.4).
 
 **Seções markdown — corpo, na ordem fixa:**
 
-1. veredito + score; 2. scorecard (dimensão | nota | peso | evidência); 3. achados BLOQUEANTES (arquivo:linha + correção); 4. IMPORTANTES; 5. sugestões; 6. comandos rodados + saídas reais; 7. itens da fase/DoD não atendidos; 8. divergências entre o relatório e o que o código faz.
+1. veredito; 2. conferência dos herdados e, em rework, dos IMPORTANTES da avaliação anterior da fase (cada um → resolvido ou aberto, com evidência própria); 3. achados BLOQUEANTES (arquivo:linha + correção); 4. IMPORTANTES, numerados `I-<n>` (arquivo:linha + correção); 5. sugestões; 6. erros de registro; 7. comandos rodados + saídas reais; 8. itens da fase/DoD não atendidos; 9. divergências entre o relatório e o que o código faz.
 
 **Restrições adicionais:**
 
-- **Precedência estrita (primeiro que casar vence): `REPROVADO` > `RESSALVAS` > `APROVADO`.**
-- `veredito: REPROVADO` quando `score < threshold` **ou** há ao menos um achado BLOQUEANTE (BLOQUEANTE sempre reprova, qualquer que seja o score).
-- senão `veredito: RESSALVAS` quando há ao menos um achado IMPORTANTE (já implica `score ≥ threshold` e zero BLOQUEANTES).
-- senão `veredito: APROVADO` (`score ≥ threshold`, zero BLOQUEANTES e zero IMPORTANTES).
+- **Severidade.** BLOQUEANTE é o que afeta correção, requisito (AC, FR/NFR), contrato, escopo travado da fase, segurança ou dado. IMPORTANTE é problema real que não impede a fase de servir de base para a seguinte. SUGESTÃO é opcional.
+- **Escalada de IMPORTANTE** (definição única; workflows e moldes a citam). Vira BLOQUEANTE: (a) **o mesmo IMPORTANTE pela 2ª vez** — o IMPORTANTE de uma avaliação anterior da mesma fase (rework), ou herdado destinado à fase, que segue aberto; (b) **3 ou mais IMPORTANTES abertos ao mesmo tempo** — os novos desta avaliação somados aos de (a); nesse caso todos eles passam a BLOQUEANTE.
+- **Erro só de registro** — frontmatter, `range`, lista de arquivos, link ou nome de artefato que não bate, sem efeito no código. Vai para a seção 6 e **não entra no veredito**: o executor o corrige num commit só de documento, sem nova avaliação.
+- **Veredito — precedência estrita (primeiro que casar vence): `REPROVADO` > `PENDENTE-EXTERNO` > `APROVADO`.**
+  - `REPROVADO` quando há ao menos um BLOQUEANTE, contada a escalada.
+  - senão `PENDENTE-EXTERNO` quando um gate da fase não pôde ser fechado por depender de algo fora dela: cota esgotada, push ou CI remoto, ação física do dono, ou outra fase que precisa vir antes. A seção 1 diz qual condição e quem a resolve.
+  - senão `APROVADO`: zero BLOQUEANTE. Os IMPORTANTES abertos (no máximo 2, pela escalada) viram **herdados** (§2.11.5).
+- `score` e `threshold`, quando preenchidos, são informativos: **nunca** decidem o veredito.
 - Sem comentários (`#`) dentro do frontmatter (§0.2).
 
 #### 2.10.4 Schema opcional
 
-Nenhum.
+- `score` — número 0.0–10.0, informativo.
+- `threshold` — número, informativo (o `quality_gate.threshold` da spec, se houver).
+- Scorecard no corpo (dimensão | nota | peso | evidência), dentro da seção 1. As dimensões servem de checklist de leitura; a nota é opcional.
+- Artefato anterior a 2026-10-05 — com `score` e `threshold` obrigatórios, scorecard e a ordem antiga de 8 seções — continua válido.
 
 #### 2.10.5 Exemplo preenchido
 
@@ -2860,19 +2874,21 @@ fase: A.1
 slug_fase: evolution-adapter
 tentativa: 2
 veredito: APROVADO
-score: 9.1
-threshold: 8.5
 range_avaliado: a1b2c3d..f6e5d4c
 ---
 
 ## Veredito
-APROVADO — score 9.1 ≥ 8.5, zero BLOQUEANTES.
+APROVADO — zero BLOQUEANTE; 1 IMPORTANTE vira herdado da fase B.2.
 
-## Scorecard
-| Dimensão | Nota | Peso | Evidência |
-|---|---|---|---|
-| Conformidade com a fase (ACs, escopo travado) | 5 | 3 | test_evolution_port.py verdes |
-| Segurança/LGPD | 5 | 3 | `grep token` em logs = 0 (saída colada) |
+## Herdados e IMPORTANTES anteriores conferidos
+- nenhum herdado destinado a A.1 (não depende de outra fase)
+- IMPORTANTES da avaliação t1: nenhum
+
+## IMPORTANTES
+- **I-1** — `src/adapters/evolution.py:88` — timeout fixo no código; mover para a configuração.
+
+## Erros de registro
+- `range` do EXECUCAO aponta `f6e5d4` (6 dígitos): corrigir em commit só de documento.
 
 ## Comandos rodados
 - `ruff check src/ && mypy src/ && pytest tests/` → exit 0 …
@@ -2880,19 +2896,22 @@ APROVADO — score 9.1 ≥ 8.5, zero BLOQUEANTES.
 
 #### 2.10.6 Regras de validação
 
-1. Frontmatter presente, com `spec`, `fase`, `slug_fase`, `tentativa`, `veredito`, `score`, `threshold`, `range_avaliado`.
+1. Frontmatter presente, com `spec`, `fase`, `slug_fase`, `tentativa`, `veredito`, `range_avaliado`.
 2. Nome do arquivo `FASE-<fase>-<slug_fase>-AVALIACAO.md`, com `<fase>`/`<slug_fase>` iguais aos do EXECUCAO avaliado.
-3. `veredito` ∈ {`APROVADO`, `RESSALVAS`, `REPROVADO`}; coerência veredito × (`score`, `threshold`, BLOQUEANTES) conforme §2.10.3.
-4. `threshold` é o valor usado (numérico), nunca um literal de template fixo.
+3. `veredito` ∈ {`APROVADO`, `REPROVADO`, `PENDENTE-EXTERNO`}, ou o legado `RESSALVAS`; coerência veredito × BLOQUEANTES (contada a escalada) conforme §2.10.3.
+4. `score` e `threshold`, se presentes, numéricos.
 5. `tentativa` casa com a `tentativa` de um `FASE-<fase>-*-EXECUCAO.md` existente.
-6. Corpo cola saídas reais dos comandos; scorecard tem evidência por dimensão.
+6. Corpo cola saídas reais dos comandos e confere cada herdado destinado à fase.
 7. Sem comentários `#` no frontmatter.
 
 #### 2.10.7 Anti-padrões
 
-- **`threshold: 8.5` hardcoded** quando o gate real era outro. O campo registra o que foi de fato aplicado.
+- **Score decidindo.** Reprovar com zero BLOQUEANTE porque a nota ficou baixa, ou aprovar com BLOQUEANTE porque a nota ficou alta. A nota, se existe, só informa.
+- **Rework por IMPORTANTE.** IMPORTANTE abaixo da escalada não reabre a fase: vira herdado.
+- **Herdado esquecido.** Aprovar sem conferir os herdados destinados à fase; o que não foi resolvido é BLOQUEANTE.
+- **Erro de registro reprovando.** Frontmatter, `range` ou link errado se corrige num commit só de documento, não num rework.
+- **`PENDENTE-EXTERNO` para esconder defeito.** Ele vale só quando o que falta está fora da fase; defeito no código da fase é BLOQUEANTE.
 - **`tentativa` desalinhada** da do EXECUCAO. Avaliar a tentativa T e gravar `tentativa: T-1` (ou omitir) reabre a ambiguidade reprovada/aguardando que o pareamento por tentativa fecha.
-- **`RESSALVAS` tratado como conclusão.** Neste pipeline `RESSALVAS` nunca fecha a fase nem libera a seguinte.
 - **O avaliador alterar código.** Este artefato só reporta; correções voltam ao chat executor.
 
 ### 2.11 Máquina de estados da fase (derivada de §2.9 + §2.10)
@@ -2905,7 +2924,7 @@ Definição **canônica** do estado de cada fase da §5 da spec (§2.8), derivad
 
 EXECUCAO e AVALIACAO de uma fase casam pelo par (`fase`, `tentativa`): só uma AVALIACAO com `tentativa: T == EXECUCAO.tentativa` classifica a tentativa corrente. Avaliação de tentativa antiga (`< T`) não classifica — é o que desambigua **reprovada** de **aguardando avaliação** logo após um rework.
 
-#### 2.11.3 Os quatro estados
+#### 2.11.3 Os cinco estados
 
 Para cada fase (identificada pelo `id` da §5), derivar **um único** estado, sempre pelo frontmatter:
 
@@ -2913,16 +2932,24 @@ Para cada fase (identificada pelo `id` da §5), derivar **um único** estado, se
 |---|---|
 | **pendente** | não existe EXECUCAO para o `id` |
 | **aguardando avaliação** | existe EXECUCAO `tentativa: T` e **não** existe AVALIACAO `tentativa: T` (rework recém-feito cai aqui: AVALIACAO de tentativa `< T` não conta) |
-| **reprovada** | existe AVALIACAO `tentativa: T == EXECUCAO.tentativa` com `veredito: REPROVADO` **ou** `RESSALVAS` |
-| **concluída** | existe AVALIACAO `tentativa: T == EXECUCAO.tentativa` com `veredito: APROVADO` |
+| **reprovada** | existe AVALIACAO `tentativa: T == EXECUCAO.tentativa` com `veredito: REPROVADO` |
+| **pendente externo** | existe AVALIACAO `tentativa: T == EXECUCAO.tentativa` com `veredito: PENDENTE-EXTERNO` |
+| **concluída** | existe AVALIACAO `tentativa: T == EXECUCAO.tentativa` com `veredito: APROVADO` (ou o legado `RESSALVAS`) |
 
-Só `APROVADO` conclui a fase; `RESSALVAS` e `REPROVADO` mantêm a fase em **reprovada** (exigem rework e reavaliação). Os quatro estados são mutuamente exclusivos.
+`APROVADO` (e o legado `RESSALVAS`) conclui a fase; `REPROVADO` a mantém em **reprovada** (rework); `PENDENTE-EXTERNO` a mantém em **pendente externo** até a condição de fora ser resolvida — aí `/evaluate-spec-phase` avalia de novo a mesma tentativa e sobrescreve a AVALIACAO, sem rework. Os cinco estados são mutuamente exclusivos.
 
 #### 2.11.4 Elegibilidade e teto
 
-- **Elegibilidade.** Uma fase só é elegível para **nova execução** quando **todas** as fases dos seus `Depende de` (por `id`) estão **concluídas** (AVALIACAO `APROVADO` da tentativa corrente). Vale entre tracks (`B.2` depende de `A.7`). Dependência apenas "aguardando avaliação" **não** libera quem depende dela.
-- **Teto de tentativas.** A fase para após **3 vereditos não-APROVADO** (= a 1ª avaliação não-APROVADO + 2 reworks). `reprovacoes` (§2.9.3) conta os vereditos não-APROVADO — `REPROVADO` **ou** `RESSALVAS`, ambos disparam rework e ambos contam. Gate: ao selecionar um rework, se `EXECUCAO.reprovacoes >= 2` (o veredito corrente fecharia o 3º), **parar** e escalar ao owner — estado terminal seguro (decisão humana), qualquer que seja o veredito. **Terminação garantida:** todo veredito não-APROVADO incrementa `reprovacoes`, então nenhuma sequência de vereditos faz o ciclo executor↔avaliador girar sem fim.
+- **Elegibilidade.** Uma fase só é elegível para **nova execução** quando **todas** as fases dos seus `Depende de` (por `id`) estão **concluídas**. Vale entre tracks (`B.2` depende de `A.7`). Dependência apenas "aguardando avaliação" ou "pendente externo" **não** libera quem depende dela.
+- **Teto de tentativas.** A fase para após **3 `REPROVADO`** (= o 1º `REPROVADO` + 2 reworks). `reprovacoes` (§2.9.3) conta só `REPROVADO`; `PENDENTE-EXTERNO` não conta, porque não pede rework. Gate: ao selecionar um rework, se `EXECUCAO.reprovacoes >= 2` (o `REPROVADO` corrente fecharia o 3º), **parar** e escalar ao owner — estado terminal seguro (decisão humana). **Terminação garantida:** todo `REPROVADO` incrementa `reprovacoes`, então o ciclo executor↔avaliador não gira sem fim; `PENDENTE-EXTERNO` não volta ao executor, só espera a condição de fora.
 - **Distinção.** Este teto é o do ciclo **executor↔avaliador**. Falhas Lógicas **dentro** de uma única execução seguem o limite de 2 tentativas da constitution (política de falhas), independente.
+
+#### 2.11.5 Herdados
+
+- **Origem.** Os IMPORTANTES abertos de uma AVALIACAO `APROVADO` (ou do legado `RESSALVAS`) da tentativa corrente.
+- **Destino.** A primeira fase, na ordem textual da §5, cujo `Depende de` cita a fase de origem. Fase de origem sem dependente → o **fechamento** da spec (gatilho 6 de `/execute-spec-phase`), que os resolve antes do `status: done`.
+- **Quem resolve.** O executor da fase de destino, junto do próprio escopo, e os lista na seção **Herdados** do EXECUCAO (§2.9.3). No fechamento, cada herdado vai num commit próprio, e o commit que leva a spec a `done` lista herdado → `sha`.
+- **Quem confere.** O avaliador da fase de destino (§2.10.3, seção 2): herdado que segue aberto é "o mesmo IMPORTANTE pela 2ª vez" (§2.10.3, escalada (a)) e vira BLOQUEANTE.
 
 ### 2.12 Roteiro (`roteiro.md`)
 

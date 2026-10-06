@@ -1,7 +1,7 @@
 ---
-versão: 1.2
+versão: 1.3
 status: estável
-atualizado: 2026-06-16
+atualizado: 2026-10-05
 granularidade: médio
 gera_decision: auto
 usa_checkpoints: no
@@ -63,10 +63,9 @@ Corrigir bug reproduzível em código existente. Há sintoma observável, hipót
 
 ### Passo 6 — Resumir e (se aplicável) gerar decision
 - Apresentar resumo final no formato fixo de cinco seções.
-- **Gatilhos de decision (`gera_decision: auto`) — gerar decision em `.codeflow/decisions/` quando qualquer um ocorrer:**
-  1. O fix envolveu mudança não-trivial (não foi typo, não foi off-by-one isolado).
-  2. **Default após incerteza do usuário:** a IA fez uma pergunta (ex.: qual status code), o usuário respondeu `não sei` / `o que você recomenda?` / `usa o padrão`, e a IA aplicou um default. Registrar o default escolhido e por que esse (e não outro) — para que futuros leitores entendam a escolha que ficou no código. Vale mesmo quando o default "restaura o HEAD" ou "alinha à constitution": registrar é o comportamento esperado, não opcional.
-  3. **Divergência consciente da constitution:** a implementação contraria uma regra invariante da constitution (do projeto ou universal) — seja para seguir a convenção real do código, seja por trade-off técnico. Registrar: qual regra, qual divergência, por quê, e qual débito fica aberto (corrigir a constitution ou corrigir o código). Sem decision, o conflito fica silenciado.
+- **Gatilhos de decision (`gera_decision: auto`) — gerar decision em `.codeflow/decisions/` quando qualquer um ocorrer** (fora deles, o porquê do fix vai no corpo da mensagem de commit, não em decision):
+  1. **Default após incerteza do usuário:** a IA fez uma pergunta (ex.: qual status code), o usuário respondeu `não sei` / `o que você recomenda?` / `usa o padrão`, e a IA aplicou um default. Registrar o default escolhido e por que esse (e não outro) — para que futuros leitores entendam a escolha que ficou no código. Vale mesmo quando o default "restaura o HEAD" ou "alinha à constitution": registrar é o comportamento esperado, não opcional.
+  2. **Divergência consciente da constitution:** a implementação contraria uma regra invariante da constitution (do projeto ou universal) — seja para seguir a convenção real do código, seja por trade-off técnico. Registrar: qual regra, qual divergência, por quê, e qual débito fica aberto (corrigir a constitution ou corrigir o código). Sem decision, o conflito fica silenciado.
 
 ## Definition of Done
 - [ ] Bug reproduzido no Passo 1.
@@ -80,4 +79,4 @@ Corrigir bug reproduzível em código existente. Há sintoma observável, hipót
 - [ ] Decision gerada se aplicável (gera_decision: auto) — incluindo default após "não sei" do usuário e divergência consciente da constitution.
 
 ## Resumo final
-Apresentar nas cinco seções fixas do `SPEC.md` §5.6.4.
+Apresentar no formato do resumo final do `SPEC.md` §5.6.4, sem abrir o arquivo para isso: o título `## ✓ CONCLUÍDO: <workflow> — <escopo>` e as cinco seções, na ordem — `### O que foi feito`, `### Checklist Definition of Done`, `### Riscos e notas`, `### Próximos passos sugeridos`, `### Decisão registrada (se aplicável)`.

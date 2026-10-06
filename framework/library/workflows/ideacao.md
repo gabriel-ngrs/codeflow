@@ -1,6 +1,7 @@
 ---
-versão: 1.0
+versão: 1.1
 status: experimental
+atualizado: 2026-10-05
 granularidade: detalhado
 gera_decision: no
 usa_checkpoints: yes
@@ -24,7 +25,7 @@ A cadeia natural: `/ideacao` (produz `roteiro.md`) → `/bootstrap` (scaffolda o
 - Para descobrir um projeto existente com código (stack, padrões, regras) → isso é `/discover`.
 
 ## LEIA TAMBÉM
-- ~/.codeflow/framework/core/ARTIFACTS_SPEC.md §2.12 (schema do roteiro — ler o template literal, não parafrasear)
+- ~/.codeflow/framework/core/ARTIFACTS_SPEC.md — **só §2.12** (schema do roteiro; cerca de 130 linhas), nunca o arquivo inteiro: `sed -n '/^### 2\.12 /,/^## Parte 3/p' ~/.codeflow/framework/core/ARTIFACTS_SPEC.md`. Ler o template literal da §2.12.5, não parafrasear.
 - ~/.codeflow/framework/core/constitution.md
 - .codeflow/constitution.md (se o projeto já existe)
 - .codeflow/roteiro.md (se já existe — este workflow o revisa, não o recria do zero)
@@ -137,4 +138,4 @@ Escrever o `roteiro.md` final no formato canônico, validá-lo e entregar.
 - [ ] Roteiro aprovado pelo owner; checkpoints da execução deletados.
 
 ## Resumo final
-Apresentar nas cinco seções fixas do `SPEC.md` §5.6.4.
+Apresentar no formato do resumo final do `SPEC.md` §5.6.4, sem abrir o arquivo para isso: o título `## ✓ CONCLUÍDO: <workflow> — <escopo>` e as cinco seções, na ordem — `### O que foi feito`, `### Checklist Definition of Done`, `### Riscos e notas`, `### Próximos passos sugeridos`, `### Decisão registrada (se aplicável)`.

@@ -1,7 +1,7 @@
 ---
-versão: 1.0
+versão: 1.1
 status: estável
-atualizado: 2026-07-02
+atualizado: 2026-10-05
 granularidade: médio
 gera_decision: no
 usa_checkpoints: no
@@ -46,7 +46,7 @@ Verificar, contra um lote de bugs, se as correções realmente sanaram cada bug 
 ### Passo 3 — Julgar a sanidade e marcar o ledger
 - Traduzir cada resultado do Passo 2 na coluna `verificação` do ledger:
   - `✓` — bug **não** reproduz mais: sanado.
-  - `✗` — bug **ainda** reproduz: não sanado ou regrediu. Reabrir a linha: setar `status: pendente` mantendo `verificação: ✗`, para que o `/batch-bugfix` a recolha na retomada. Mexer nessa coluna do ledger é coordenação, não código de produção — não viola a separação de responsabilidades.
+  - `✗` — bug **ainda** reproduz: não sanado ou regrediu. Com `reaberturas` < 2 (coluna ausente = `0`), reabrir a linha: setar `status: pendente`, mantendo `verificação: ✗` e somando 1 em `reaberturas`, para que o `/batch-bugfix` a recolha na retomada. Com `reaberturas` = 2, **não reabrir** (teto do ciclo batch-bugfix↔double-check): setar `status: bloqueado` com o motivo "teto de reabertura: decisão do dono" e listar o bug como pendência do dono. Mexer nessa coluna do ledger é coordenação, não código de produção — não viola a separação de responsabilidades.
   - `⚠` — sem reprodução determinística possível: inconclusivo (registrar por quê).
 - Carimbar cada linha com a data da verificação. Gate: nenhum bug fica com `verificação: —`.
 
@@ -56,17 +56,17 @@ Verificar, contra um lote de bugs, se as correções realmente sanaram cada bug 
 
 ### Passo 5 — Relatório de verificação
 - Apresentar o resumo final (cinco seções fixas) com o **placar de verificação**: X sanados (`✓`), Y não sanados/regrediram (`✗`), Z inconclusivos (`⚠`), mais o resultado da suíte completa.
-- Listar explicitamente os `✗` e `⚠` como pendências, cada um com a ação sugerida (reentrada no `/batch-bugfix`/`/bugfix`, ou mais informação para tornar reproduzível).
+- Listar explicitamente os `✗` e `⚠` como pendências, cada um com a ação sugerida (reentrada no `/batch-bugfix`/`/bugfix`, decisão do dono para o bug que esgotou o teto de reabertura, ou mais informação para tornar reproduzível).
 - Deixar o ledger salvo com a coluna `verificação` preenchida — é o registro de que o lote foi conferido.
 
 ## Definition of Done
 - [ ] Ledger localizado ou normalizado a partir do documento bruto (Passo 1).
 - [ ] Cada bug teve tentativa de reprodução observável (Passo 2).
-- [ ] Coluna `verificação` preenchida para todo bug — nenhum `—` restante (Passo 3).
+- [ ] Coluna `verificação` preenchida para todo bug — nenhum `—` restante; bug com `✗` reaberto só abaixo do teto de 2 reaberturas, e no teto levado a `bloqueado` (Passo 3).
 - [ ] Suíte completa de validação do projeto rodada (ou `[—]` justificado) (Passo 4).
 - [ ] Placar de verificação apresentado e pendências (`✗`/`⚠`) listadas com ação sugerida.
 - [ ] Nenhum código de produção modificado por este workflow.
 - [ ] Ledger salvo com os vereditos de verificação.
 
 ## Resumo final
-Apresentar nas cinco seções fixas do `SPEC.md` §5.6.4, incluindo o placar de verificação na seção "O que foi feito".
+Apresentar no formato do resumo final do `SPEC.md` §5.6.4, sem abrir o arquivo para isso: o título `## ✓ CONCLUÍDO: <workflow> — <escopo>` e as cinco seções, na ordem — `### O que foi feito`, `### Checklist Definition of Done`, `### Riscos e notas`, `### Próximos passos sugeridos`, `### Decisão registrada (se aplicável)`, incluindo o placar de verificação na seção "O que foi feito".

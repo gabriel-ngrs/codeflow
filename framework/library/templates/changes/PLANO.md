@@ -8,14 +8,16 @@ aprovado_em: <AAAA-MM-DD, quando aprovado>
 registro: <caminho do registro de origem no projeto, se houver>
 ---
 
-<!-- Preenchido pelo PLANEJADOR (/plan-change). Ninguém implementa antes de o
-     dono aprovar: o /implement-change exige status: aprovado.
+<!-- Preenchido pelo PLANEJADOR (/plan-change). Ninguém implementa antes da
+     aprovação: o /implement-change exige status: aprovado.
 
-     status: "proposto" (escrito, aguardando o dono) ou "aprovado".
-     Quem aprova é o dono; quem troca o campo é ele, ou o orquestrador com a
-     aprovação dele registrada (aprovado_por, aprovado_em).
-     tamanho: pequena = 1 etapa; media = 2 a 4 etapas. Grande não tem plano
-     aqui — vira spec. -->
+     status: "aprovado" já ao nascer quando o pedido é claro (diz o quê e o
+     porquê, sem decisão aberta para o dono): aprovado_por: pedido claro do
+     dono, aprovado_em: a data. Senão "proposto" (aguardando o dono).
+     Fora do pedido claro, quem aprova é o dono; quem troca o campo é ele, ou
+     o orquestrador com a aprovação dele registrada (aprovado_por, aprovado_em).
+     tamanho: pequena = 1 etapa; media = 2 a 4 etapas (ambas M). Direta (P) e
+     grande (G) não têm plano aqui: P vai direto, G vira spec. -->
 
 # <Título da mudança> — Plano
 

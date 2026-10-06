@@ -3,9 +3,7 @@ spec: <slug>
 fase: <id>
 slug_fase: <slug>
 tentativa: <n da tentativa avaliada>
-veredito: <APROVADO | RESSALVAS | REPROVADO>
-score: <0.0-10.0>
-threshold: <threshold usado>
+veredito: <APROVADO | REPROVADO | PENDENTE-EXTERNO>
 range_avaliado: <sha_inicial>..<sha_final>
 ---
 
@@ -14,45 +12,58 @@ range_avaliado: <sha_inicial>..<sha_final>
      verdade: verifique tudo contra o código real. Schema em ARTIFACTS_SPEC §2.10.
 
      fase/slug_fase/tentativa vêm do EXECUCAO avaliado (reusar verbatim).
-     threshold = o valor efetivamente usado (quality_gate da spec ou override).
-     Veredito por precedência estrita REPROVADO > RESSALVAS > APROVADO:
-       REPROVADO se score < threshold OU há ≥1 BLOQUEANTE;
-       senão RESSALVAS se há ≥1 IMPORTANTE;
-       senão APROVADO. Só APROVADO conclui a fase. -->
+     score e threshold são opcionais e só informam (podem ir no frontmatter);
+     não decidem o veredito.
+     Escalada (§2.10.3, definição única): vira BLOQUEANTE (a) o mesmo
+     IMPORTANTE pela 2ª vez — o IMPORTANTE de uma avaliação anterior da mesma
+     fase (rework), ou herdado destinado à fase, que segue aberto; (b) 3+
+     IMPORTANTES abertos ao mesmo tempo.
+     Veredito por precedência estrita REPROVADO > PENDENTE-EXTERNO > APROVADO:
+       REPROVADO se há ≥1 BLOQUEANTE (contada a escalada);
+       senão PENDENTE-EXTERNO se um gate depende de algo fora da fase
+         (cota, push/CI remoto, ação física do dono, outra fase antes);
+       senão APROVADO — os IMPORTANTES abertos viram herdados (§2.11.5).
+     Erro só de registro não entra no veredito. -->
 
 # FASE <id> — Avaliação independente
 
-## 1. Veredito e score
+## 1. Veredito
 
-**Veredito:** <APROVADO | RESSALVAS | REPROVADO> · **Score:** <0.0–10.0> / threshold <X>
+**Veredito:** <APROVADO | REPROVADO | PENDENTE-EXTERNO> — (1–2 linhas do porquê; em
+PENDENTE-EXTERNO, a condição de fora e quem a resolve.)
 
-## 2. Scorecard
+Checklist de leitura (nota opcional): conformidade com a fase (ACs, escopo
+travado) · arquitetura e dependências · segurança/LGPD/multi-tenant · reuso ·
+padrões de domínio · local e nomes · qualidade de código · testes · migration
+safety (se aplicável).
 
-| # | Dimensão | Peso | Nota (0–5) | Evidência (arquivo:linha ou saída) |
-|---|----------|------|------------|------------------------------------|
-| 1 | Conformidade com a fase — ACs e escopo travado | 3 | | |
-| 2 | Arquitetura e direção de dependências | 3 | | |
-| 3 | Segurança / LGPD / multi-tenant | 3 | | |
-| 4 | Reusar/espelhar, não duplicar | 3 | | |
-| 5 | Padrões de domínio/aplicação | 2 | | |
-| 6 | Local e nomes dos arquivos | 2 | | |
-| 7 | Qualidade de código | 2 | | |
-| 8 | Testes e cobertura | 2 | | |
-| 9 | Migration safety (se aplicável) | 2 | | |
+## 2. Herdados e IMPORTANTES anteriores conferidos
+
+(cada herdado destinado a esta fase e, em rework, cada IMPORTANTE da avaliação
+anterior da fase → resolvido (evidência própria) ou
+aberto. Aberto vira BLOQUEANTE (escalada (a)). "nenhum", se for o caso.)
 
 ## 3. Achados BLOQUEANTES
 
-(arquivo:linha + correção sugerida. BLOQUEANTE sempre reprova, qualquer score.)
+(arquivo:linha + correção sugerida. Só o que afeta correção, requisito,
+contrato, escopo travado, segurança ou dado — mais a escalada.)
 
 ## 4. Achados IMPORTANTES
 
-(arquivo:linha + correção sugerida. ≥1 IMPORTANTE → no mínimo RESSALVAS.)
+- **I-1** — `arquivo:linha` — o problema — a correção sugerida
+
+(com APROVADO, viram herdados da fase de destino.)
 
 ## 5. Sugestões
 
 (melhorias não-bloqueantes.)
 
-## 6. Comandos rodados + saídas reais
+## 6. Erros de registro
+
+(frontmatter, range, lista de arquivos, link. O executor corrige num commit só
+de documento, sem nova avaliação.)
+
+## 7. Comandos rodados + saídas reais
 
 > O avaliador roda **ele mesmo** os comandos de validação do projeto (do
 > `manifest.md`); não acredita no relatório. Cole as saídas reais.
@@ -61,10 +72,10 @@ range_avaliado: <sha_inicial>..<sha_final>
 ...
 ```
 
-## 7. Itens da fase / DoD não atendidos
+## 8. Itens da fase / DoD não atendidos
 
 (o que ficou faltando frente à §5 e §9 da spec.)
 
-## 8. Divergências entre o relatório e o código real
+## 9. Divergências entre o relatório e o código real
 
 (onde o EXECUCAO declarou algo que o código não confirma.)
