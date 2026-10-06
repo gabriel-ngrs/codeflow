@@ -1,7 +1,7 @@
 ---
-versão: 1.1
+versão: 1.2
 status: experimental
-atualizado: 2026-10-05
+atualizado: 2026-10-06
 granularidade: médio
 gera_decision: no
 usa_checkpoints: no
@@ -43,7 +43,9 @@ Revisar, de forma **independente e cética**, uma melhoria ou feature executada 
 - Gate: diff de código lido na íntegra.
 
 ### Passo 2 — Rodar as verificações você mesmo
-- Rodar a **validação completa** do projeto (do manifest) — aqui roda-se o máximo, porque é o último gate antes do PR. Mais os greps de segredo e dado pessoal (devem ser zero).
+- Rodar a validação final do projeto (do manifest), mais os greps de segredo e dado pessoal (devem ser zero). O alcance local depende do CI:
+  - **Sem** a seção `## CI` no manifest declarando o CI como gate de merge e o que ele cobre: rodar a **validação completa** — aqui roda-se o máximo, porque é o último gate antes do PR.
+  - **Com** essa declaração: rodar localmente só o que o CI **não** cobre (o manifest diz o quê) e conferir o **CI verde** do PR, ou de um run sobre o mesmo sha, como evidência — colar o link ou a saída do run. CI vermelho é verificação que falhou; CI que ainda não rodou sobre o sha deixa a verificação aberta (Passo 4).
 - Para cada CA, a prova **própria**: o teste correspondente rodado, ou a reprodução do comportamento. Colar as **saídas reais**.
 - Sem mutar o repositório: se uma verificação suja a árvore, reverter. Não criar nem reescrever commits.
 - Gate: verificações rodadas, com saída real, e árvore limpa.
@@ -68,7 +70,7 @@ Revisar, de forma **independente e cética**, uma melhoria ou feature executada 
 ## Definition of Done
 - [ ] Independência garantida (chat zerado); plano e relatório lidos; nada a revisar sem `EXECUCAO.md`.
 - [ ] Commits do `range` ancestrais do HEAD; diff de código lido na íntegra e comparado ao mapa do plano.
-- [ ] Validação completa do projeto rodada pelo revisor (ou `[—]` justificado), com saídas reais; greps de segredo e dado pessoal zerados; árvore limpa.
+- [ ] Validação final rodada pelo revisor (completa; ou, com o CI declarado gate de merge no manifest, o que o CI não cobre mais o CI verde do sha conferido; ou `[—]` justificado), com saídas reais; greps de segredo e dado pessoal zerados; árvore limpa.
 - [ ] Cada CA conferido com prova própria; todo achado classificado com `arquivo:linha` e régua.
 - [ ] Escalada aplicada e erros de registro à parte; veredito `APROVADO` só com zero BLOQUEANTE, `PENDENTE-EXTERNO` só com a condição de fora nomeada; IMPORTANTES com destino.
 - [ ] `REVISAO-<tentativa>.md` gravado a partir do molde e commitado; nenhum código alterado.

@@ -1,7 +1,7 @@
 ---
-versão: 1.1
+versão: 1.2
 status: estável
-atualizado: 2026-10-05
+atualizado: 2026-10-06
 granularidade: médio
 gera_decision: no
 usa_checkpoints: no
@@ -13,7 +13,7 @@ politica_falhas: padrão
 > **Spec de runtime:** a referência a `SPEC.md §x` neste workflow aponta para `~/.codeflow/framework/core/SPEC.md`.
 
 ## Quando usar
-Verificar, contra um lote de bugs, se as correções realmente sanaram cada bug — tentando **reproduzi-los de novo** e rodando toda a validação possível do projeto. Entrada natural: o ledger `.codeflow/bug-batches/<slug>.md` produzido pelo `/batch-bugfix`. Também aceita um documento bruto de bugs (`.txt`/`.md`/`.csv`/planilha), que é normalizado antes de verificar.
+Verificar, contra um lote de bugs, se as correções realmente sanaram cada bug — tentando **reproduzi-los de novo** e rodando a validação do projeto (local, ou pelo CI quando o manifest o declara gate de merge: Passo 4). Entrada natural: o ledger `.codeflow/bug-batches/<slug>.md` produzido pelo `/batch-bugfix`. Também aceita um documento bruto de bugs (`.txt`/`.md`/`.csv`/planilha), que é normalizado antes de verificar.
 
 ## Quando NÃO usar
 - Para **corrigir** bugs → usar `/batch-bugfix` (lote) ou `/bugfix` (avulso). Este workflow só confere, nunca aplica fix.
@@ -50,12 +50,14 @@ Verificar, contra um lote de bugs, se as correções realmente sanaram cada bug 
   - `⚠` — sem reprodução determinística possível: inconclusivo (registrar por quê).
 - Carimbar cada linha com a data da verificação. Gate: nenhum bug fica com `verificação: —`.
 
-### Passo 4 — Rodar toda a validação do projeto
-- Rodar a **suíte completa** de validação do projeto (do `.codeflow/manifest.md`; se ausente, inferir do stack): testes, lint, type-check e build — tudo o que o projeto oferece. Aqui, ao contrário do fix, roda-se o máximo, não o mínimo: o objetivo é caçar regressão colateral fora dos bugs listados.
+### Passo 4 — Rodar a validação do projeto
+- O objetivo é caçar regressão colateral fora dos bugs listados; o alcance local depende do CI (do `.codeflow/manifest.md`; se ausente, inferir do stack):
+  - **Sem** a seção `## CI` no manifest declarando o CI como gate de merge e o que ele cobre: rodar a **suíte completa** — testes, lint, type-check e build, tudo o que o projeto oferece. Aqui, ao contrário do fix, roda-se o máximo, não o mínimo.
+  - **Com** essa declaração: rodar localmente só o que o CI **não** cobre (o manifest diz o quê) e conferir o **CI verde** do PR, ou de um run sobre o mesmo sha, como evidência — colar o link ou a saída do run. CI vermelho conta como falha; CI que ainda não rodou sobre o sha fica como pendência no relatório, nomeando o sha.
 - Gate que não existe no projeto → `[—]` justificado (SPEC §3.10). Registrar o resultado agregado (verde / falhas) no relatório.
 
 ### Passo 5 — Relatório de verificação
-- Apresentar o resumo final (cinco seções fixas) com o **placar de verificação**: X sanados (`✓`), Y não sanados/regrediram (`✗`), Z inconclusivos (`⚠`), mais o resultado da suíte completa.
+- Apresentar o resumo final (cinco seções fixas) com o **placar de verificação**: X sanados (`✓`), Y não sanados/regrediram (`✗`), Z inconclusivos (`⚠`), mais o resultado da validação do Passo 4 (local e, quando declarado, o CI).
 - Listar explicitamente os `✗` e `⚠` como pendências, cada um com a ação sugerida (reentrada no `/batch-bugfix`/`/bugfix`, decisão do dono para o bug que esgotou o teto de reabertura, ou mais informação para tornar reproduzível).
 - Deixar o ledger salvo com a coluna `verificação` preenchida — é o registro de que o lote foi conferido.
 
@@ -63,7 +65,7 @@ Verificar, contra um lote de bugs, se as correções realmente sanaram cada bug 
 - [ ] Ledger localizado ou normalizado a partir do documento bruto (Passo 1).
 - [ ] Cada bug teve tentativa de reprodução observável (Passo 2).
 - [ ] Coluna `verificação` preenchida para todo bug — nenhum `—` restante; bug com `✗` reaberto só abaixo do teto de 2 reaberturas, e no teto levado a `bloqueado` (Passo 3).
-- [ ] Suíte completa de validação do projeto rodada (ou `[—]` justificado) (Passo 4).
+- [ ] Validação do projeto rodada (Passo 4): suíte completa, ou, com o CI declarado gate de merge no manifest, o que o CI não cobre mais o CI verde do sha conferido; ou `[—]` justificado.
 - [ ] Placar de verificação apresentado e pendências (`✗`/`⚠`) listadas com ação sugerida.
 - [ ] Nenhum código de produção modificado por este workflow.
 - [ ] Ledger salvo com os vereditos de verificação.

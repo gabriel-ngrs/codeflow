@@ -16,7 +16,7 @@ validation_hash: 13b3e50d2ca105785eaf63bb06066fe14f27a8741d700460698f702ce2aefc8
 - **Utilitários:** GNU coreutils 9.4 (`sha256sum`, `grep`, `sed`, `awk`)
 - **Varredura de segredo:** gitleaks 8.21.2 — binário da máquina, só no gate `security`
 - **Pull request e merge:** gh 2.45.0
-- **Contrato normativo:** `framework/core/SPEC.md` 3.4, `framework/core/ARTIFACTS_SPEC.md` 2.4
+- **Contrato normativo:** `framework/core/SPEC.md` 3.4, `framework/core/ARTIFACTS_SPEC.md` 2.5
 - **Lint de shell:** shellcheck não instalado
 
 ## Comandos de validação
