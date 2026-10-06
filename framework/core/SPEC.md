@@ -1,7 +1,7 @@
 ---
-versão: 3.3
+versão: 3.4
 status: estável
-atualizado: 2026-10-05
+atualizado: 2026-10-06
 documento: SPEC.md
 projeto: codeflow
 localização: framework/core/SPEC.md (instalado em ~/.codeflow/framework/core/SPEC.md)
@@ -433,7 +433,7 @@ A nível de projeto: cada workflow em `<projeto>/.codeflow/workflows/<nome>.md` 
 
 **Setup universal: `setup-slash-commands.sh`.** Script na raiz do framework. Varre `framework/library/workflows/` e `framework/meta/`, gera/atualiza wrappers em `~/.claude/commands/`. Idempotente. Detecta órfãos (wrapper que aponta para arquivo inexistente) — apenas avisa por padrão; remove com flag `--prune`. Roda **uma vez por máquina** ao instalar o framework, e novamente sempre que workflows ou meta-skills universais são adicionados ou removidos. A meta-skill `create-workflow` invoca o script automaticamente ao gerar workflow universal.
 
-**Setup de projeto: extensão de `install.sh`.** Após criar `.codeflow/` no projeto, se `<projeto>/.codeflow/workflows/` existe e contém arquivos, `install.sh` gera wrappers em `<projeto>/.claude/commands/`. Roda toda vez que `install.sh` é invocado (idempotente).
+**Setup de projeto: extensão de `install.sh`.** Após criar `.codeflow/` no projeto, se `<projeto>/.codeflow/workflows/` existe e contém arquivos, `install.sh` gera wrappers em `<projeto>/.claude/commands/`. Roda toda vez que `install.sh` é invocado (idempotente) e só cria os wrappers que faltam: o existente é preservado, e o script avisa quais diferem do gerado — o wrapper com caminho relativo de projeto operado por trilhas (`ARTIFACTS_SPEC.md` §1.11.6 regra 2) não pode ser reescrito com o caminho absoluto da pasta onde o install rodou.
 
 **Implicações operacionais em Claude Code:**
 - Editar conteúdo de workflow ou meta-skill **não** exige rodar o setup — wrappers apontam para path, não copiam conteúdo.

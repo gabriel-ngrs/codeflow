@@ -143,8 +143,11 @@ fi
 #
 # Se o projeto já tem workflows próprios em .codeflow/workflows/, gera wrappers
 # correspondentes em .claude/commands/ deste projeto. Conforme SPEC.md §3.6.1
-# e ARTIFACTS_SPEC.md §1.11. Idempotente. Não remove órfãos (projetos
-# compartilhados podem ter wrappers de outros mantenedores).
+# e ARTIFACTS_SPEC.md §1.11. Idempotente. Só cria os wrappers que faltam:
+# wrapper existente é preservado mesmo com conteúdo diferente do gerado (projetos
+# que operam por trilhas usam caminho relativo, um por worktree) e o script avisa.
+# Não remove órfãos (projetos compartilhados podem ter wrappers de outros
+# mantenedores).
 
 PROJ_WORKFLOWS_DIR=".codeflow/workflows"
 PROJ_CMD_DIR=".claude/commands"
@@ -154,6 +157,7 @@ if [ -d "$PROJ_WORKFLOWS_DIR" ] && ls "$PROJ_WORKFLOWS_DIR"/*.md >/dev/null 2>&1
   proj_abs=$(pwd)
   n_proj_created=0
   n_proj_preserved=0
+  proj_divergentes=()
 
   for wf in "$PROJ_WORKFLOWS_DIR"/*.md; do
     [ -f "$wf" ] || continue
@@ -161,8 +165,11 @@ if [ -d "$PROJ_WORKFLOWS_DIR" ] && ls "$PROJ_WORKFLOWS_DIR"/*.md >/dev/null 2>&1
     wrapper="${PROJ_CMD_DIR}/${wf_name}.md"
     new_body="Leia ${proj_abs}/${wf} e execute o protocolo descrito ali, aplicando ao projeto atual. Carregue todos os arquivos listados em ## LEIA TAMBÉM antes de começar."
 
-    if [ -f "$wrapper" ] && [ "$(cat "$wrapper" 2>/dev/null)" = "$new_body" ]; then
+    if [ -e "$wrapper" ]; then
       n_proj_preserved=$((n_proj_preserved + 1))
+      if [ "$(cat "$wrapper" 2>/dev/null)" != "$new_body" ]; then
+        proj_divergentes+=("$wrapper")
+      fi
     else
       printf '%s\n' "$new_body" > "$wrapper"
       n_proj_created=$((n_proj_created + 1))
@@ -171,6 +178,12 @@ if [ -d "$PROJ_WORKFLOWS_DIR" ] && ls "$PROJ_WORKFLOWS_DIR"/*.md >/dev/null 2>&1
 
   echo
   print_ok "${PROJ_CMD_DIR}/ sincronizado (${n_proj_created} novo(s), ${n_proj_preserved} preservado(s))."
+  if [ "${#proj_divergentes[@]}" -gt 0 ]; then
+    print_aviso "${#proj_divergentes[@]} wrapper(s) preservado(s) com conteúdo diferente do gerado — não reescritos (apague o arquivo e rode de novo para regenerar):"
+    for w in "${proj_divergentes[@]}"; do
+      printf '    %s\n' "$w"
+    done
+  fi
   if ! grep -qE '\.claude/' .gitignore 2>/dev/null && ! grep -qE '\.claude/commands' .gitignore 2>/dev/null; then
     print_aviso ".claude/commands/ NÃO foi adicionado ao .gitignore — decida caso a caso (projetos compartilhados podem ou não versionar wrappers locais)."
   fi
