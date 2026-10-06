@@ -34,7 +34,8 @@ operação por trilhas exige; o tamanho médio foi fixado por ele no despacho.
 
 ### 2. Vereditos: `APROVADO`, `REPROVADO`, `PENDENTE-EXTERNO`
 `APROVADO` = zero BLOQUEANTE; os IMPORTANTES abertos viram herdados. `REPROVADO` = ao menos um
-BLOQUEANTE, contada a escalada: herdado não resolvido (o mesmo IMPORTANTE pela 2ª vez) e 3 ou mais
+BLOQUEANTE, contada a escalada: o mesmo IMPORTANTE pela 2ª vez (o de avaliação anterior da mesma fase, ou herdado
+destinado à fase, que segue aberto; no ciclo de mudança, só o de destino "corrigir agora") e 3 ou mais
 IMPORTANTES abertos ao mesmo tempo viram BLOQUEANTE. `PENDENTE-EXTERNO` = um gate depende de cota,
 push ou CI remoto, ação física do dono ou outra fase antes; é um estado próprio da fase ("pendente
 externo"), não volta ao executor, não conta para o teto e é reavaliado na mesma tentativa. Precedência:

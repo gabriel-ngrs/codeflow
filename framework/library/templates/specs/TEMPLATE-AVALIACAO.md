@@ -14,7 +14,10 @@ range_avaliado: <sha_inicial>..<sha_final>
      fase/slug_fase/tentativa vêm do EXECUCAO avaliado (reusar verbatim).
      score e threshold são opcionais e só informam (podem ir no frontmatter);
      não decidem o veredito.
-     Escalada: herdado não resolvido, ou 3+ IMPORTANTES abertos, vira BLOQUEANTE.
+     Escalada (§2.10.3, definição única): vira BLOQUEANTE (a) o mesmo
+     IMPORTANTE pela 2ª vez — o IMPORTANTE de uma avaliação anterior da mesma
+     fase (rework), ou herdado destinado à fase, que segue aberto; (b) 3+
+     IMPORTANTES abertos ao mesmo tempo.
      Veredito por precedência estrita REPROVADO > PENDENTE-EXTERNO > APROVADO:
        REPROVADO se há ≥1 BLOQUEANTE (contada a escalada);
        senão PENDENTE-EXTERNO se um gate depende de algo fora da fase
@@ -34,10 +37,11 @@ travado) · arquitetura e dependências · segurança/LGPD/multi-tenant · reuso
 padrões de domínio · local e nomes · qualidade de código · testes · migration
 safety (se aplicável).
 
-## 2. Herdados conferidos
+## 2. Herdados e IMPORTANTES anteriores conferidos
 
-(cada IMPORTANTE herdado destinado a esta fase → resolvido (evidência própria) ou
-aberto. Aberto vira BLOQUEANTE. "nenhum destinado a esta fase", se for o caso.)
+(cada herdado destinado a esta fase e, em rework, cada IMPORTANTE da avaliação
+anterior da fase → resolvido (evidência própria) ou
+aberto. Aberto vira BLOQUEANTE (escalada (a)). "nenhum", se for o caso.)
 
 ## 3. Achados BLOQUEANTES
 

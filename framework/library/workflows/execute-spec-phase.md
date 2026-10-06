@@ -63,7 +63,7 @@ Identificar a spec que o usuário pediu (por caminho ou slug em `.codeflow/specs
 - Gate: um único alvo definido (rework ou nova execução), ou parada limpa/escalonamento.
 
 ### Passo 3 — Preparar e marcar o início
-- Reler o bloco da fase-alvo em §5. Em rework, ler também os achados BLOQUEANTES/IMPORTANTES da AVALIACAO. Em nova execução, levantar os **herdados** destinados à fase (ARTIFACTS_SPEC §2.11.5): os IMPORTANTES `I-<n>` abertos das avaliações `APROVADO` (ou do legado `RESSALVAS`) das fases de que ela depende. Confirmar que os **caminhos de "Arquivos alterados" existem** no repo (se a spec citou caminho inexistente, parar e apontar — não inventar).
+- Reler o bloco da fase-alvo em §5. Em rework, ler também os achados BLOQUEANTES/IMPORTANTES da AVALIACAO. Em nova execução, levantar os **herdados** destinados à fase (ARTIFACTS_SPEC §2.11.5): os IMPORTANTES `I-<n>` abertos de avaliações `APROVADO` (ou do legado `RESSALVAS`) cuja fase de destino é esta — a **primeira** fase, na ordem textual da §5, que depende da fase de origem; outra dependente não os recebe. Sem dependente, o destino é o fechamento (gatilho 6). Confirmar que os **caminhos de "Arquivos alterados" existem** no repo (se a spec citou caminho inexistente, parar e apontar — não inventar).
 - Conferir dependências: cada `id` listado em "Depende de" da fase-alvo está **concluído** (AVALIACAO `veredito: APROVADO`, ou o legado `RESSALVAS`, da tentativa corrente); se faltar, **parar** e relatar qual dependência. Criar `artefatos/` se não existir (esta pasta é criada aqui, não por `/create-spec`).
 - **Branch:** trabalhar na branch atual (o pipeline não troca de branch). Se for a default (`main`), avisar e pedir confirmação antes de commitar (Passo 6).
 - **Ciclo da spec:** se o frontmatter da spec está `status: draft` e esta é a primeira execução de qualquer fase, atualizar para `status: active` + `updated_at` (commitado junto no Passo 7).
@@ -71,7 +71,7 @@ Identificar a spec que o usuário pediu (por caminho ou slug em `.codeflow/specs
 - Gate: pré-requisitos satisfeitos, `artefatos/` existe, `sha_inicial` conhecido.
 
 ### Passo 4 — Executar a fase (TDD, escopo fechado)
-- Nova execução: implementar **somente** os passos da fase-alvo, tocando apenas os arquivos que ela declara (diff mínimo). Rework: corrigir **apenas** os achados da avaliação, sem ampliar escopo — IMPORTANTE deixado para trás reaparece e vira BLOQUEANTE. Herdados recebidos são escopo autorizado da fase, mesmo fora dos arquivos que ela declara.
+- Nova execução: implementar **somente** os passos da fase-alvo, tocando apenas os arquivos que ela declara (diff mínimo). Rework: corrigir **apenas** os achados da avaliação, sem ampliar escopo — IMPORTANTE da avaliação anterior que segue aberto é "o mesmo IMPORTANTE pela 2ª vez" e vira BLOQUEANTE (ARTIFACTS_SPEC §2.10.3, escalada). Herdados recebidos são escopo autorizado da fase, mesmo fora dos arquivos que ela declara.
 - Seguir TDD: teste vermelho → implementação → verde, conforme a subseção "Testes" da fase. Respeitar o escopo travado declarado na fase.
 - **Não** iniciar nenhuma fase posterior nem antecipar trabalho dela.
 - Gate: passos implementados (ou achados corrigidos); testes da fase passam.

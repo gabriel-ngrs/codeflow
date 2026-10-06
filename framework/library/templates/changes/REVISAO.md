@@ -10,7 +10,9 @@ range_revisado: <sha_inicial>..<sha_final>
 
      veredito, por precedência AJUSTAR > PENDENTE-EXTERNO > APROVADO: AJUSTAR
      quando há ≥1 BLOQUEANTE (contada a escalada: IMPORTANTE da revisão
-     anterior ainda aberto, ou 3+ IMPORTANTES abertos, vira BLOQUEANTE);
+     anterior com destino "corrigir agora" que segue aberto — o mesmo
+     IMPORTANTE pela 2ª vez —, ou 3+ IMPORTANTES abertos, vira BLOQUEANTE;
+     o de destino "registrar como melhoria" fica aberto por decisão e não escala);
      PENDENTE-EXTERNO quando uma verificação depende de algo fora da mudança
      (cota, push/CI remoto, ação física do dono); senão APROVADO.
      Erro só de registro não entra no veredito.

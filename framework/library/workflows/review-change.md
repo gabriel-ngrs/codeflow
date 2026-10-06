@@ -52,7 +52,7 @@ Revisar, de forma **independente e cética**, uma melhoria ou feature executada 
 - **Conformidade:** cada CA atendido com evidência; as etapas entregues como planejado; nada fora do escopo.
 - **Qualidade:** aplicar a skill `self-review` como revisor; rules e decisions do projeto respeitadas; testes que testam de fato (falham sem a mudança); reuso em vez de duplicação.
 - Classificar cada achado: **BLOQUEANTE** (CA não atendido, rule violada, regressão, risco de segurança ou de dado), **IMPORTANTE** (problema real que não impede a entrega), **SUGESTÃO**. Cada um com `arquivo:linha` e a régua violada.
-- **Escalada:** vira BLOQUEANTE o IMPORTANTE da revisão anterior com destino "corrigir agora" que segue aberto (o mesmo IMPORTANTE pela 2ª vez), e o conjunto quando há **3 ou mais IMPORTANTES abertos** ao mesmo tempo.
+- **Escalada:** vira BLOQUEANTE o IMPORTANTE da revisão anterior com destino "corrigir agora" que segue aberto (o mesmo IMPORTANTE pela 2ª vez; o de destino "registrar como melhoria" fica aberto por decisão e não escala), e o conjunto quando há **3 ou mais IMPORTANTES abertos** ao mesmo tempo.
 - **Erro só de registro** (frontmatter, `range`, lista de arquivos, link) vai à parte e não entra no veredito: o implementador o corrige num commit só de documento, sem nova revisão.
 - Gate: todo achado classificado e com evidência.
 

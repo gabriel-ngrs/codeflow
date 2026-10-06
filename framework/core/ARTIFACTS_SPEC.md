@@ -2842,12 +2842,12 @@ Campos `score` e `threshold` — opcionais (§2.10.4).
 
 **Seções markdown — corpo, na ordem fixa:**
 
-1. veredito; 2. conferência dos herdados (cada herdado destinado à fase → resolvido ou aberto, com evidência própria); 3. achados BLOQUEANTES (arquivo:linha + correção); 4. IMPORTANTES, numerados `I-<n>` (arquivo:linha + correção); 5. sugestões; 6. erros de registro; 7. comandos rodados + saídas reais; 8. itens da fase/DoD não atendidos; 9. divergências entre o relatório e o que o código faz.
+1. veredito; 2. conferência dos herdados e, em rework, dos IMPORTANTES da avaliação anterior da fase (cada um → resolvido ou aberto, com evidência própria); 3. achados BLOQUEANTES (arquivo:linha + correção); 4. IMPORTANTES, numerados `I-<n>` (arquivo:linha + correção); 5. sugestões; 6. erros de registro; 7. comandos rodados + saídas reais; 8. itens da fase/DoD não atendidos; 9. divergências entre o relatório e o que o código faz.
 
 **Restrições adicionais:**
 
 - **Severidade.** BLOQUEANTE é o que afeta correção, requisito (AC, FR/NFR), contrato, escopo travado da fase, segurança ou dado. IMPORTANTE é problema real que não impede a fase de servir de base para a seguinte. SUGESTÃO é opcional.
-- **Escalada de IMPORTANTE.** Vira BLOQUEANTE: (a) o herdado destinado à fase e não resolvido — é o mesmo IMPORTANTE aparecendo pela 2ª vez; (b) **3 ou mais IMPORTANTES abertos ao mesmo tempo** — os novos desta avaliação somados aos herdados que seguem abertos; nesse caso todos eles passam a BLOQUEANTE.
+- **Escalada de IMPORTANTE** (definição única; workflows e moldes a citam). Vira BLOQUEANTE: (a) **o mesmo IMPORTANTE pela 2ª vez** — o IMPORTANTE de uma avaliação anterior da mesma fase (rework), ou herdado destinado à fase, que segue aberto; (b) **3 ou mais IMPORTANTES abertos ao mesmo tempo** — os novos desta avaliação somados aos de (a); nesse caso todos eles passam a BLOQUEANTE.
 - **Erro só de registro** — frontmatter, `range`, lista de arquivos, link ou nome de artefato que não bate, sem efeito no código. Vai para a seção 6 e **não entra no veredito**: o executor o corrige num commit só de documento, sem nova avaliação.
 - **Veredito — precedência estrita (primeiro que casar vence): `REPROVADO` > `PENDENTE-EXTERNO` > `APROVADO`.**
   - `REPROVADO` quando há ao menos um BLOQUEANTE, contada a escalada.
@@ -2948,7 +2948,7 @@ Para cada fase (identificada pelo `id` da §5), derivar **um único** estado, se
 - **Origem.** Os IMPORTANTES abertos de uma AVALIACAO `APROVADO` (ou do legado `RESSALVAS`) da tentativa corrente.
 - **Destino.** A primeira fase, na ordem textual da §5, cujo `Depende de` cita a fase de origem. Fase de origem sem dependente → o **fechamento** da spec (gatilho 6 de `/execute-spec-phase`), que os resolve antes do `status: done`.
 - **Quem resolve.** O executor da fase de destino, junto do próprio escopo, e os lista na seção **Herdados** do EXECUCAO (§2.9.3). No fechamento, cada herdado vai num commit próprio, e o commit que leva a spec a `done` lista herdado → `sha`.
-- **Quem confere.** O avaliador da fase de destino (§2.10.3, seção 2): herdado não resolvido é o mesmo IMPORTANTE pela 2ª vez e vira BLOQUEANTE.
+- **Quem confere.** O avaliador da fase de destino (§2.10.3, seção 2): herdado que segue aberto é "o mesmo IMPORTANTE pela 2ª vez" (§2.10.3, escalada (a)) e vira BLOQUEANTE.
 
 ### 2.12 Roteiro (`roteiro.md`)
 
