@@ -1,7 +1,7 @@
 ---
-versão: 1.2
+versão: 2.0
 status: estável
-atualizado: 2026-06-15
+atualizado: 2026-10-06
 ---
 
 # Glossário do codeflow
@@ -135,17 +135,23 @@ O pipeline de spec é a cadeia `/create-spec` → `/execute-spec-phase` → `/ev
 
 ### Avaliação de fase
 
-- **Definição:** relatório `FASE-<id>-<slug>-AVALIACAO.md` gerado por `/evaluate-spec-phase`, **sempre em chat zerado e independente**, com scorecard ponderado, achados (BLOQUEANTE/IMPORTANTE/SUGESTÃO) e veredito machine-readable.
+- **Definição:** relatório `FASE-<id>-<slug>-AVALIACAO.md` gerado por `/evaluate-spec-phase`, **sempre em chat zerado e independente**, com achados (BLOQUEANTE/IMPORTANTE/SUGESTÃO), conferência dos herdados e veredito machine-readable.
 - **Onde mora:** `<projeto>/.codeflow/specs/<slug>/artefatos/`. Usa `veredito` no lugar de `status`.
 - **O que NÃO é:** não é auto-revisão. A independência (chat separado, não confiar no relatório) é o motivo de existir do workflow.
 - **Referência canônica:** `ARTIFACTS_SPEC.md` §2.10.
 
 ### Veredito
 
-- **Definição:** resultado da avaliação de uma fase: `APROVADO`, `RESSALVAS` ou `REPROVADO`, decidido por precedência estrita **`REPROVADO` > `RESSALVAS` > `APROVADO`**. Só `APROVADO` conclui a fase; `RESSALVAS` e `REPROVADO` devolvem ao rework.
+- **Definição:** resultado da avaliação de uma fase: `APROVADO`, `REPROVADO` ou `PENDENTE-EXTERNO`, por precedência estrita **`REPROVADO` > `PENDENTE-EXTERNO` > `APROVADO`**. `APROVADO` (zero BLOQUEANTE) conclui a fase, e os IMPORTANTES abertos seguem como herdados; `REPROVADO` devolve ao rework; `PENDENTE-EXTERNO` espera uma condição de fora da fase e é reavaliado na mesma tentativa.
 - **Onde mora:** campo `veredito` no frontmatter do `FASE-*-AVALIACAO.md`.
-- **O que NÃO é:** `RESSALVAS` não é aprovação condicional — neste pipeline nunca fecha uma fase nem libera a seguinte.
-- **Referência canônica:** `ARTIFACTS_SPEC.md` §2.10.3 (cascata de veredito).
+- **O que NÃO é:** não é nota. Score e threshold, se existirem, só informam. O `RESSALVAS` de artefatos anteriores a 2026-10-05 se lê como `APROVADO`.
+- **Referência canônica:** `ARTIFACTS_SPEC.md` §2.10.3.
+
+### Herdado
+
+- **Definição:** IMPORTANTE aberto de uma fase aprovada, que passa à fase dependente (ou ao fechamento da spec) para ser resolvido; não resolvido, vira BLOQUEANTE na avaliação seguinte.
+- **Onde mora:** seção "Herdados" do `FASE-*-EXECUCAO.md` e conferência na seção 2 do `FASE-*-AVALIACAO.md`.
+- **Referência canônica:** `ARTIFACTS_SPEC.md` §2.11.5.
 
 ### Gate estrutural
 
