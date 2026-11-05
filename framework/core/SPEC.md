@@ -37,7 +37,7 @@ audiência secundária: desenvolvedores que mantêm/evoluem o framework
   - [3.4 Localização única: `~/.codeflow/` (via symlink)](#34-localização-única-codeflow-via-symlink)
   - [3.5 Organização: universais planas + projetos isolados (Abordagem 3)](#35-organização-universais-planas--projetos-isolados-abordagem-3)
   - [3.6 Invocação: slash commands disparados pelo usuário](#36-invocação-slash-commands-disparados-pelo-usuário)
-  - [3.7 Sessão fresca por workflow](#37-sessão-fresca-por-workflow)
+  - [3.7 Sessão fresca por tarefa](#37-sessão-fresca-por-tarefa)
   - [3.8 Comportamento quando workflow não encaixa](#38-comportamento-quando-workflow-não-encaixa)
   - [3.9 install.sh: instalação mínima sem tocar no projeto](#39-installsh-instalação-mínima-sem-tocar-no-projeto)
   - [3.10 Comandos de validação definidos pelo projeto](#310-comandos-de-validação-definidos-pelo-projeto)
@@ -504,9 +504,9 @@ caminho funcional é skills.
 - Não embutir lógica nos wrappers além de "leia X e execute". Lógica vive no workflow.
 - Não gerar wrappers para skills regulares ou agents — viola o modelo de composição (`SPEC.md` §4.3.4, §4.5).
 
-### 3.7 Sessão fresca por workflow
+### 3.7 Sessão fresca por tarefa
 
-**Decisão:** Cada invocação de workflow significativo deve acontecer em uma **sessão nova** da ferramenta de IA (chat novo, contexto limpo). A constitution é carregada uma vez no início dessa sessão.
+**Decisão:** Cada **tarefa** significativa (uma fase de spec, uma mudança, um bug, um lote) começa em uma **sessão nova** da ferramenta de IA (chat novo, contexto limpo). A constitution é carregada uma vez no início dessa sessão. A **correção da mesma tarefa** (rework de fase reprovada, `AJUSTAR` de revisão, erro de registro) pode seguir na sessão do executor, enquanto o contexto dela couber. O avaliador e o revisor independentes rodam **sempre em outra sessão**, nova.
 
 **Justificativa:** Auto-compactação é a principal causa de degradação de qualidade em sessões longas. A constitution e os artefatos do projeto, sendo lidos no início, podem ser descartados quando a sessão fica grande. Sessões novas eliminam esse risco: cada workflow começa com contexto limpo, carrega o necessário, executa, termina antes de atingir limite de contexto.
 
@@ -514,6 +514,7 @@ caminho funcional é skills.
 - A constitution deve ser **curta e densa** (50-100 linhas) para caber no contexto inicial sem competir com a tarefa.
 - Workflows devem ser **autossuficientes**: declaram explicitamente o que carregar.
 - Disciplina do usuário: invocar `/bugfix` em chat novo, não no chat anterior.
+- Na orquestração, o recruta é aberto por tarefa e dispensado ao concluí-la; `/clear` só antes de tarefa nova (molde `framework/library/templates/orquestracao/CICLO-DO-RECRUTA.md`).
 - Workflows longos (granularidade detalhada) usam checkpoints para sobreviver a sessões maiores.
 
 **Anti-decisão:**
