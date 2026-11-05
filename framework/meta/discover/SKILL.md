@@ -1,7 +1,7 @@
 ---
-versão: 1.3
+versão: 1.4
 status: estável
-atualizado: 2026-06-18
+atualizado: 2026-11-05
 descrição: Aprende um projeto existente e gera os artefatos iniciais do .codeflow/.
 é_meta_skill: yes
 granularidade: detalhado
@@ -47,6 +47,7 @@ Antes de inspecionar, estabelecer o terreno. Esta fase é leitura e decisão; n�
 - Mapear estrutura de pastas até três níveis. Identificar padrão arquitetural aparente (camadas, módulos, monolito vs serviços).
 - Amostrar arquivos representativos de cada pasta principal (até cinco arquivos por pasta) para inferir estilo, convenções e padrões.
 - Inspecionar últimos 30 commits para inferir cadência, estilo de mensagens e áreas ativas.
+- Medir `CLAUDE.md` e `AGENTS.md` da raiz, se existirem: `wc -c` e `wc -l` de cada um. Só medir: o conteúdo deles não é lido inteiro aqui, e o relato sai na Fase 4b.
 - Formar hipóteses explícitas sobre: stack, padrão arquitetural, regras invariantes aparentes, áreas sensíveis. Rotular cada hipótese como `confirmada-pela-inspeção`, `precisa-confirmação` ou `precisa-pergunta`.
 - Gravar checkpoint ao fim da fase (`SPEC.md` §6.6).
 
@@ -174,6 +175,7 @@ Seções extras (anexos, padrões qualitativos, lacunas) só são permitidas con
 
 - Confrontar `discovered.md` item por item com `§2.4.6`. Em falha, regenerar do template §2.4.5 (não corrigir parcialmente).
 - Apresentar ao usuário o resumo dos quatro artefatos gerados (caminho + tamanho de cada).
+- Relatar o tamanho de `CLAUDE.md` e `AGENTS.md` medido na Fase 1 e apontar o que passou do teto do molde `~/.codeflow/framework/library/templates/projeto/AGENTS.md` (8.000 caracteres ou 200 linhas). É só relato: o discover **nunca** edita esses arquivos; enxugar é decisão do dono. O relato não entra no `discovered.md` (o schema §2.4 não muda).
 - Perguntar se algum precisa de ajuste antes de fechar (esta é a única pergunta da Fase 4 e não conta no alvo de cinco da Fase 2).
 - Aguardar resposta. Aplicar ajustes solicitados re-rodando a validação correspondente. Após confirmação final, encerrar.
 

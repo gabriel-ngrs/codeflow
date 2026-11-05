@@ -1,5 +1,5 @@
 ---
-versão: 1.1
+versão: 1.2
 status: experimental
 atualizado: 2026-11-05
 granularidade: médio
@@ -26,7 +26,7 @@ Auditar o repositório (ou um alvo dentro dele) em **uma dimensão**: `code-qual
 - ~/.codeflow/framework/library/templates/audits/LAUDO.md (o molde)
 - .codeflow/INDEX.md
 - .codeflow/constitution.md
-- .codeflow/manifest.md
+- .codeflow/manifest.md — **só a stack, os padrões e os comandos**, nunca o arquivo inteiro: `awk '/^## /{p=($0 ~ /^## (Stack identificada|Padrões|Comandos de validação|Gate|CI)/)} p' .codeflow/manifest.md`
 - .codeflow/rules/ e .codeflow/decisions/INDEX.md (a régua do projeto)
 
 ## Antes de começar

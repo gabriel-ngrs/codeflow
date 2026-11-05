@@ -1,5 +1,5 @@
 ---
-versão: 3.5
+versão: 3.6
 status: estável
 atualizado: 2026-11-05
 documento: SPEC.md
@@ -37,7 +37,7 @@ audiência secundária: desenvolvedores que mantêm/evoluem o framework
   - [3.4 Localização única: `~/.codeflow/` (via symlink)](#34-localização-única-codeflow-via-symlink)
   - [3.5 Organização: universais planas + projetos isolados (Abordagem 3)](#35-organização-universais-planas--projetos-isolados-abordagem-3)
   - [3.6 Invocação: slash commands disparados pelo usuário](#36-invocação-slash-commands-disparados-pelo-usuário)
-  - [3.7 Sessão fresca por workflow](#37-sessão-fresca-por-workflow)
+  - [3.7 Sessão fresca por tarefa](#37-sessão-fresca-por-tarefa)
   - [3.8 Comportamento quando workflow não encaixa](#38-comportamento-quando-workflow-não-encaixa)
   - [3.9 install.sh: instalação mínima sem tocar no projeto](#39-installsh-instalação-mínima-sem-tocar-no-projeto)
   - [3.10 Comandos de validação definidos pelo projeto](#310-comandos-de-validação-definidos-pelo-projeto)
@@ -185,8 +185,10 @@ Esta localização contém **tudo que é universal** ao framework.
 │   │   │   ├── testing.md
 │   │   │   ├── security.md
 │   │   │   └── naming.md
-│   │   └── scripts/                ← validadores read-only em bash
-│   │       └── run-structural.sh   ← gate estrutural da §5 da spec
+│   │   └── scripts/                ← scripts read-only em bash
+│   │       ├── run-structural.sh   ← gate estrutural da §5 da spec
+│   │       ├── pacote-da-fase.sh   ← recorte da spec para executar e avaliar uma fase
+│   │       └── vigia.sh            ← diz se uma frente de orquestração parou (cron)
 │   │
 │   ├── meta/                       ← skills que criam outras coisas
 │   │   ├── discover/SKILL.md       ← aprende projeto existente
@@ -196,6 +198,10 @@ Esta localização contém **tudo que é universal** ao framework.
 │   │   └── create-agent/SKILL.md
 │   │
 │   └── library/                    ← biblioteca viva (seeds + extensões)
+│       ├── templates/              ← moldes que os workflows copiam e preenchem
+│       │   ├── orquestracao/       ← DESPACHO, CICLO-DO-RECRUTA e MAESTRO
+│       │   └── projeto/            ← CLAUDE.md e AGENTS.md curtos (oferecidos pelo bootstrap)
+│       │
 │       ├── skills/                 ← skills universais (planas)
 │       │   ├── audit-enxugar/SKILL.md    ← dimensão enxugar do /audit (experimental)
 │       │   ├── debug-protocol/SKILL.md
@@ -284,8 +290,8 @@ Resultado: a IA tem contexto completo sem duplicação física.
 O codeflow é deliberadamente **paralelo** aos arquivos existentes do projeto. Não substitui, não modifica, não conflita.
 
 **O codeflow NÃO toca em:**
-- `CLAUDE.md` na raiz do projeto (mesmo se existir)
-- `AGENTS.md` (idem)
+- `CLAUDE.md` na raiz do projeto (mesmo se existir) — exceto o que o `bootstrap` de projeto novo cria com "sim" explícito do dono (§10.9)
+- `AGENTS.md` (idem, com a mesma exceção)
 - `.cursorrules` (idem)
 - `.claude/` ou similar de outros frameworks
 - `README.md`, `ARCHITECTURE.md`, ou qualquer doc do projeto
@@ -505,9 +511,9 @@ caminho funcional é skills.
 - Não embutir lógica nos wrappers além de "leia X e execute". Lógica vive no workflow.
 - Não gerar wrappers para skills regulares ou agents — viola o modelo de composição (`SPEC.md` §4.3.4, §4.5).
 
-### 3.7 Sessão fresca por workflow
+### 3.7 Sessão fresca por tarefa
 
-**Decisão:** Cada invocação de workflow significativo deve acontecer em uma **sessão nova** da ferramenta de IA (chat novo, contexto limpo). A constitution é carregada uma vez no início dessa sessão.
+**Decisão:** Cada **tarefa** significativa (uma fase de spec, uma mudança, um bug, um lote) começa em uma **sessão nova** da ferramenta de IA (chat novo, contexto limpo). A constitution é carregada uma vez no início dessa sessão. A **correção da mesma tarefa** (rework de fase reprovada, `AJUSTAR` de revisão, erro de registro) pode seguir na sessão do executor, enquanto o contexto dela couber. O avaliador e o revisor independentes rodam **sempre em outra sessão**, nova.
 
 **Justificativa:** Auto-compactação é a principal causa de degradação de qualidade em sessões longas. A constitution e os artefatos do projeto, sendo lidos no início, podem ser descartados quando a sessão fica grande. Sessões novas eliminam esse risco: cada workflow começa com contexto limpo, carrega o necessário, executa, termina antes de atingir limite de contexto.
 
@@ -515,6 +521,7 @@ caminho funcional é skills.
 - A constitution deve ser **curta e densa** (50-100 linhas) para caber no contexto inicial sem competir com a tarefa.
 - Workflows devem ser **autossuficientes**: declaram explicitamente o que carregar.
 - Disciplina do usuário: invocar `/bugfix` em chat novo, não no chat anterior.
+- Na orquestração, o recruta é aberto por tarefa e dispensado ao concluí-la; `/clear` só antes de tarefa nova (molde `framework/library/templates/orquestracao/CICLO-DO-RECRUTA.md`).
 - Workflows longos (granularidade detalhada) usam checkpoints para sobreviver a sessões maiores.
 
 **Anti-decisão:**
@@ -918,15 +925,15 @@ A Parte 4 introduziu workflows como conceito. Esta parte detalha a mecânica int
 
 ### 5.1 Como workflows puxam dependências
 
-Workflows usam **referências explícitas** no início do arquivo. A IA é instruída a ler todos os arquivos listados antes de começar o protocolo.
+Workflows usam **referências explícitas** no início do arquivo. A IA carrega os arquivos listados antes de começar o protocolo, **como cada item manda**: só a seção indicada, e os condicionais só quando a condição vale (`ARTIFACTS_SPEC.md` §1.5.3 e o literal do wrapper em §1.11.5).
 
 **Mecanismo:** seção "LEIA TAMBÉM" obrigatória logo após o cabeçalho. Cada item é um caminho absoluto (com `~`) que a IA resolve e carrega no contexto da sessão.
 
 **Ordem de carregamento (orientativa, não estrita):**
 1. Constitution universal (`~/.codeflow/framework/core/constitution.md`)
-2. INDEX.md do projeto (`.codeflow/INDEX.md`)
+2. INDEX.md do projeto (`.codeflow/INDEX.md`), só no workflow que sonda o projeto sem lista fechada de leitura (ex.: `create-spec`, `audit`)
 3. Constitution do projeto (`.codeflow/constitution.md`)
-4. Manifest do projeto (`.codeflow/manifest.md`)
+4. Manifest do projeto (`.codeflow/manifest.md`), lido por seção: só os comandos (`## Comandos de validação`, `## Gate`, `## CI`), mais a stack e os padrões quando o workflow precisa deles (`ARTIFACTS_SPEC.md` §1.5.3)
 5. Rules temáticas relevantes (uma ou mais de `~/.codeflow/framework/core/rules/*.md`)
 6. Skills relevantes (uma ou mais de `~/.codeflow/framework/library/skills/*/SKILL.md`)
 7. Decisões anteriores relevantes (consulta opcional ao `.codeflow/decisions/INDEX.md` por tag)
@@ -1445,7 +1452,7 @@ Conteúdo obrigatório:
 - Aviso sobre arquivos gerados automaticamente que não devem ser editados (checkpoints, decisions individuais).
 - Indicação de versão do schema e última atualização.
 
-A IA é instruída a ler o INDEX antes de qualquer outro artefato em `.codeflow/`. Sem o INDEX, ela teria que adivinhar a estrutura.
+O INDEX é o mapa para quem sonda o projeto sem lista fechada de leitura (ex.: `create-spec`, `audit`): esse leitor abre o INDEX antes dos outros artefatos de `.codeflow/`, em vez de adivinhar a estrutura. O workflow que já declara o que ler em `## LEIA TAMBÉM` não precisa dele (`ARTIFACTS_SPEC.md` §1.5.3).
 
 #### 6.7.2 Decisões navegáveis
 
@@ -1807,9 +1814,11 @@ O codeflow analisou o framework `.devmind` (do projeto ritmly) e identificou os 
 
 **Descrição:** ideia inicial de gerar arquivos específicos por ferramenta (CLAUDE.md para Claude Code, AGENTS.md para Codex, etc.) na raiz do projeto.
 
-**Por que não:** todos os arquivos do projeto são território do projeto. Codeflow não toca neles. IA descobre o codeflow via slash commands, não via arquivos na raiz.
+**Por que não:** todos os arquivos do projeto são território do projeto. Codeflow não toca neles. IA descobre o codeflow via slash commands, não via arquivos na raiz. Gerar e manter esses arquivos continua rejeitado.
 
-**Reconsiderar quando:** nunca. Esta é decisão fundamental.
+**Exceção (emenda de 2026-11-05, decision `2026-11-05-contexto-e-papeis`):** num projeto **novo**, o `bootstrap` **oferece** um `AGENTS.md` curto (≤ 8.000 caracteres, < 200 linhas) e um `CLAUDE.md` que só importa `@AGENTS.md`, a partir de `framework/library/templates/projeto/`, e só os escreve com "sim" explícito do dono; nunca sobrescreve um que já existe. O `discover` mede os existentes e relata o que passou do teto, sem editar. Depois de criados, os arquivos são do projeto: nenhum workflow os altera (§8.3).
+
+**Reconsiderar quando:** a exceção acima é o limite. Gerar ou manter adapters fora dela segue fora do escopo.
 
 ---
 

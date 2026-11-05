@@ -121,7 +121,7 @@ for i in "${!SOURCES_NAMES[@]}"; do
   display_path="~/${relative_from_home}"
 
   if [ "$kind" = "workflow" ]; then
-    new_body="Leia ${display_path} e execute o protocolo descrito ali, aplicando ao projeto atual. Carregue todos os arquivos listados em ## LEIA TAMBÉM antes de começar."
+    new_body="Leia ${display_path} e execute o protocolo descrito ali, aplicando ao projeto atual. Carregue os arquivos de ## LEIA TAMBÉM como cada item manda (só a seção indicada; os condicionais só quando a condição vale) antes de começar."
   else
     new_body="Leia ${display_path} e execute o protocolo da meta-skill no projeto atual. Carregue arquivos referenciados antes de começar."
   fi

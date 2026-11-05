@@ -1,7 +1,7 @@
 ---
-versão: 1.0
+versão: 1.1
 status: estável
-atualizado: 2026-06-25
+atualizado: 2026-11-05
 granularidade: magro
 gera_decision: no
 usa_checkpoints: no
@@ -23,9 +23,8 @@ Dar um trato de excelência visual numa interface já existente (tela legada, UI
 - ~/.codeflow/framework/library/skills/accessibility-audit/SKILL.md
 - ~/.codeflow/framework/library/skills/visual-consistency/SKILL.md
 - ~/.codeflow/framework/library/skills/self-review/SKILL.md
-- .codeflow/INDEX.md
 - .codeflow/constitution.md
-- .codeflow/manifest.md
+- .codeflow/manifest.md — **só os comandos**, nunca o arquivo inteiro: `awk '/^## /{p=($0 ~ /^## (Comandos de validação|Gate|CI)/)} p' .codeflow/manifest.md`
 
 ## Protocolo
 

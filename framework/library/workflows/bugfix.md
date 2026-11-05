@@ -1,7 +1,7 @@
 ---
-versão: 1.3
+versão: 1.4
 status: estável
-atualizado: 2026-10-05
+atualizado: 2026-11-05
 granularidade: médio
 gera_decision: auto
 usa_checkpoints: no
@@ -25,13 +25,25 @@ Corrigir bug reproduzível em código existente. Há sintoma observável, hipót
 - ~/.codeflow/framework/core/rules/testing.md
 - ~/.codeflow/framework/library/skills/debug-protocol/SKILL.md
 - ~/.codeflow/framework/library/skills/self-review/SKILL.md
-- .codeflow/INDEX.md
 - .codeflow/constitution.md
-- .codeflow/manifest.md
+- .codeflow/manifest.md — **só os comandos**, nunca o arquivo inteiro: `awk '/^## /{p=($0 ~ /^## (Comandos de validação|Gate|CI)/)} p' .codeflow/manifest.md`
 
 ## Antes de começar
 - Se o bug toca em áreas com decisions arquivadas (auth, payments, schema), consultar `.codeflow/decisions/INDEX.md` e carregar decisions ATIVAS por tag.
 - **Declarar o escopo esperado:** com base no relato, listar os arquivos que se espera tocar para corrigir. É uma âncora, não uma trava — refina-se durante a investigação —, mas tocar fora dela é **sinal de alerta** de refatoração lateral, e é contra essa lista que o `self-review` confere "diff dentro do escopo declarado" (Passo 5). Se a investigação obrigar a sair do escopo, declarar explicitamente por quê antes de fazê-lo.
+
+**Menor mudança que resolve (YAGNI).** Vale para o fix inteiro. Antes de escrever, ler o código que o fix toca e listar o que ele alcança (chamadores, testes, fixtures, config, exports). Escada, parando no primeiro degrau que resolve:
+1. A correção do bug exige isto? Se não, não fazer, e citar em uma linha no resumo.
+2. Já existe no repositório (helper, componente, padrão)? Reusar.
+3. A biblioteca padrão ou um recurso nativo resolve? Usar.
+4. Uma dependência já instalada resolve? Usar. Nunca adicionar dependência por poucas linhas.
+5. Senão, o mínimo que funciona.
+- Sem abstração, wrapper, opção, config ou código "para depois". Remover é melhor que adicionar; manter as camadas e convenções existentes.
+- Econômico na solução, nunca na mudança: terminar os chamadores, testes e fixtures que o fix quebrar.
+- `grep` de todos os chamadores e corrigir a causa raiz uma vez, no código compartilhado.
+- Código movido ou mesclado mantém validação e tratamento de erro.
+- **Nunca corte:** o teste de regressão, validação em fronteira (entrada externa), tratamento de erro que evita perda de dados, segurança, acessibilidade, sincronização e modo offline.
+- No resumo final, uma linha: o que ficou deliberadamente de fora e o risco, se houver.
 
 ## Protocolo
 

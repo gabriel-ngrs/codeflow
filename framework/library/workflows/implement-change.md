@@ -1,7 +1,7 @@
 ---
-versão: 1.2
+versão: 1.3
 status: experimental
-atualizado: 2026-10-06
+atualizado: 2026-11-05
 granularidade: médio
 gera_decision: auto
 usa_checkpoints: no
@@ -27,14 +27,25 @@ Executar um plano **aprovado** de melhoria ou feature (`.codeflow/changes/<slug>
 - ~/.codeflow/framework/library/skills/safe-refactor/SKILL.md (carregar quando uma etapa reestrutura código existente)
 - ~/.codeflow/framework/library/skills/avoid-ai-look/SKILL.md, accessibility-audit/SKILL.md e visual-consistency/SKILL.md (carregar quando a mudança toca interface gráfica)
 - ~/.codeflow/framework/library/templates/changes/EXECUCAO.md (o molde)
-- .codeflow/INDEX.md
 - .codeflow/constitution.md
-- .codeflow/manifest.md
+- .codeflow/manifest.md — **só os comandos**, nunca o arquivo inteiro: `awk '/^## /{p=($0 ~ /^## (Comandos de validação|Gate|CI)/)} p' .codeflow/manifest.md`
 
 ## Antes de começar
 - Ler o `PLANO.md` **na íntegra**. Se `status` não for `aprovado`, **parar**: nada se implementa sem aprovação — a do dono, ou a de pedido claro que o `/plan-change` registrou em `aprovado_por`.
 - Modo: sem `EXECUCAO.md` → primeira execução, a partir da etapa 1. `EXECUCAO.md` com `etapas_concluidas` incompleto → retomar na primeira etapa não concluída. `REVISAO-<n>.md` com `AJUSTAR` → **rework**; se `reprovacoes >= 2`, **parar** e escalar ao dono (teto do ciclo; só `AJUSTAR` conta). `REVISAO-<n>.md` com `PENDENTE-EXTERNO` não é rework nem conta para o teto: resolvida a condição de fora, a mesma tentativa volta à revisão. Erros de registro apontados pela revisão se corrigem num commit só de documento, sem rework.
 - Consultar `.codeflow/decisions/INDEX.md` e carregar as decisions ATIVAS das áreas tocadas. Trabalhar na branch atual; se for a default, confirmar antes de commitar.
+
+**Menor mudança que resolve (YAGNI).** Vale para toda etapa. Antes de escrever, ler o código que a etapa toca e listar o que ela alcança (chamadores, testes, fixtures, config, exports). Escada, parando no primeiro degrau que resolve:
+1. O plano exige isto? Se não, não fazer, e citar em uma linha no relatório.
+2. Já existe no repositório (helper, componente, padrão)? Reusar.
+3. A biblioteca padrão ou um recurso nativo resolve? Usar.
+4. Uma dependência já instalada resolve? Usar. Nunca adicionar dependência por poucas linhas.
+5. Senão, o mínimo que funciona.
+- Sem abstração, wrapper, opção, config ou código "para depois". Remover é melhor que adicionar; manter as camadas e convenções existentes.
+- Econômico na solução, nunca na mudança: terminar os chamadores, testes e fixtures que a mudança quebrar.
+- Lógica nova (ramo, laço, parser, dinheiro, segurança) leva um teste pequeno que falha se ela quebrar. Código movido ou mesclado mantém validação e tratamento de erro.
+- **Nunca corte:** critério de aceite do plano, validação em fronteira (entrada externa), tratamento de erro que evita perda de dados, segurança, acessibilidade, sincronização e modo offline.
+- No `EXECUCAO.md`, uma linha: o que ficou deliberadamente de fora e o risco, se houver.
 
 ## Protocolo
 

@@ -1,7 +1,7 @@
 ---
-versão: 1.0
+versão: 1.1
 status: experimental
-atualizado: 2026-10-02
+atualizado: 2026-11-05
 granularidade: médio
 gera_decision: no
 usa_checkpoints: no
@@ -23,9 +23,8 @@ Confirmar, em **chat zerado**, os candidatos de uma auditoria: os laudos `LAUDO-
 - ~/.codeflow/framework/library/skills/triagem-de-achado/SKILL.md (o método — reproduzir, classificar, atribuir severidade — vale para achado de qualquer dimensão, não só de segurança)
 - ~/.codeflow/framework/library/skills/debug-protocol/SKILL.md
 - ~/.codeflow/framework/library/templates/audits/CONSOLIDADO.md (o molde)
-- .codeflow/INDEX.md
 - .codeflow/constitution.md
-- .codeflow/manifest.md
+- .codeflow/manifest.md — **só os comandos**, nunca o arquivo inteiro: `awk '/^## /{p=($0 ~ /^## (Comandos de validação|Gate|CI)/)} p' .codeflow/manifest.md`
 - .codeflow/rules/ e .codeflow/decisions/INDEX.md (a régua do projeto)
 
 ## Antes de começar

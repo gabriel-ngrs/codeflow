@@ -2,7 +2,7 @@
 versão: 1.0
 status: estável
 atualizado: 2026-11-05
-total_decisions: 5
+total_decisions: 6
 última_atualização: 2026-11-05
 ---
 
@@ -12,6 +12,7 @@ total_decisions: 5
 
 | Data       | Título                                                 | Workflow | Tags                                                                  | Status |
 |------------|--------------------------------------------------------|----------|-----------------------------------------------------------------------|--------|
+| 2026-11-05 | Contexto enxuto, modelo por papel e moldes de orquestração | implement-change | spec, contrato, orquestracao, modelo, contexto, bootstrap | ativa  |
 | 2026-11-05 | Skill universal `audit-enxugar` como exceção à anti-evolução | implement-change | anti-evolucao, auditoria, enxugar, experimental | ativa  |
 | 2026-10-05 | Aceleração do ciclo — veredito, tamanho e contexto | implement-change | veredito, avaliacao, schema, herdados, teto, retrocompatibilidade, tamanho, decisions | ativa  |
 | 2026-10-06 | Adoção do glossary — veredito, avaliação de fase e herdado | implement-change | core, glossary, veredito, adocao | ativa  |
@@ -22,6 +23,12 @@ total_decisions: 5
 
 | Tag        | Decisões (data + título)                                    |
 |------------|-------------------------------------------------------------|
+| spec | 2026-11-05 — Contexto enxuto, modelo por papel e moldes de orquestração |
+| contrato | 2026-11-05 — Contexto enxuto, modelo por papel e moldes de orquestração |
+| orquestracao | 2026-11-05 — Contexto enxuto, modelo por papel e moldes de orquestração |
+| modelo | 2026-11-05 — Contexto enxuto, modelo por papel e moldes de orquestração |
+| contexto | 2026-11-05 — Contexto enxuto, modelo por papel e moldes de orquestração |
+| bootstrap | 2026-11-05 — Contexto enxuto, modelo por papel e moldes de orquestração |
 | anti-evolucao | 2026-11-05 — Skill universal `audit-enxugar` como exceção à anti-evolução |
 | auditoria | 2026-11-05 — Skill universal `audit-enxugar` como exceção à anti-evolução |
 | enxugar | 2026-11-05 — Skill universal `audit-enxugar` como exceção à anti-evolução |
@@ -48,7 +55,7 @@ total_decisions: 5
 
 ## Estatísticas
 
-- **Total:** 5
-- **Ativas:** 4
+- **Total:** 6
+- **Ativas:** 5
 - **Superseded:** 1
 - **Arquivadas:** 0

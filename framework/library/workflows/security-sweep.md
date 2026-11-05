@@ -1,7 +1,7 @@
 ---
-versão: 1.0
+versão: 1.1
 status: experimental
-atualizado: 2026-09-17
+atualizado: 2026-11-05
 granularidade: detalhado
 gera_decision: yes
 usa_checkpoints: yes
@@ -43,9 +43,8 @@ para confirmar escopo e autorização na abertura. A saída alimenta `/batch-bug
 - ~/.codeflow/framework/library/skills/triagem-de-achado/SKILL.md
 - ~/.codeflow/framework/library/skills/debug-protocol/SKILL.md
 - ~/.codeflow/framework/library/workflows/batch-bugfix.md (formato do ledger de saída)
-- .codeflow/INDEX.md
 - .codeflow/constitution.md
-- .codeflow/manifest.md
+- .codeflow/manifest.md — **só os comandos**, nunca o arquivo inteiro: `awk '/^## /{p=($0 ~ /^## (Comandos de validação|Gate|CI)/)} p' .codeflow/manifest.md`
 - .codeflow/decisions/INDEX.md (filtrar pela tag `security`)
 
 ## Estrutura do workflow

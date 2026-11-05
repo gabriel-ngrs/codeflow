@@ -1,5 +1,5 @@
 ---
-versão: 1.2
+versão: 1.3
 status: experimental
 atualizado: 2026-11-05
 granularidade: detalhado
@@ -30,9 +30,8 @@ Reorganizar código existente que já funciona: extrair função ou módulo, ren
 - ~/.codeflow/framework/library/skills/debug-protocol/SKILL.md
 - ~/.codeflow/framework/library/skills/self-review/SKILL.md
 - ~/.codeflow/framework/library/skills/audit-enxugar/SKILL.md (só quando o pedido é um lote do laudo `enxugar`)
-- .codeflow/INDEX.md
 - .codeflow/constitution.md
-- .codeflow/manifest.md
+- .codeflow/manifest.md — **só a stack, os padrões e os comandos**, nunca o arquivo inteiro: `awk '/^## /{p=($0 ~ /^## (Stack identificada|Padrões|Comandos de validação|Gate|CI)/)} p' .codeflow/manifest.md`
 - .codeflow/decisions/INDEX.md (filtrar pelas tags da área a refatorar)
 
 ## Estrutura do workflow

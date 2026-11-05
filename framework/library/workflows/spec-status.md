@@ -1,7 +1,7 @@
 ---
-versão: 1.7
+versão: 1.8
 status: experimental
-atualizado: 2026-10-05
+atualizado: 2026-11-05
 granularidade: magro
 gera_decision: no
 usa_checkpoints: no
@@ -20,9 +20,6 @@ Mostrar o progresso de uma spec gerada por `/create-spec`: quais fases estão pe
 ## LEIA TAMBÉM
 - ~/.codeflow/framework/core/constitution.md
 - ~/.codeflow/framework/core/ARTIFACTS_SPEC.md — **só §2.11** (máquina de estados da fase; cerca de 40 linhas), nunca o arquivo inteiro: `sed -n '/^### 2\.11 /,/^### 2\.12 /p' ~/.codeflow/framework/core/ARTIFACTS_SPEC.md`. A forma da §5 da spec (§2.8.6) é checada pelo `run-structural.sh`, não por leitura.
-- .codeflow/INDEX.md
-- .codeflow/constitution.md
-- .codeflow/manifest.md
 
 ## Protocolo
 

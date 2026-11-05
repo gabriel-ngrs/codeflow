@@ -1,7 +1,7 @@
 ---
-versão: 1.2
+versão: 1.3
 status: experimental
-atualizado: 2026-10-02
+atualizado: 2026-11-05
 descrição: Executar um workflow despachado por um orquestrador (Maestro) — gates humanos respondidos pelas decisões delegadas, o resto volta como PARADO, sem subagente, retorno curto.
 ---
 
@@ -34,7 +34,8 @@ silencioso, nunca vira pergunta esperando no terminal. A delegação troca **que
   e fica proibido editar arquivo versionado, commitar ou trocar de ramo. A saída vai para o caminho
   **fora do repositório** que o despacho indicar.
 - Ler o bloco de despacho e guardar: o **nome do orquestrador**, o **workflow**, as **decisões
-  delegadas** (numeradas) e as **regras do projeto** que vieram nele.
+  delegadas** (numeradas), as **regras do projeto** que vieram nele e a linha **`Modelo:`**, quando
+  houver (papel, modelo e esforço com que o terminal foi aberto; ver 4b).
 
 ### 2. Cada gate humano do workflow passa por esta triagem
 Quando o workflow mandar confirmar, perguntar ou aguardar o dono:
@@ -55,6 +56,37 @@ Quando o workflow mandar confirmar, perguntar ou aguardar o dono:
 - Não usar a ferramenta de subagente (`Agent`/`Task`). Se o workflow pedir "um segundo agente" ou
   "verificação independente", isso **não** se faz aqui: registrar no retorno como pedido ao
   orquestrador, que despacha outro terminal.
+
+### 4a. Ler pouco, escrever por edição
+- Arquivo com mais de 300 linhas: `grep -n '<âncora>' <arq>` e depois `sed -n '<a>,<b>p' <arq>` (ou
+  Read com offset e limit). Nunca `cat` nem Read do arquivo inteiro, salvo o diff da própria tarefa.
+- Não reler o que já está no contexto; para conferir uma linha, `grep -n`.
+- Documento que já existe (plano, diário, relatório em rework, ledger) muda por Edit ou por
+  acréscimo (`>>`), nunca reescrito por Write ou heredoc.
+- Saída longa de comando: `2>&1 | tail -n 40`, ou para `.codeflow/checkpoints/<nome>.log` e `grep`
+  nele.
+
+### 4b. Papel, modelo e esforço
+O orquestrador abre o terminal com o modelo e o esforço do papel e o declara na linha `Modelo:` do
+despacho. Quem não segue a tabela continua em high: ela corta gasto, não muda o que é exigido.
+
+| Papel | Workflows | Modelo · esforço |
+|-------|-----------|------------------|
+| Orquestrador (Maestro) | roteiros de orquestração | Opus · high |
+| Redator e revisor de spec, contrato, segurança, debug difícil | `create-spec`, revisão de spec do projeto, `security-sweep`, `refactor` de risco | Opus · high |
+| Executor | `execute-spec-phase`, `implement-change`, `bugfix`, `batch-bugfix` | Opus · medium |
+| Avaliador e revisor de mudança | `evaluate-spec-phase`, `review-change` | Opus · medium |
+| Conferente e mecânico | `double-check`, `verify-audit`, `spec-status`, levantamentos | Opus · medium |
+| 2ª opinião | só a 1ª rodada de revisão de spec | Codex, só leitura, no máximo 1 por spec, retorno ≤ 15 linhas |
+
+- **Escalada para high:** duas falhas Lógicas seguidas (política de falhas da constitution), o 2º
+  `REPROVADO` da mesma fase, ou um sinal de risco da `change-sizing` (contrato, migração,
+  auth/tenant, dinheiro, dado pessoal, deploy). O terminal em medium que bate num gatilho não troca o
+  próprio esforço: registra "escalar para high: <gatilho>" em **Decisões pedidas ao orquestrador**,
+  e o orquestrador reabre a tarefa em high.
+- **Aplicação:** pelo preset do terminal (`claude --model opus --effort medium`) ou, num terminal
+  reaproveitado, `/effort <nível>` antes do despacho. Isso é do orquestrador; o terminal só confere
+  que a linha `Modelo:` bate com o papel do workflow e, se não bater, cita no retorno.
 
 ### 5. Commit, e só commit
 - Commitar no ramo do despacho, seguindo as rules de commit do projeto (inclusive a de atribuição).
