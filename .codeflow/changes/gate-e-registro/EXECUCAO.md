@@ -1,8 +1,8 @@
 ---
 mudanca: gate-e-registro
-status: executado
-tentativa: 1
-reprovacoes: 0
+status: rework
+tentativa: 2
+reprovacoes: 1
 etapas_concluidas: [1, 2, 3, 4]
 base: origin/main
 ---
@@ -72,7 +72,10 @@ git status --porcelain depois de check-commits.sh origin/main e check-contexto.s
 
 ## 7. No rework: o que mudou nesta tentativa
 
-- não se aplica (primeira execução).
+- B-1 (REVISAO-1) → decision com `Por quê` e `Alternativa rejeitada` nas 4 decisões e `## Próximos passos sugeridos` → `13406eb`.
+- I-1 → `fase-ativa` apagada também em `PARADO` e `PRECISA DE DECISÃO` (execute-spec-phase, gêmeos em implement-change e no README dos hooks) → `13406eb`.
+- I-2 → `SPEC.md` §4.7.1 descreve o EXECUCAO pela `base`; gêmeos em execute-spec-phase e evaluate-spec-phase → `13406eb`.
+- Gate `check` de novo: lint 0, test 0 (121 verificações), security 0 (`.codeflow/checkpoints/gate-check-rework1.log`).
 
 ## 8. Dúvidas para o revisor
 
