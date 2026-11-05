@@ -35,10 +35,7 @@ Executar um plano **aprovado** de melhoria ou feature (`.codeflow/changes/<slug>
 - Modo: sem `EXECUCAO.md` → primeira execução, a partir da etapa 1. `EXECUCAO.md` com `etapas_concluidas` incompleto → retomar na primeira etapa não concluída. `REVISAO-<n>.md` com `AJUSTAR` → **rework**; se `reprovacoes >= 2`, **parar** e escalar ao dono (teto do ciclo; só `AJUSTAR` conta). `REVISAO-<n>.md` com `PENDENTE-EXTERNO` não é rework nem conta para o teto: resolvida a condição de fora, a mesma tentativa volta à revisão. Erros de registro apontados pela revisão se corrigem num commit só de documento, sem rework.
 - Consultar `.codeflow/decisions/INDEX.md` e carregar as decisions ATIVAS das áreas tocadas. Trabalhar na branch atual; se for a default, confirmar antes de commitar.
 
-## Protocolo
-
-### Menor mudança que resolve (YAGNI)
-Vale para toda etapa. Antes de escrever, ler o código que a etapa toca e listar o que ela alcança (chamadores, testes, fixtures, config, exports). Escada, parando no primeiro degrau que resolve:
+**Menor mudança que resolve (YAGNI).** Vale para toda etapa. Antes de escrever, ler o código que a etapa toca e listar o que ela alcança (chamadores, testes, fixtures, config, exports). Escada, parando no primeiro degrau que resolve:
 1. O plano exige isto? Se não, não fazer, e citar em uma linha no relatório.
 2. Já existe no repositório (helper, componente, padrão)? Reusar.
 3. A biblioteca padrão ou um recurso nativo resolve? Usar.
@@ -49,6 +46,8 @@ Vale para toda etapa. Antes de escrever, ler o código que a etapa toca e listar
 - Lógica nova (ramo, laço, parser, dinheiro, segurança) leva um teste pequeno que falha se ela quebrar. Código movido ou mesclado mantém validação e tratamento de erro.
 - **Nunca corte:** critério de aceite do plano, validação em fronteira (entrada externa), tratamento de erro que evita perda de dados, segurança, acessibilidade, sincronização e modo offline.
 - No `EXECUCAO.md`, uma linha: o que ficou deliberadamente de fora e o risco, se houver.
+
+## Protocolo
 
 ### Passo 1 — Preparar
 - Conferir que os caminhos ALTERADOS e REUSADOS do plano existem. Se o plano citou caminho inexistente, parar e apontar — não inventar.

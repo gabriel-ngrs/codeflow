@@ -36,10 +36,7 @@ Executar a **próxima fase pendente** de uma spec gerada por `/create-spec` (em 
 ## Antes de começar
 Identificar a spec que o usuário pediu (por caminho ou slug em `.codeflow/specs/`). **Trabalhar na branch atual** — o pipeline não cria nem troca de branch; a spec e os artefatos vivem na branch em que você está (a mesma onde `/create-spec` os commitou). Se a branch atual é a default (`main`/`master`), **avisar e pedir confirmação** antes de commitar (Passo 6). Se o usuário colou uma avaliação (`FASE-<id>-*-AVALIACAO.md`) com `veredito: REPROVADO`, o alvo é o **rework** dessa fase. `PENDENTE-EXTERNO` não é rework: a fase espera a condição de fora e é reavaliada. `APROVADO`, ou o legado `RESSALVAS`, conclui a fase; seus IMPORTANTES abertos são herdados (ARTIFACTS_SPEC §2.11.5). Se a avaliação só aponta **erros de registro** (frontmatter, `range`, lista de arquivos, link), corrigi-los num commit só de documento, sem rework e sem nova avaliação. Se a fase tocar áreas com decisions arquivadas, carregar as decisions ATIVAS por tag antes de implementar.
 
-## Protocolo
-
-### Menor mudança que resolve (YAGNI)
-Vale para a fase inteira. Antes de escrever, ler o código que a fase toca e listar o que ela alcança (chamadores, testes, fixtures, config, exports). Escada, parando no primeiro degrau que resolve:
+**Menor mudança que resolve (YAGNI).** Vale para a fase inteira. Antes de escrever, ler o código que a fase toca e listar o que ela alcança (chamadores, testes, fixtures, config, exports). Escada, parando no primeiro degrau que resolve:
 1. A spec manda; não corte requisito. O que a fase não pede não se faz, e se cita em uma linha no relatório.
 2. Já existe no repositório (helper, componente, padrão)? Reusar.
 3. A biblioteca padrão ou um recurso nativo resolve? Usar.
@@ -50,6 +47,8 @@ Vale para a fase inteira. Antes de escrever, ler o código que a fase toca e lis
 - Lógica nova (ramo, laço, parser, dinheiro, segurança) leva um teste pequeno que falha se ela quebrar. Código movido ou mesclado mantém validação e tratamento de erro.
 - **Nunca corte:** critério de aceite da spec, validação em fronteira (entrada externa), tratamento de erro que evita perda de dados, segurança, acessibilidade, sincronização e modo offline.
 - No relatório de execução, uma linha: o que ficou deliberadamente de fora e o risco, se houver.
+
+## Protocolo
 
 ### Passo 1 — Carregar a spec e o contexto
 - Localizar `.codeflow/specs/<slug>/SPEC_<NAME>.md` **sem ler a spec inteira**: o frontmatter (`sed -n '2,/^---$/p' <SPEC>`) e a lista de fases com as dependências, `grep -n '^### Fase\|Depende de' <SPEC>`. O conteúdo da fase-alvo chega pelo pacote do Passo 3.

@@ -32,10 +32,7 @@ Corrigir bug reproduzível em código existente. Há sintoma observável, hipót
 - Se o bug toca em áreas com decisions arquivadas (auth, payments, schema), consultar `.codeflow/decisions/INDEX.md` e carregar decisions ATIVAS por tag.
 - **Declarar o escopo esperado:** com base no relato, listar os arquivos que se espera tocar para corrigir. É uma âncora, não uma trava — refina-se durante a investigação —, mas tocar fora dela é **sinal de alerta** de refatoração lateral, e é contra essa lista que o `self-review` confere "diff dentro do escopo declarado" (Passo 5). Se a investigação obrigar a sair do escopo, declarar explicitamente por quê antes de fazê-lo.
 
-## Protocolo
-
-### Menor mudança que resolve (YAGNI)
-Vale para o fix inteiro. Antes de escrever, ler o código que o fix toca e listar o que ele alcança (chamadores, testes, fixtures, config, exports). Escada, parando no primeiro degrau que resolve:
+**Menor mudança que resolve (YAGNI).** Vale para o fix inteiro. Antes de escrever, ler o código que o fix toca e listar o que ele alcança (chamadores, testes, fixtures, config, exports). Escada, parando no primeiro degrau que resolve:
 1. A correção do bug exige isto? Se não, não fazer, e citar em uma linha no resumo.
 2. Já existe no repositório (helper, componente, padrão)? Reusar.
 3. A biblioteca padrão ou um recurso nativo resolve? Usar.
@@ -47,6 +44,8 @@ Vale para o fix inteiro. Antes de escrever, ler o código que o fix toca e lista
 - Código movido ou mesclado mantém validação e tratamento de erro.
 - **Nunca corte:** o teste de regressão, validação em fronteira (entrada externa), tratamento de erro que evita perda de dados, segurança, acessibilidade, sincronização e modo offline.
 - No resumo final, uma linha: o que ficou deliberadamente de fora e o risco, se houver.
+
+## Protocolo
 
 ### Passo 1 — Reproduzir o bug
 - Executar passos de reprodução fornecidos pelo usuário ou inferidos do relato.
