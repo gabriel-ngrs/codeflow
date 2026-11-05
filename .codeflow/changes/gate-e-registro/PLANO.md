@@ -2,9 +2,9 @@
 mudanca: gate-e-registro
 tipo: melhoria
 tamanho: media
-status: proposto
-aprovado_por: <quem aprovou, quando aprovado>
-aprovado_em: <AAAA-MM-DD, quando aprovado>
+status: aprovado
+aprovado_por: dono (lista de 05/11)
+aprovado_em: 2026-11-05
 registro: lista aprovada pelo dono em 2026-11-05 (pesquisa de tokens de 2026-11-02, pacotes PR-B, PR-D e PR-E, e os cortes de processo no que for do framework); plano do orquestrador de 2026-11-05, decisões D1, D2, D3 e D5
 ---
 
