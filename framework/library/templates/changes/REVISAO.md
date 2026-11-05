@@ -2,11 +2,16 @@
 mudanca: <slug>
 tentativa: <n da tentativa revisada>
 veredito: <APROVADO | AJUSTAR | PENDENTE-EXTERNO>
-range_revisado: <sha_inicial>..<sha_final>
+range_revisado: <merge-base>..<HEAD revisado>
 ---
 
 <!-- Preenchido pelo REVISOR (/review-change), em chat zerado. O revisor não
      altera código: só julga e registra.
+
+     range_revisado: mb=$(git merge-base <base do EXECUCAO> HEAD), e o intervalo
+       <mb>..<HEAD revisado>, em sha; conferir git log --oneline desse intervalo
+       contra as etapas do EXECUCAO. EXECUCAO antigo, sem base: o range dele.
+     Teto: 60 linhas de corpo, fora as saídas coladas.
 
      veredito, por precedência AJUSTAR > PENDENTE-EXTERNO > APROVADO: AJUSTAR
      quando há ≥1 BLOQUEANTE (contada a escalada: IMPORTANTE da revisão
@@ -56,7 +61,7 @@ PENDENTE-EXTERNO, a condição de fora e quem a resolve.)
 ## 8. Comandos rodados e saídas reais
 
 ```text
-# o que o revisor rodou ele mesmo, com a saída real
+# o que o revisor rodou ele mesmo: as últimas 20 linhas e o código de saída de cada um
 ```
 
 ## 9. Divergências entre o relatório e o código

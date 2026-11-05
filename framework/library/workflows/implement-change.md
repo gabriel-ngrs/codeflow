@@ -51,8 +51,8 @@ Executar um plano **aprovado** de melhoria ou feature (`.codeflow/changes/<slug>
 
 ### Passo 1 — Preparar
 - Conferir que os caminhos ALTERADOS e REUSADOS do plano existem. Se o plano citou caminho inexistente, parar e apontar — não inventar.
-- Anotar `sha_inicial` = HEAD (primeira execução) ou **reusar** o do `EXECUCAO.md` (retomada e rework).
-- Gate: plano aprovado, caminhos conferidos, `sha_inicial` conhecido.
+- Anotar a `base` (primeira execução: o ramo remoto de que o ramo nasceu, ex. `origin/main`) ou **reusar** a do `EXECUCAO.md` (retomada e rework; no formato anterior, o `sha_inicial`). O intervalo da mudança é `<merge-base de base e HEAD>..HEAD`.
+- Gate: plano aprovado, caminhos conferidos, `base` conhecida.
 
 ### Passo 2 — Executar cada etapa, em ordem
 - Para cada etapa ainda não concluída: teste vermelho → implementação → verde, tocando **só** os arquivos da etapa (diff mínimo). Em rework, corrigir **só** os BLOQUEANTES da revisão e os IMPORTANTES com destino "corrigir agora" — IMPORTANTE deixado aberto reaparece e vira BLOQUEANTE.
@@ -64,7 +64,7 @@ Executar um plano **aprovado** de melhoria ou feature (`.codeflow/changes/<slug>
 - Rodar os comandos de validação do projeto (do manifest) que provam o conjunto — não a suíte inteira por reflexo; a validação final é do revisor (`/review-change`, Passo 2). Gate ausente → `[—]` com justificativa.
 - Com `## Gate` no manifest: o L0 é o gate de cada etapa e o L1 roda uma vez aqui, salvo quando o `## CI` declara que o CI roda o L1; nunca o L2 (`ARTIFACTS_SPEC.md` §2.3.4).
 - Pode usar o `fim-de-fase.sh` como no `/execute-spec-phase`: gravar `.codeflow/checkpoints/fase-ativa` com `fase=<slug>-etapa-<n>` e `criterio=<o gate da etapa>`, rodar `bash ~/.codeflow/framework/core/scripts/fim-de-fase.sh` e colar o log no relatório; apagar `fase-ativa` no fim.
-- Aplicar a skill `self-review` ao diff `sha_inicial..HEAD`, conferindo que tudo cai no escopo do plano.
+- Aplicar a skill `self-review` ao diff `<merge-base>..HEAD`, conferindo que tudo cai no escopo do plano.
 - Gate: validação verde (ou `[—]` justificado) e self-review limpo.
 
 ### Passo 4 — Desvios e decisions
@@ -73,8 +73,8 @@ Executar um plano **aprovado** de melhoria ou feature (`.codeflow/changes/<slug>
 - Gate: desvios declarados; decision gerada se aplicável.
 
 ### Passo 5 — Relatório
-- Preencher `.codeflow/changes/<slug>/EXECUCAO.md` a partir do molde: etapas com commit e gate, arquivos, desvios, **saídas reais**, cada CA com evidência, dúvidas para o revisor. Em rework: `tentativa` + 1, `reprovacoes` + 1, `sha_inicial` reusado, e a seção do que mudou nesta tentativa com o `sha` de cada achado fechado.
-- Commitar o relatório separado do código. Instruir: `/review-change` em **chat zerado**.
+- Preencher `.codeflow/changes/<slug>/EXECUCAO.md` a partir do molde: etapas com commit e gate, arquivos por `git diff --stat <merge-base>..HEAD`, desvios, **saídas reais** (as últimas 20 linhas e o código de saída de cada uma), até 60 linhas fora as saídas, cada CA com evidência, dúvidas para o revisor. Em rework: `tentativa` + 1, `reprovacoes` + 1, `base` reusada, e a seção do que mudou nesta tentativa com o `sha` de cada achado fechado.
+- Commitar o relatório no **último commit da mudança** (junto da última etapa, ou logo depois dela); nenhum commit só para acertar sha. O documento vivo (`CLAUDE.md`, `AGENTS.md`, README) recebe no máximo o estado atual e um ponteiro para o plano, nunca o histórico da mudança. Instruir: `/review-change` em **chat zerado**.
 
 ## Definition of Done
 - [ ] Plano `aprovado` lido na íntegra; modo (primeira execução, retomada ou rework) definido pelo estado dos artefatos.
