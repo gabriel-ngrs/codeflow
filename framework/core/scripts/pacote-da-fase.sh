@@ -14,7 +14,8 @@
 # em arquivo redireciona a saída (ex.: para `.codeflow/checkpoints/`).
 #
 # Conforme `SPEC.md` §7.2/§7.3 e `ARTIFACTS_SPEC.md` §0.7/§0.9.
-# Linhas dentro de bloco de código (``` ou ~~~) nunca contam como heading nem como item;
+# Linhas dentro de bloco de código (cerca de 3+ crases ou tis, fechada pelo mesmo caractere
+# com comprimento >= ao da abertura, como no CommonMark) nunca contam como heading nem item;
 # bloco aberto sem fechamento torna o recorte não confiável e sai 1, sem stdout.
 #
 # Códigos de saída: 0 sucesso, 1 fase inexistente ou recorte não confiável, 2 arquivo
@@ -77,11 +78,29 @@ function nivel_h(i) {
   return RLENGTH - 1
 }
 function indent(s) { match(s, /^[ \t]*/); return RLENGTH }
+function corrida(s, c,   n) {
+  # tamanho da sequência inicial do caractere c em s (depois da indentação)
+  sub(/^[ \t]*/, "", s); n = 0
+  while (substr(s, n + 1, 1) == c) n++
+  return n
+}
 {
-  # C[NR] = 1 na cerca (``` ou ~~~) e dentro dela: ali "# ..." é código, não heading
+  # C[NR] = 1 na cerca e dentro dela: ali "# ..." é código, não heading.
+  # Regra do CommonMark: a cerca abre com 3+ crases ou tis; fecha só com o MESMO caractere,
+  # comprimento >= ao da abertura e nada além de espaço depois. Bloco de 3 dentro de cerca
+  # de 4 é conteúdo, não fechamento.
   L[NR] = $0
-  if (cerca == "" && match($0, /^[ \t]*(```|~~~)/)) { cerca = substr($0, RSTART + RLENGTH - 3, 3); ini_cerca = NR; C[NR] = 1 }
-  else if (cerca != "") { C[NR] = 1; if ($0 ~ ("^[ \t]*" cerca)) cerca = "" }
+  if (cerca == "") {
+    if (match($0, /^[ \t]*(```+|~~~+)/)) {
+      t = $0; sub(/^[ \t]*/, "", t); cerca = substr(t, 1, 1); ncerca = corrida(t, cerca)
+      if (cerca == "`" && index(substr(t, ncerca + 1), "`")) { cerca = ""; next }  # crase no info string: não é cerca
+      ini_cerca = NR; C[NR] = 1
+    }
+  } else {
+    C[NR] = 1
+    t = $0; sub(/^[ \t]*/, "", t); n = corrida(t, cerca)
+    if (n >= ncerca && substr(t, n + 1) ~ /^[ \t]*$/) cerca = ""
+  }
 }
 END {
   if (cerca != "") {
