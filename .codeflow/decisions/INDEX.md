@@ -1,9 +1,9 @@
 ---
 versão: 1.0
 status: estável
-atualizado: 2026-10-06
-total_decisions: 4
-última_atualização: 2026-10-06
+atualizado: 2026-11-05
+total_decisions: 5
+última_atualização: 2026-11-05
 ---
 
 # Índice de decisões
@@ -12,6 +12,7 @@ total_decisions: 4
 
 | Data       | Título                                                 | Workflow | Tags                                                                  | Status |
 |------------|--------------------------------------------------------|----------|-----------------------------------------------------------------------|--------|
+| 2026-11-05 | Skill universal `audit-enxugar` como exceção à anti-evolução | implement-change | anti-evolucao, auditoria, enxugar, experimental | ativa  |
 | 2026-10-05 | Aceleração do ciclo — veredito, tamanho e contexto | implement-change | veredito, avaliacao, schema, herdados, teto, retrocompatibilidade, tamanho, decisions | ativa  |
 | 2026-10-06 | Adoção do glossary — veredito, avaliação de fase e herdado | implement-change | core, glossary, veredito, adocao | ativa  |
 | 2026-10-05 | Proposta: glossary — veredito e avaliação de fase | implement-change | core, glossary, veredito, proposta | superseded |
@@ -21,6 +22,10 @@ total_decisions: 4
 
 | Tag        | Decisões (data + título)                                    |
 |------------|-------------------------------------------------------------|
+| anti-evolucao | 2026-11-05 — Skill universal `audit-enxugar` como exceção à anti-evolução |
+| auditoria | 2026-11-05 — Skill universal `audit-enxugar` como exceção à anti-evolução |
+| enxugar | 2026-11-05 — Skill universal `audit-enxugar` como exceção à anti-evolução |
+| experimental | 2026-11-05 — Skill universal `audit-enxugar` como exceção à anti-evolução |
 | operacao   | 2026-10-02 — Operação do repositório do codeflow por trilhas |
 | trilhas    | 2026-10-02 — Operação do repositório do codeflow por trilhas |
 | ramos      | 2026-10-02 — Operação do repositório do codeflow por trilhas |
@@ -43,7 +48,7 @@ total_decisions: 4
 
 ## Estatísticas
 
-- **Total:** 4
-- **Ativas:** 3
+- **Total:** 5
+- **Ativas:** 4
 - **Superseded:** 1
 - **Arquivadas:** 0
