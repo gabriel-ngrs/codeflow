@@ -31,7 +31,7 @@ sessão do executor enquanto o contexto couber. O avaliador e o revisor independ
 sessão.
 **Por quê:** o recruta reaberto a cada rework relê plano, spec e código que já tinha; a independência que
 importa é a do avaliador, e ela não muda.
-**Alternativa descartada:** manter o §3.7 literal e só recomendar o reuso nos roteiros, o que deixaria os
+**Alternativa rejeitada:** manter o §3.7 literal e só recomendar o reuso nos roteiros, o que deixaria os
 roteiros em conflito com o SPEC.
 
 ### 2. `CLAUDE.md` e `AGENTS.md` curtos pelo bootstrap (emenda do `SPEC.md` §10.9 e §2.5)
@@ -42,7 +42,7 @@ dono. O `discover` mede o tamanho dos que já existem e relata, sem editar. O §
 `CLAUDE.md`) continua valendo para todo o resto. A emenda é redigida aqui e aplicada na Etapa 4 do plano.
 **Por quê:** o `CLAUDE.md` é lido em toda sessão; nos projetos medidos ele cresceu com narrativa de bug e de
 spec. Um molde curto, oferecido e não imposto, corta esse custo sem o codeflow tomar o arquivo do projeto.
-**Alternativa descartada:** manter o "nunca" e deixar cada projeto escrever o seu sem referência.
+**Alternativa rejeitada:** manter o "nunca" e deixar cada projeto escrever o seu sem referência.
 
 ### 3. Modelo e esforço por papel (`modo-delegado` 4b)
 Opus medium para executor, avaliador, revisor de mudança e conferente; Opus high para Maestro, redação e
@@ -51,7 +51,7 @@ revisão de spec, contrato, segurança e debug difícil. Escalada para high em d
 rodada de revisão de spec, no máximo uma por spec, com retorno de até 15 linhas.
 **Por quê:** a medição mostrou quase todas as chamadas em Opus high; medium custa cerca de um quarto a menos
 com perda pequena, e a escalada cobre os casos de risco. Quem não segue a tabela continua em high.
-**Alternativa descartada:** outro modelo menor para o executor, que fica fora até haver um A/B próprio.
+**Alternativa rejeitada:** outro modelo menor para o executor, que fica fora até haver um A/B próprio.
 
 ### 4. Promoção dos moldes de orquestração a universais
 `framework/library/templates/orquestracao/` nasce com `DESPACHO.md`, `CICLO-DO-RECRUTA.md` e `MAESTRO.md`, e
@@ -59,10 +59,17 @@ com perda pequena, e a escalada cobre os casos de risco. Quem não segue a tabel
 dois projetos já praticavam nos próprios roteiros; a promoção a universal é aprovação do mantenedor, dada na
 lista de 2026-11-05.
 **Por quê:** o despacho era copiado de roteiro para roteiro, e a vigília feita pelo Maestro falhou duas vezes.
-**Alternativa descartada:** deixar cada projeto manter a sua cópia.
+**Alternativa rejeitada:** deixar cada projeto manter a sua cópia.
 
-## Consequências
-- Os roteiros de orquestração de cada projeto adotam os moldes no próprio ritmo; nada de projeto é reescrito.
-- O avaliador em medium é um risco declarado: o critério do veredito não muda, e o A/B curto é pós-passo do
-  orquestrador.
+## Próximos passos sugeridos
+- Maestro: incluir a linha desta decision no `.codeflow/decisions/INDEX.md`.
+- Orquestrador: A/B curto do avaliador em medium (refazer avaliações antigas) e medição de 2 fases com e sem o
+  pacote da fase, antes de fixar a tabela e o pacote como padrão.
+- Cada projeto: adotar os moldes de `framework/library/templates/orquestracao/` no próprio roteiro de
+  orquestração, no ritmo dele; nada de projeto é reescrito.
+- Deploy: `git pull --ff-only` em `~/.codeflow`, `setup-slash-commands.sh` e `setup-codex-skills.sh`; avisar
+  os orquestradores de que o `modo-delegado` mudou.
+
+## Notas
+- O avaliador em medium é um risco declarado: o critério do veredito não muda.
 - Desfazer: `git revert` dos commits da mudança; os workflows antigos continuam válidos.
