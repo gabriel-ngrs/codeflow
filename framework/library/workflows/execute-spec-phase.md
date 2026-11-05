@@ -29,9 +29,8 @@ Executar a **próxima fase pendente** de uma spec gerada por `/create-spec` (em 
 - ~/.codeflow/framework/library/skills/avoid-ai-look/SKILL.md (carregar quando a fase toca interface gráfica)
 - ~/.codeflow/framework/library/skills/accessibility-audit/SKILL.md (carregar quando a fase toca interface gráfica)
 - ~/.codeflow/framework/library/skills/visual-consistency/SKILL.md (carregar quando a fase toca interface gráfica)
-- .codeflow/INDEX.md
 - .codeflow/constitution.md
-- .codeflow/manifest.md
+- .codeflow/manifest.md — **só os comandos**, nunca o arquivo inteiro: `awk '/^## /{p=($0 ~ /^## (Comandos de validação|Gate|CI)/)} p' .codeflow/manifest.md`
 - .codeflow/decisions/INDEX.md (carregar decisions ATIVAS cujas tags cruzem o domínio da fase)
 
 ## Antes de começar
@@ -39,10 +38,23 @@ Identificar a spec que o usuário pediu (por caminho ou slug em `.codeflow/specs
 
 ## Protocolo
 
+### Menor mudança que resolve (YAGNI)
+Vale para a fase inteira. Antes de escrever, ler o código que a fase toca e listar o que ela alcança (chamadores, testes, fixtures, config, exports). Escada, parando no primeiro degrau que resolve:
+1. A spec manda; não corte requisito. O que a fase não pede não se faz, e se cita em uma linha no relatório.
+2. Já existe no repositório (helper, componente, padrão)? Reusar.
+3. A biblioteca padrão ou um recurso nativo resolve? Usar.
+4. Uma dependência já instalada resolve? Usar. Nunca adicionar dependência por poucas linhas.
+5. Senão, o mínimo que funciona.
+- Sem abstração, wrapper, opção, config ou código "para depois". Remover é melhor que adicionar; manter as camadas e convenções existentes.
+- Econômico na solução, nunca na mudança: terminar os chamadores, testes e fixtures que a fase quebrar.
+- Lógica nova (ramo, laço, parser, dinheiro, segurança) leva um teste pequeno que falha se ela quebrar. Código movido ou mesclado mantém validação e tratamento de erro.
+- **Nunca corte:** critério de aceite da spec, validação em fronteira (entrada externa), tratamento de erro que evita perda de dados, segurança, acessibilidade, sincronização e modo offline.
+- No relatório de execução, uma linha: o que ficou deliberadamente de fora e o risco, se houver.
+
 ### Passo 1 — Carregar a spec e o contexto
 - Localizar `.codeflow/specs/<slug>/SPEC_<NAME>.md` e lê-lo **na íntegra** — atenção a §4 (abordagem), §5 (plano de fases) e ao escopo travado / violações bloqueantes de cada fase.
 - **Gate estrutural da §5 (determinístico, antes de classificar fases):** rodar `bash ~/.codeflow/framework/core/scripts/run-structural.sh .codeflow/specs/<slug>/SPEC_<NAME>.md`. Exit `0` libera o Passo 2. Exit `1` = §5 malformada (id duplicado, heading ≠ bullet `id`, "Depende de" órfão, ciclo, fora de 3–8 por track, ou slug inválido): **parar**, colar a saída do script e pedir correção da spec por `/create-spec` — não classificar fases sobre uma §5 quebrada. Exit `2`/`3` = erro de execução/uso: parar. Aplica as regras de ARTIFACTS_SPEC §2.8.6 sem depender de leitura humana.
-- Ler os documentos referenciados (`linked_adr`, rules, decisions ativas, `.codeflow/manifest.md`) e inspecionar os seams de código citados em §4. **Não escrever nada ainda.**
+- Ler os documentos referenciados (`linked_adr`, rules, decisions ativas, os comandos do `.codeflow/manifest.md` pela expressão de `## LEIA TAMBÉM`) e inspecionar os seams de código citados em §4. **Não escrever nada ainda.**
 - Gate: spec encontrada, `run-structural.sh` retornou `0`, e §5 interpretada como lista ordenada de fases.
 
 ### Passo 2 — Determinar a fase-alvo (estado por frontmatter, não por prosa)

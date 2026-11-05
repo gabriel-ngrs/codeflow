@@ -163,7 +163,7 @@ if [ -d "$PROJ_WORKFLOWS_DIR" ] && ls "$PROJ_WORKFLOWS_DIR"/*.md >/dev/null 2>&1
     [ -f "$wf" ] || continue
     wf_name=$(basename "$wf" .md)
     wrapper="${PROJ_CMD_DIR}/${wf_name}.md"
-    new_body="Leia ${proj_abs}/${wf} e execute o protocolo descrito ali, aplicando ao projeto atual. Carregue todos os arquivos listados em ## LEIA TAMBÉM antes de começar."
+    new_body="Leia ${proj_abs}/${wf} e execute o protocolo descrito ali, aplicando ao projeto atual. Carregue os arquivos de ## LEIA TAMBÉM como cada item manda (só a seção indicada; os condicionais só quando a condição vale) antes de começar."
 
     if [ -e "$wrapper" ]; then
       n_proj_preserved=$((n_proj_preserved + 1))

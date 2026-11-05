@@ -23,9 +23,8 @@ Dar um trato de excelência visual numa interface já existente (tela legada, UI
 - ~/.codeflow/framework/library/skills/accessibility-audit/SKILL.md
 - ~/.codeflow/framework/library/skills/visual-consistency/SKILL.md
 - ~/.codeflow/framework/library/skills/self-review/SKILL.md
-- .codeflow/INDEX.md
 - .codeflow/constitution.md
-- .codeflow/manifest.md
+- .codeflow/manifest.md — **só os comandos**, nunca o arquivo inteiro: `awk '/^## /{p=($0 ~ /^## (Comandos de validação|Gate|CI)/)} p' .codeflow/manifest.md`
 
 ## Protocolo
 

@@ -817,7 +817,7 @@ Critério canônico (`SPEC.md` §4.2.2): "a IA pode fazer sem perguntar?" → wo
 - Tamanho-alvo aproximado do arquivo: **20 a 30 linhas** conforme `SPEC.md` §5.2. O número é orientação, não limite duro: o que descaracteriza o workflow como magro é existência de fases, decisões intermediárias ou perguntas ao usuário durante execução — não o tamanho exato. Quando o `## LEIA TAMBÉM` infla o arquivo total, contar a partir de `## Protocolo` como referência.
 - Sem fases. Sem checkpoints. Sem perguntas ao usuário durante execução.
 - Sem seção de proibições específicas (reservada para detalhados, §1.7).
-- `## LEIA TAMBÉM` inclui obrigatoriamente: constitution universal, `.codeflow/INDEX.md`, `.codeflow/constitution.md`, `.codeflow/manifest.md`. Skills e rules adicionais são opcionais.
+- `## LEIA TAMBÉM` inclui obrigatoriamente três entradas: constitution universal, `.codeflow/constitution.md` e `.codeflow/manifest.md` lido por seção — só os comandos, pela expressão `awk '/^## /{p=($0 ~ /^## (Comandos de validação|Gate|CI)/)} p' .codeflow/manifest.md`; o workflow que precisa da stack acrescenta `Stack identificada|Padrões` ao grupo. `.codeflow/INDEX.md` entra só no workflow que sonda o projeto sem lista fechada de leitura (ex.: `create-spec`, `audit`). Workflow que só lê frontmatter de artefatos (ex.: `spec-status`) dispensa a constitution de projeto e o manifest. Workflow que ainda lista as quatro entradas antigas (INDEX e manifest inteiro) continua válido. Skills e rules adicionais são opcionais.
 
 #### 1.5.4 Schema opcional
 
@@ -876,7 +876,7 @@ Apresentar nas cinco seções fixas do `SPEC.md` §5.6.4.
 2. Tamanho-alvo aproximado do arquivo: 20 a 30 linhas, ou no máximo 50 quando `## LEIA TAMBÉM` é extenso. Acima de 50 linhas requer justificativa explícita no commit de criação.
 3. As sete seções obrigatórias presentes na ordem listada em §1.5.3.
 4. Título no formato `# Workflow: <nome>`, com `<nome>` em kebab-case correspondendo ao nome do arquivo.
-5. `## LEIA TAMBÉM` contém as quatro entradas obrigatórias: constitution universal, `.codeflow/INDEX.md`, `.codeflow/constitution.md`, `.codeflow/manifest.md`.
+5. `## LEIA TAMBÉM` contém as três entradas obrigatórias de §1.5.3 (constitution universal, `.codeflow/constitution.md`, `.codeflow/manifest.md` por seção), com as exceções ali previstas. A presença de `.codeflow/INDEX.md` não invalida.
 6. `## Protocolo` contém pelo menos um passo `### Passo N — <nome>`.
 7. Sem seção `## Fase N` (reservada para detalhados).
 8. Sem seção `## Proibições durante este workflow` (reservada para detalhados).
@@ -1029,7 +1029,7 @@ Apresentar nas cinco seções fixas do `SPEC.md` §5.6.4.
 3. As oito seções obrigatórias presentes na ordem listada em §1.6.3.
 4. `## Protocolo` contém entre **quatro e sete** passos `### Passo N — <nome>`.
 5. Pelo menos um passo roda os comandos de validação do projeto (declarados no manifest ou inferidos do stack).
-6. `## LEIA TAMBÉM` contém as quatro entradas obrigatórias (constitution universal, INDEX, constitution de projeto, manifest).
+6. `## LEIA TAMBÉM` contém as três entradas obrigatórias de §1.5.3 (constitution universal, constitution de projeto, manifest por seção); o INDEX só no workflow que sonda sem lista fechada, e a presença dele não invalida.
 7. `## Antes de começar` referencia `.codeflow/decisions/INDEX.md` quando o tema do workflow pode tocar decisions.
 8. `## Definition of Done` inclui item de validação rodando os comandos do projeto (ou marcação `[—]` permitida quando um gate não se aplica).
 9. Sem seção `## Fase N` ou `## Proibições durante este workflow` (reservadas para detalhados).
@@ -1503,7 +1503,7 @@ Critério: workflow específico de stack ou domínio do projeto → projeto. Wor
 
 - Aplicar regras de validação correspondentes em `ARTIFACTS_SPEC.md`: §1.5.6, §1.6.6, ou §1.7.6.
 - Verificar que o nome do arquivo bate com o título.
-- Verificar que `## LEIA TAMBÉM` inclui as quatro entradas obrigatórias.
+- Verificar que `## LEIA TAMBÉM` inclui as três entradas obrigatórias de §1.5.3 (constitution universal, constitution de projeto, manifest por seção) e o INDEX só quando o workflow sonda sem lista fechada.
 - Apresentar resumo do workflow gerado ao usuário antes de finalizar.
 
 ## Saídas válidas
@@ -1683,7 +1683,7 @@ Fechar o gap entre a decisão arquitetural de `SPEC.md` §3.6 (workflows via sla
 
 - 2 a 4 linhas em pt-BR.
 - O corpo contém **exatamente uma** referência a path começando com `~/.codeflow/framework/` (universal) ou `<projeto>/.codeflow/` (projeto; absoluto ou relativo à raiz, conforme §1.11.6 regra 2).
-- Instrui a IA a ler o arquivo referenciado e executar o protocolo, carregando `## LEIA TAMBÉM` antes.
+- Instrui a IA a ler o arquivo referenciado e executar o protocolo, carregando `## LEIA TAMBÉM` antes **como cada item manda** (só a seção indicada; os condicionais só quando a condição vale), nunca "todos os arquivos" por atacado.
 - Sem lógica adicional, sem duplicação de conteúdo, sem reformulação do workflow.
 
 **Restrições adicionais:**
@@ -1702,8 +1702,9 @@ Wrapper universal para o workflow `bugfix`:
 
 ```markdown
 Leia ~/.codeflow/framework/library/workflows/bugfix.md e execute o protocolo
-descrito ali, aplicando ao projeto atual. Carregue todos os arquivos listados
-em ## LEIA TAMBÉM antes de começar.
+descrito ali, aplicando ao projeto atual. Carregue os arquivos de ## LEIA TAMBÉM
+como cada item manda (só a seção indicada; os condicionais só quando a
+condição vale) antes de começar.
 ```
 
 Wrapper universal para a meta-skill `discover`:
@@ -1731,8 +1732,9 @@ codeflow-source: ~/.codeflow/framework/library/workflows/bugfix.md
 ---
 
 Leia ~/.codeflow/framework/library/workflows/bugfix.md e execute o protocolo
-descrito ali, aplicando ao projeto atual. Carregue todos os arquivos listados
-em ## LEIA TAMBÉM antes de começar.
+descrito ali, aplicando ao projeto atual. Carregue os arquivos de ## LEIA TAMBÉM
+como cada item manda (só a seção indicada; os condicionais só quando a
+condição vale) antes de começar.
 ```
 
 Prompt Codex de compatibilidade para um workflow universal:
@@ -1745,8 +1747,9 @@ codeflow-source: ~/.codeflow/framework/library/workflows/bugfix.md
 ---
 
 Leia ~/.codeflow/framework/library/workflows/bugfix.md e execute o protocolo
-descrito ali, aplicando ao projeto atual. Carregue todos os arquivos listados
-em ## LEIA TAMBÉM antes de começar.
+descrito ali, aplicando ao projeto atual. Carregue os arquivos de ## LEIA TAMBÉM
+como cada item manda (só a seção indicada; os condicionais só quando a
+condição vale) antes de começar.
 ```
 
 #### 1.11.6 Regras de validação
@@ -1996,7 +1999,7 @@ Descrever **fatos** sobre o projeto: stack identificada, comandos de validação
 **Frontmatter — campos além dos universais da §0.2:**
 
 - `last_validated` — data ISO da última validação por `discover`. Obrigatório.
-- `validation_hash` — SHA-256 calculado sobre arquivos críticos do projeto (Makefile, manifest de stack, configs de linter). Obrigatório. Workflows que carregam o manifest recalculam o hash e avisam se difere.
+- `validation_hash` — SHA-256 calculado sobre arquivos críticos do projeto (Makefile, manifest de stack, configs de linter). Obrigatório. Só o `discover` e o `audit` recalculam o hash e avisam se difere; os demais workflows leem do manifest só a seção de que precisam e não o recalculam.
 - `projeto` — nome do projeto, herdado da constitution. Obrigatório.
 
 **Seções markdown — na ordem fixa abaixo:**

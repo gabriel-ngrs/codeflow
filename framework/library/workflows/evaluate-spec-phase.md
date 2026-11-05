@@ -28,9 +28,8 @@ Avaliar, de forma **independente e cética**, a fase executada por `/execute-spe
 - ~/.codeflow/framework/library/skills/avoid-ai-look/SKILL.md (carregar quando a fase avaliada toca interface gráfica)
 - ~/.codeflow/framework/library/skills/accessibility-audit/SKILL.md (carregar quando a fase avaliada toca interface gráfica)
 - ~/.codeflow/framework/library/skills/visual-consistency/SKILL.md (carregar quando a fase avaliada toca interface gráfica)
-- .codeflow/INDEX.md
 - .codeflow/constitution.md
-- .codeflow/manifest.md
+- .codeflow/manifest.md — **só os comandos**, nunca o arquivo inteiro: `awk '/^## /{p=($0 ~ /^## (Comandos de validação|Gate|CI)/)} p' .codeflow/manifest.md`
 - .codeflow/decisions/INDEX.md (carregar decisions ATIVAS cujas tags cruzem o domínio da fase)
 
 ## Antes de começar
@@ -54,7 +53,7 @@ Avaliar, de forma **independente e cética**, a fase executada por `/execute-spe
 ### Passo 3 — Rodar as verificações você mesmo (não acreditar no relatório)
 - Rodar os **comandos de validação do projeto** (do `.codeflow/manifest.md`; se ausente, inferir do stack): lint e type-check dos arquivos tocados, a suíte de testes relevante, segurança quando aplicável. Reportar falhas **reais**. Gate que **não existir** no projeto → `[—]` com justificativa; rodar as validações mínimas possíveis — gate ausente é "pulado", não falha (SPEC §3.10).
 - Aplicáveis conforme a fase: hooks de fitness, round-trip de migration se houver schema, `grep` de segredo/PII (deve ser zero) e os **greps de escopo travado** declarados na spec.
-- **Sem mutar o repo:** as verificações não podem alterar a working tree nem criar/reescrever commits; se uma checagem suja a árvore (artefatos de teste), reverter (`git stash`/`git checkout --`); resets de banco só em DB de **dev descartável**. Colar as **SAÍDAS REAIS** — nunca "passou" sem output. Opcional: `/code-review`.
+- **Sem mutar o repo:** as verificações não podem alterar a working tree nem criar/reescrever commits; se uma checagem suja a árvore (artefatos de teste), reverter só o que a verificação criou, por caminho (`git checkout -- <caminho>` e `git clean -fd -- <caminho>`), nunca guardando na pilha do git, que é a mesma em todas as worktrees; resets de banco só em DB de **dev descartável**. Colar as **SAÍDAS REAIS** — nunca "passou" sem output. Opcional: `/code-review`.
 - Gate: verificações aplicáveis rodadas, com evidência, e árvore limpa ao final.
 
 ### Passo 4 — Achados e veredito

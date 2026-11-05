@@ -29,9 +29,8 @@ Reorganizar código existente que já funciona: extrair função ou módulo, ren
 - ~/.codeflow/framework/library/skills/safe-refactor/SKILL.md
 - ~/.codeflow/framework/library/skills/debug-protocol/SKILL.md
 - ~/.codeflow/framework/library/skills/self-review/SKILL.md
-- .codeflow/INDEX.md
 - .codeflow/constitution.md
-- .codeflow/manifest.md
+- .codeflow/manifest.md — **só a stack, os padrões e os comandos**, nunca o arquivo inteiro: `awk '/^## /{p=($0 ~ /^## (Stack identificada|Padrões|Comandos de validação|Gate|CI)/)} p' .codeflow/manifest.md`
 - .codeflow/decisions/INDEX.md (filtrar pelas tags da área a refatorar)
 
 ## Estrutura do workflow

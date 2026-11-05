@@ -84,7 +84,7 @@ Critério: workflow específico de stack ou domínio do projeto → projeto. Wor
 
 - Aplicar regras de validação correspondentes em `ARTIFACTS_SPEC.md`: §1.5.6, §1.6.6, ou §1.7.6.
 - Verificar que o nome do arquivo bate com o título.
-- Verificar que `## LEIA TAMBÉM` inclui as quatro entradas obrigatórias.
+- Verificar que `## LEIA TAMBÉM` inclui as três entradas obrigatórias de `ARTIFACTS_SPEC.md` §1.5.3 (constitution universal, constitution de projeto, manifest lido por seção pela expressão `awk` ali citada) e o `.codeflow/INDEX.md` só quando o workflow sonda o projeto sem lista fechada de leitura.
 - Apresentar resumo do workflow gerado ao usuário antes de finalizar.
 
 ## Saídas válidas
