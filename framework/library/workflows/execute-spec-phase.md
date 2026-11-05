@@ -89,6 +89,7 @@ Identificar a spec que o usuário pediu (por caminho ou slug em `.codeflow/specs
 
 ### Passo 5 — Validar
 - Rodar os **comandos de validação do projeto** (do `.codeflow/manifest.md`; se ausente, inferir do stack) — os gates que se aplicam à fase (lint, type, testes, segurança) — e aplicar `self-review` no diff. Rodar o necessário para provar a fase, não a suíte inteira por reflexo.
+- Com `## Gate` no manifest: o L0 a cada etapa e o L1 uma vez no fim da fase, salvo quando o `## CI` declara que o CI roda o L1; nunca o L2 (`ARTIFACTS_SPEC.md` §2.3.4).
 - Se um gate de validação **não existir** no projeto: marcar `[—]` com justificativa no relatório e rodar a validação mínima possível (os testes/lint da fase) — não tratar como falha (SPEC §3.10).
 - Se um comando de validação existir e falhar: aplicar a política de falhas da constitution (falha Lógica → re-tentar com o erro como contexto, limite de **2 tentativas**; falha de Escopo/Ambiente → parar). Distinto do teto do Passo 2 (3 `REPROVADO`, ciclo executor↔avaliador).
 - Gate: os comandos de validação aplicáveis retornaram zero (ou `[—]` justificado) e self-review limpo.

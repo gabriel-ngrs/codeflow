@@ -576,6 +576,7 @@ caminho funcional é skills.
 - Quando o manifest falta, ou um gate não está mapeado, a IA **infere do stack** (lê `package.json` scripts, `pyproject.toml`, `Makefile` se houver, configs de CI) e roda o comando equivalente — registrando o que rodou.
 - `discover` descobre e registra esses comandos; `bootstrap` os define para a stack escolhida.
 - Gate ausente ou inaplicável é marcado `[—]` com justificativa, não como falha; o workflow continua.
+- O projeto pode declarar, na seção opcional `## Gate` do manifest, a esteira em camadas: **L0** no loop do agente, **L1** como gate de merge, **L2** pós-merge ou noturno. Quem roda cada camada mora num lugar só, `ARTIFACTS_SPEC.md` §2.3.4, e os workflows o citam; o L2 nunca some, só muda de hora. Sem `## Gate`, vale o que está acima.
 
 **Anti-decisão:**
 - Não presumir `make` nem exigir um Makefile. `make` é uma opção de embrulho, não a interface.

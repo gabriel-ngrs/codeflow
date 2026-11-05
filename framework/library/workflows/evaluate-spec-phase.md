@@ -52,6 +52,7 @@ Avaliar, de forma **independente e cética**, a fase executada por `/execute-spe
 
 ### Passo 3 — Rodar as verificações você mesmo (não acreditar no relatório)
 - Rodar os **comandos de validação do projeto** (do `.codeflow/manifest.md`; se ausente, inferir do stack): lint e type-check dos arquivos tocados, a suíte de testes relevante, segurança quando aplicável. Reportar falhas **reais**. Gate que **não existir** no projeto → `[—]` com justificativa; rodar as validações mínimas possíveis — gate ausente é "pulado", não falha (SPEC §3.10).
+- Com `## Gate` no manifest: rodar o L1, ou conferir o gate de merge declarado no manifest verde sobre o mesmo sha; nunca o L2 (`ARTIFACTS_SPEC.md` §2.3.4).
 - Aplicáveis conforme a fase: hooks de fitness, round-trip de migration se houver schema, `grep` de segredo/PII (deve ser zero) e os **greps de escopo travado** declarados na spec.
 - **Sem mutar o repo:** as verificações não podem alterar a working tree nem criar/reescrever commits; se uma checagem suja a árvore (artefatos de teste), reverter só o que a verificação criou, por caminho (`git checkout -- <caminho>` e `git clean -fd -- <caminho>`), nunca guardando na pilha do git, que é a mesma em todas as worktrees; resets de banco só em DB de **dev descartável**. Colar as **SAÍDAS REAIS** — nunca "passou" sem output. Opcional: `/code-review`.
 - Gate: verificações aplicáveis rodadas, com evidência, e árvore limpa ao final.

@@ -71,6 +71,14 @@ gitleaks git . --log-opts="origin/main..HEAD" --no-banner --redact --exit-code 1
    | grep -iwFf ~/.config/codeflow/nomes-proibidos.txt | cut -f1 | sort -u | { ! grep .; }
 ```
 
+## Gate
+
+| Camada | Quando                                                 | Comando                        | Tempo-alvo | Trava |
+|--------|--------------------------------------------------------|--------------------------------|------------|-------|
+| L0     | loop do agente, antes de cada commit                   | `lint` (bloco acima)           | ≤ 1 min    | não   |
+| L1     | antes do PR; gate de merge, local (não há CI)          | `check` (lint, test, security) | ≤ 5 min    | não   |
+| L2     | [—] não há suíte longa nem pós-merge neste repositório | [—]                            | —          | —     |
+
 ## Padrões detectados
 
 - **Estrutura:** `framework/core/` (contrato e core), `framework/library/` (16 workflows, 16 skills, moldes em `templates/specs/`, `templates/changes/`, `templates/audits/`), `framework/meta/` (5 meta-skills); scripts de instalação e setup na raiz.

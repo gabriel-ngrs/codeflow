@@ -2035,6 +2035,19 @@ Regras de aplicação:
 - Seção `## Comandos auxiliares` listando comandos úteis além dos gates de validação (ex: `migrate`, `seed`, `dev-up`).
 - Seção `## Limitações conhecidas` declarando o que `discover` não conseguiu inferir e precisa de confirmação manual do usuário.
 - Seção `## CI` declarando o CI como **gate de merge** (o merge exige o CI verde no PR) e listando o que ele cobre: os gates de `## Comandos de validação` que roda, pelo nome, e o que fica só local. Com ela, o revisor (`/review-change`) e o conferente (`/double-check`) rodam localmente só o que o CI não cobre e conferem o CI verde do PR, ou do mesmo sha, como evidência; sem ela, rodam a validação completa local.
+- Seção `## Gate` declarando a esteira em camadas: rodar o barato sempre e o caro raramente, sem deixar de rodar. Uma tabela com uma linha por camada, nas colunas `Camada`, `Quando`, `Comando`, `Tempo-alvo` e `Trava` (o recurso que a camada ocupa sozinha, ou `não`):
+  - **L0** — loop do agente, antes de cada commit; não trava recurso compartilhado (ex.: lint e testes do que o diff toca).
+  - **L1** — antes do PR; é o **gate de merge**, rodado localmente ou pelo CI (ex.: o `check`).
+  - **L2** — pós-merge, noturno, ou PR para o ramo de produção (ex.: suíte longa, ponta a ponta, arnês).
+
+  Camada sem comando é `[—]`. **L2 nunca some, só muda de hora:** sair do PR não autoriza deixar de rodá-la. Com `## Gate`, a seção `## CI` diz qual camada o CI roda.
+
+**Quem roda cada camada** (regra única, que os workflows citam por "§2.3.4"):
+
+- **Quem escreve código** (`execute-spec-phase`, `implement-change`, `bugfix`) roda o **L0** a cada etapa e o **L1** uma vez no fim; quando o `## CI` declara que o CI roda o L1, roda só o L0 e o CI decide.
+- **Quem confere** (`evaluate-spec-phase`, `review-change`, `double-check`) roda o **L1**, ou confere o **gate de merge declarado no manifest verde** sobre o mesmo sha (o CI do PR, quando é ele que roda o L1).
+- **Ninguém roda o L2** dentro de um workflow: ele é routine, noturno ou gate do ramo de produção.
+- **Sem `## Gate`**, vale a seção `## Comandos de validação` e o texto de cada workflow, como antes.
 
 #### 2.3.5 Exemplo preenchido
 
@@ -2069,6 +2082,14 @@ validation_hash: 7c3b8a9e2f1d4c5b6a8e9f0d1c2b3a4e5f6d7c8b9a0e1f2d3c4b5a6e7f8d9c0
 | `typecheck` | `mypy .`                                  | ✓      |
 | `test`      | `pytest --cov=src --cov-fail-under=85`    | ✓      |
 | `security`  | `bandit -r src && pip-audit`              | ✓      |
+
+## Gate
+
+| Camada | Quando                                   | Comando                                  | Tempo-alvo | Trava |
+|--------|------------------------------------------|------------------------------------------|------------|-------|
+| L0     | loop do agente, antes de cada commit     | `ruff check . && pytest -m "not slow"`   | ≤ 3 min    | não   |
+| L1     | antes do PR; gate de merge (local)       | `ruff check . && mypy . && pytest`       | ≤ 15 min   | não   |
+| L2     | noturno e PR para `main`                 | `pytest -m slow`                         | ≤ 60 min   | banco de staging |
 
 ## Padrões detectados
 
@@ -2117,6 +2138,7 @@ E `## Notas de inspeção` em bootstrap registra que os padrões são prospectiv
 8. A seção de padrões (`## Padrões detectados` / `## Padrões definidos`) contém ao menos três bullets. Em `discover` são factuais (observados); em `bootstrap` são prospectivos (metas decididas na Fase 2).
 9. Nenhuma regra prescritiva na seção de padrões. Manifest descreve (ou define metas), não prescreve regras — essas vivem na constitution.
 10. `## Notas de inspeção` registra data de inspeção e meta-skill que gerou (`discover` ou `bootstrap`).
+11. Quando há `## Gate`: as linhas L0, L1 e L2 presentes, uma cada, na ordem; o L1 tem comando entre crases (não `[—]`); camada sem comando é `[—]`. A seção é opcional e fica entre `## Comandos de validação` e a seção de padrões, sem mudar a ordem das obrigatórias.
 
 #### 2.3.7 Anti-padrões
 
@@ -2126,6 +2148,7 @@ E `## Notas de inspeção` em bootstrap registra que os padrões são prospectiv
 - **Comando de validação inventado.** O manifest registra o comando **real** de cada gate (`SPEC.md` §3.10); workflows usam exatamente esse comando, não um inventado. Quando um gate não tem comando no projeto, é `[—]`, não um palpite.
 - **Misturar inspeção com configuração.** Manifest é resultado de inspeção. Configurações desejadas (que não existem ainda) vivem em decision ou são solicitadas via `/discover --refresh`.
 - **Notas de inspeção como histórico longo.** Notas registram a inspeção atual, não histórico de inspeções anteriores. Reinspeção sobrescreve.
+- **`## Comandos de validação` com histórico, acima de 4.000 caracteres.** A célula de comando guarda o comando de hoje, não a crônica de como ele chegou ali; a seção inteira cabe em 4.000 caracteres, porque todo workflow que valida a lê. O histórico vai para `## Notas de inspeção` ou para uma decision.
 
 ### 2.4 Discovered
 
