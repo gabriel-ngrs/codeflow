@@ -1,12 +1,12 @@
 ---
 mudanca: contexto-e-papeis
-status: executado
-tentativa: 1
-reprovacoes: 0
+status: rework
+tentativa: 2
+reprovacoes: 1
 etapas_concluidas: [1, 2, 3, 4]
 sha_inicial: f97932e
-sha_final: 784a85d
-range: f97932e..784a85d
+sha_final: 26db5bc
+range: f97932e..26db5bc
 ---
 
 <!-- Preenchido pelo IMPLEMENTADOR (/implement-change). É declaração, não prova:
@@ -145,7 +145,38 @@ check=0
 
 ## 7. No rework: o que mudou nesta tentativa
 
-- Não se aplica (primeira execução).
+Tentativa 2, rework da `REVISAO-1.md` (`AJUSTAR`, `858e51a`). `sha_inicial` reusado.
+
+- **B-1** (`pacote-da-fase.sh` trunca a fase com `#` dentro de bloco de código) → o script marca as linhas de
+  cerca (```` ``` ```` e `~~~`) e o que está dentro delas; nenhuma conta como heading, fim de item ou definição de
+  id, em todos os pontos que leem heading (fase, resumo, princípios, §9, rodapé, itens). Cerca sem fechamento
+  sai 1, com aviso no stderr e sem stdout. Teste novo: spec sintética com `#`/`##` em blocos ```` ``` ```` e `~~~`
+  dentro da fase e de um AC → escopo travado, AC-2, `make test` e a linha da §9 inteiros, rodapé com a faixa certa;
+  cerca aberta → 1. → `9344618`
+- **I-1** (`SPEC.md` §5.1 e §6.7.1 contradizem o §1.5.3) → §5.1 manda carregar como cada item manda, INDEX só
+  para quem sonda sem lista fechada, manifest por seção; §6.7.1 diz para quem o INDEX é o mapa. Grep de gêmeas
+  ("ler todos os arquivos listados", "INDEX antes de qualquer", "Carregue todos") vazio no framework. → `bcbf5b7`
+- **I-2** (`### YAGNI` fora de Passo no Protocolo) → o bloco vai, com o mesmo texto, para o fim de
+  `## Antes de começar` nos três workflows, aberto por `**Menor mudança que resolve (YAGNI).**`. Nenhum
+  workflow tem `###` fora de Passo no Protocolo. → `c8baeba`
+- **I-3** (decision fora do §2.5.6) → "Alternativa rejeitada" nas 4 decisões; `## Próximos passos sugeridos`
+  no lugar de `## Consequências`, mais `## Notas`. → `fbf31c1`
+- **Merge do `origin/main`** (`f94bc19`, com o audit-enxugar) → `26db5bc`. Conflito em `refactor.md`: fica a
+  linha da skill `audit-enxugar` e sai o `.codeflow/INDEX.md`. `README.md`, `SPEC.md`, `audit.md` e
+  `refactor.md` foram mudados pelos dois ramos com o mesmo número de versão e sobem mais uma versão menor.
+
+Gate `check` sobre o ramo commitado, depois do merge:
+
+```text
+lint ✓ (rc=0)
+test ✓ (rc=0)          # regressão do validador sem ✗; setup em HOME temporário
+INF 12 commits scanned. / INF no leaks found
+security ✓ (rc=0)
+check=0
+# pacote-da-fase.sh: laço sobre as specs reais + casos sintéticos
+fases testadas: 493
+✓ teste do pacote verde   # mesma saída em gawk e mawk
+```
 
 ## 8. Dúvidas para o revisor
 
