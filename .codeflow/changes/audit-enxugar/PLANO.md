@@ -132,7 +132,8 @@ CI do projeto como alerta depois disso é decisão de cada projeto, fora deste p
   arquivos órfãos → exports → duplicação → complexidade; e a skill fixa a execução do lote: `/refactor`
   em modo puro, typecheck, testes e build do manifest como rede, parar no primeiro vermelho sem "consertar"
   teste, área sem cobertura não remove sem teste de caracterização, PR só daquele lote, e `/simplify` sobre
-  o diff no fim do lote (quando a ferramenta de IA o oferece; senão `[—]`).
+  o diff no fim **só dos lotes que reescrevem código** (duplicação e complexidade; quando a ferramenta de
+  IA o oferece, senão `[—]`) — os lotes só de remoção não rodam `/simplify`.
 - **CA-7** — Dado o `/audit` com a dimensão `enxugar`, quando ele carrega a skill da dimensão, então o
   `audit.md` lista `enxugar`, o `templates/audits/README.md` tem a linha `enxugar` → `audit-enxugar`, o
   `LAUDO.md` aceita `enxugar` em `dimensao`, e o `refactor.md` carrega `audit-enxugar` só quando o pedido
