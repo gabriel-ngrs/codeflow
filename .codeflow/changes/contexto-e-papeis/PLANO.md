@@ -2,9 +2,9 @@
 mudanca: contexto-e-papeis
 tipo: melhoria
 tamanho: media
-status: proposto
-aprovado_por: <quem aprovou, quando aprovado>
-aprovado_em: <AAAA-MM-DD, quando aprovado>
+status: aprovado
+aprovado_por: dono (lista de 05/11)
+aprovado_em: 2026-11-05
 registro: lista aprovada pelo dono em 2026-11-05 (pacote de tokens, PR-A, PR-C, PR-H e as regras do ponytail; decisões D1, D2, D3 e D5 do plano do orquestrador)
 ---
 
