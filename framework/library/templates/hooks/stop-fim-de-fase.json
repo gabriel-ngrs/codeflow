@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd \"$CLAUDE_PROJECT_DIR\" && bash ~/.codeflow/framework/core/scripts/fim-de-fase.sh --hook",
+            "timeout": 600
+          }
+        ]
+      }
+    ]
+  }
+}

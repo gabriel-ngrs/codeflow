@@ -1,5 +1,5 @@
 ---
-versão: 1.4
+versão: 1.5
 status: estável
 atualizado: 2026-11-05
 descrição: Aprende um projeto existente e gera os artefatos iniciais do .codeflow/.
@@ -116,6 +116,8 @@ A lista e a ordem dos arquivos são **exatamente** as declaradas na seção `## 
 3. `## Padrões detectados` — bullets factuais (no mínimo três). Descritivo, nunca prescritivo (regras vão na constitution). Título literal `## Padrões detectados` (origem `discover`); **não** usar `## Padrões definidos` (esse é do `bootstrap`).
 4. `## Arquivos críticos para freshness` — os arquivos cujo conteúdo, se mudar, torna o manifest obsoleto. **Critério de seleção (§2.3.3):** manifest(s) de stack (`package.json`, `pyproject.toml`, `Cargo.toml`, `go.mod`, `Gemfile`…), lockfile(s) correspondentes, `Makefile`/`justfile`, e configs de linter/formatter/typecheck (`.eslintrc*`, `ruff.toml`, `.ruff.toml`, `tsconfig.json`, etc.) **que de fato existem no projeto**. Listar apenas arquivos inspecionados; a ordem aqui é a ordem usada no `cat` do hash.
 5. `## Notas de inspeção` — registrar a data ISO da inspeção (Fase 0) e a meta-skill que gerou (`discover`).
+
+**Seção opcional `## Gate`** (`ARTIFACTS_SPEC.md` §2.3.4), entre `## Comandos de validação` e `## Padrões detectados`: só quando o projeto **já separa** camadas observáveis — um alvo rápido de pré-commit, o gate de merge do CI, uma suíte noturna ou pós-merge —, com cada comando citado da fonte em que apareceu. Camada sem comando observado é `[—]`; sem L1 observado, a seção não nasce. Não inventar camadas que o projeto não roda.
 
 #### 3c) `<projeto>/.codeflow/INDEX.md` — schema §2.1.3
 

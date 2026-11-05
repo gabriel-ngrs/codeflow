@@ -1,5 +1,5 @@
 ---
-versão: 1.3
+versão: 1.4
 status: estável
 atualizado: 2026-11-05
 granularidade: médio
@@ -51,6 +51,7 @@ Verificar, contra um lote de bugs, se as correções realmente sanaram cada bug 
 
 ### Passo 4 — Rodar a validação do projeto
 - O objetivo é caçar regressão colateral fora dos bugs listados; o alcance local depende do CI (do `.codeflow/manifest.md`; se ausente, inferir do stack):
+  - **Com `## Gate`** no manifest: rodar o L1, ou conferir o gate de merge declarado no manifest verde sobre o mesmo sha; nunca o L2 (`ARTIFACTS_SPEC.md` §2.3.4). Gate de merge vermelho conta como falha; ainda não rodado sobre o sha fica como pendência, nomeando o sha. Sem `## Gate`, vale o que segue.
   - **Sem** a seção `## CI` no manifest declarando o CI como gate de merge e o que ele cobre: rodar a **suíte completa** — testes, lint, type-check e build, tudo o que o projeto oferece. Aqui, ao contrário do fix, roda-se o máximo, não o mínimo.
   - **Com** essa declaração: rodar localmente só o que o CI **não** cobre (o manifest diz o quê) e conferir o **CI verde** do PR, ou de um run sobre o mesmo sha, como evidência — colar o link ou a saída do run. CI vermelho conta como falha; CI que ainda não rodou sobre o sha fica como pendência no relatório, nomeando o sha.
 - Gate que não existe no projeto → `[—]` justificado (SPEC §3.10). Registrar o resultado agregado (verde / falhas) no relatório.
@@ -64,7 +65,7 @@ Verificar, contra um lote de bugs, se as correções realmente sanaram cada bug 
 - [ ] Ledger localizado ou normalizado a partir do documento bruto (Passo 1).
 - [ ] Cada bug teve tentativa de reprodução observável (Passo 2).
 - [ ] Coluna `verificação` preenchida para todo bug — nenhum `—` restante; bug com `✗` reaberto só abaixo do teto de 2 reaberturas, e no teto levado a `bloqueado` (Passo 3).
-- [ ] Validação do projeto rodada (Passo 4): suíte completa, ou, com o CI declarado gate de merge no manifest, o que o CI não cobre mais o CI verde do sha conferido; ou `[—]` justificado.
+- [ ] Validação do projeto rodada (Passo 4): com `## Gate`, o L1 ou o gate de merge declarado no manifest verde do sha conferido; sem ele, suíte completa, ou, com o CI declarado gate de merge no manifest, o que o CI não cobre mais o CI verde do sha conferido; ou `[—]` justificado.
 - [ ] Placar de verificação apresentado e pendências (`✗`/`⚠`) listadas com ação sugerida.
 - [ ] Nenhum código de produção modificado por este workflow.
 - [ ] Ledger salvo com os vereditos de verificação.

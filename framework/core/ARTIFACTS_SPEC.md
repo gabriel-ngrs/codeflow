@@ -1,5 +1,5 @@
 ---
-versão: 2.6
+versão: 2.7
 status: estável
 atualizado: 2026-11-05
 documento: ARTIFACTS_SPEC.md
@@ -2035,6 +2035,19 @@ Regras de aplicação:
 - Seção `## Comandos auxiliares` listando comandos úteis além dos gates de validação (ex: `migrate`, `seed`, `dev-up`).
 - Seção `## Limitações conhecidas` declarando o que `discover` não conseguiu inferir e precisa de confirmação manual do usuário.
 - Seção `## CI` declarando o CI como **gate de merge** (o merge exige o CI verde no PR) e listando o que ele cobre: os gates de `## Comandos de validação` que roda, pelo nome, e o que fica só local. Com ela, o revisor (`/review-change`) e o conferente (`/double-check`) rodam localmente só o que o CI não cobre e conferem o CI verde do PR, ou do mesmo sha, como evidência; sem ela, rodam a validação completa local.
+- Seção `## Gate` declarando a esteira em camadas: rodar o barato sempre e o caro raramente, sem deixar de rodar. Uma tabela com uma linha por camada, nas colunas `Camada`, `Quando`, `Comando`, `Tempo-alvo` e `Trava` (o recurso que a camada ocupa sozinha, ou `não`):
+  - **L0** — loop do agente, antes de cada commit; não trava recurso compartilhado (ex.: lint e testes do que o diff toca).
+  - **L1** — antes do PR; é o **gate de merge**, rodado localmente ou pelo CI (ex.: o `check`).
+  - **L2** — pós-merge, noturno, ou PR para o ramo de produção (ex.: suíte longa, ponta a ponta, arnês).
+
+  Camada sem comando é `[—]`. **L2 nunca some, só muda de hora:** sair do PR não autoriza deixar de rodá-la. Com `## Gate`, a seção `## CI` diz qual camada o CI roda.
+
+**Quem roda cada camada** (regra única, que os workflows citam por "§2.3.4"):
+
+- **Quem escreve código** (`execute-spec-phase`, `implement-change`, `bugfix`) roda o **L0** a cada etapa e o **L1** uma vez no fim; quando o `## CI` declara que o CI roda o L1, roda só o L0 e o CI decide.
+- **Quem confere** (`evaluate-spec-phase`, `review-change`, `double-check`) roda o **L1**, ou confere o **gate de merge declarado no manifest verde** sobre o mesmo sha (o CI do PR, quando é ele que roda o L1).
+- **Ninguém roda o L2** dentro de um workflow: ele é routine, noturno ou gate do ramo de produção.
+- **Sem `## Gate`**, vale a seção `## Comandos de validação` e o texto de cada workflow, como antes.
 
 #### 2.3.5 Exemplo preenchido
 
@@ -2069,6 +2082,14 @@ validation_hash: 7c3b8a9e2f1d4c5b6a8e9f0d1c2b3a4e5f6d7c8b9a0e1f2d3c4b5a6e7f8d9c0
 | `typecheck` | `mypy .`                                  | ✓      |
 | `test`      | `pytest --cov=src --cov-fail-under=85`    | ✓      |
 | `security`  | `bandit -r src && pip-audit`              | ✓      |
+
+## Gate
+
+| Camada | Quando                                   | Comando                                  | Tempo-alvo | Trava |
+|--------|------------------------------------------|------------------------------------------|------------|-------|
+| L0     | loop do agente, antes de cada commit     | `ruff check . && pytest -m "not slow"`   | ≤ 3 min    | não   |
+| L1     | antes do PR; gate de merge (local)       | `ruff check . && mypy . && pytest`       | ≤ 15 min   | não   |
+| L2     | noturno e PR para `main`                 | `pytest -m slow`                         | ≤ 60 min   | banco de staging |
 
 ## Padrões detectados
 
@@ -2117,6 +2138,7 @@ E `## Notas de inspeção` em bootstrap registra que os padrões são prospectiv
 8. A seção de padrões (`## Padrões detectados` / `## Padrões definidos`) contém ao menos três bullets. Em `discover` são factuais (observados); em `bootstrap` são prospectivos (metas decididas na Fase 2).
 9. Nenhuma regra prescritiva na seção de padrões. Manifest descreve (ou define metas), não prescreve regras — essas vivem na constitution.
 10. `## Notas de inspeção` registra data de inspeção e meta-skill que gerou (`discover` ou `bootstrap`).
+11. Quando há `## Gate`: as linhas L0, L1 e L2 presentes, uma cada, na ordem; o L1 tem comando entre crases (não `[—]`); camada sem comando é `[—]`. A seção é opcional e fica entre `## Comandos de validação` e a seção de padrões, sem mudar a ordem das obrigatórias.
 
 #### 2.3.7 Anti-padrões
 
@@ -2126,6 +2148,7 @@ E `## Notas de inspeção` em bootstrap registra que os padrões são prospectiv
 - **Comando de validação inventado.** O manifest registra o comando **real** de cada gate (`SPEC.md` §3.10); workflows usam exatamente esse comando, não um inventado. Quando um gate não tem comando no projeto, é `[—]`, não um palpite.
 - **Misturar inspeção com configuração.** Manifest é resultado de inspeção. Configurações desejadas (que não existem ainda) vivem em decision ou são solicitadas via `/discover --refresh`.
 - **Notas de inspeção como histórico longo.** Notas registram a inspeção atual, não histórico de inspeções anteriores. Reinspeção sobrescreve.
+- **`## Comandos de validação` com histórico, acima de 4.000 caracteres.** A célula de comando guarda o comando de hoje, não a crônica de como ele chegou ali; a seção inteira cabe em 4.000 caracteres, porque todo workflow que valida a lê. O histórico vai para `## Notas de inspeção` ou para uma decision. O `~/.codeflow/framework/core/scripts/check-contexto.sh` confere este teto e os do contexto fixo (`CLAUDE.md`, `MEMORY.md` do projeto, INDEX, constitution, manifest).
 
 ### 2.4 Discovered
 
@@ -2636,6 +2659,7 @@ Cada fase é uma sub-seção `### Fase <id> — <nome>` com, no mínimo, os camp
 - `id` — inteiro sequencial (`1`, `2`, …) quando `wave: single`/`null`; `<TRACK>.<n>` (`A.1`, `B.2`, …) quando `wave: multi`. Único na spec; é o que entra nos nomes dos artefatos.
 - `slug` — kebab-case curto, canônico; reusado verbatim por `/execute-spec-phase` e `/evaluate-spec-phase`.
 - `Depende de` — lista de `id`s de fase pré-requisito, ou `nenhuma`. Grafo acíclico; todo `id` referenciado existe na spec. Em `wave: multi`, dependência cruzada entre tracks é permitida (`B.2` depende de `A.7`).
+- **Critério de conclusão (gate)** — no formato `` `<comando>` passa; e <condição verificável, numa linha> ``: o comando entre crases é o que o `fim-de-fase.sh` roda para provar a fase (o teste da fase, um alvo do projeto), e a condição cobre o que o comando não prova. Critério só em prosa segue válido, com aviso (§2.8.6, regra 9).
 
 **Restrições adicionais:**
 
@@ -2686,7 +2710,7 @@ quality_gate:
 - **Passos:** 1) definir a port … 2) implementar o adapter …
 - **Testes:** contrato da port (AC-1), retry idempotente (AC-3).
 - **Escopo travado / violações BLOQUEANTES:** não chamar a API fora do adapter; não vazar token em log.
-- **Critério de conclusão (gate):** testes da port verdes; comandos de validação do projeto zero.
+- **Critério de conclusão (gate):** `pytest tests/ports` passa; e comandos de validação do projeto zero.
 
 ### Fase B.2 — Webhook de status no hub
 - **id:** `B.2`
@@ -2696,7 +2720,7 @@ quality_gate:
 - **Passos:** 1) … 2) …
 - **Testes:** AC-5.
 - **Escopo travado / violações BLOQUEANTES:** não persistir payload bruto com PII.
-- **Critério de conclusão (gate):** round-trip status verde; comandos de validação do projeto zero.
+- **Critério de conclusão (gate):** `pytest tests/hub -k status` passa; e o round-trip de status fica verde.
 ```
 
 #### 2.8.6 Regras de validação
@@ -2710,6 +2734,7 @@ quality_gate:
 6. Todo `id` citado em `Depende de` existe em `## 5`; o grafo de dependências é acíclico.
 7. Cada FR tem ao menos um AC correspondente em `## 3`.
 8. Nenhum caminho citado como alterado/REUSADO é inexistente no repositório (verificação fora do arquivo).
+9. Cada fase traz o bullet **Critério de conclusão (gate)** com ao menos um comando entre crases. **Só aviso**: o `run-structural.sh` imprime `⚠ fase <id>: critério de conclusão sem comando entre crases` (também quando o bullet falta) e mantém o código de saída que as demais regras dão.
 
 #### 2.8.7 Anti-padrões
 
@@ -2727,7 +2752,7 @@ quality_gate:
 
 #### 2.9.1 Localização
 
-Localização única: `<projeto>/.codeflow/specs/<slug-da-spec>/artefatos/FASE-<id>-<slug-da-fase>-EXECUCAO.md`. `<id>` e `<slug-da-fase>` vêm da §5 da spec (§2.8), reusados verbatim. Gerado e **commitado** por `/execute-spec-phase` na **branch atual** (a mesma onde o código da fase foi commitado), em **commit separado do código, em cima de `sha_final`** — por isso a ponta da branch é o commit-relatório, não `sha_final` (o avaliador valida por ancestralidade, ver §2.10.1). **Um único arquivo por fase**, sobrescrito a cada tentativa/rework (o histórico cumulativo sobrevive no campo `reprovacoes`, não em arquivos versionados por tentativa).
+Localização única: `<projeto>/.codeflow/specs/<slug-da-spec>/artefatos/FASE-<id>-<slug-da-fase>-EXECUCAO.md`. `<id>` e `<slug-da-fase>` vêm da §5 da spec (§2.8), reusados verbatim. Gerado e **commitado** por `/execute-spec-phase` na **branch atual** (a mesma onde o código da fase foi commitado), no **último commit da fase**: junto do código do último passo, ou num commit logo depois dele. Nenhum commit existe só para acertar sha ou range no relatório: o avaliador acha o intervalo pela `base` (§2.10.1). Artefato antigo, gravado em commit separado em cima de `sha_final`, continua válido. **Um único arquivo por fase**, sobrescrito a cada tentativa/rework (o histórico cumulativo sobrevive no campo `reprovacoes`, não em arquivos versionados por tentativa).
 
 #### 2.9.2 Propósito
 
@@ -2743,13 +2768,12 @@ Deixar a fase **pronta para avaliação independente**: declara, de forma machin
 - `status` — domínio: `executado` (nova execução) | `rework`. Denormalizado (redundante com `tentativa`: `rework` ⇔ `tentativa ≥ 2`); a regra de validação 4 garante a coerência, então não pode divergir silenciosamente.
 - `tentativa` — inteiro ≥ 1. Nova execução: `1`. Rework: anterior + 1.
 - `reprovacoes` — inteiro ≥ 0, **cumulativo**. Conta os vereditos `REPROVADO` acumulados da fase — o único veredito que dispara rework. `PENDENTE-EXTERNO` não conta (§2.10.3). Nova execução: `0`. Rework: valor anterior + 1 (o `REPROVADO` que motivou este rework). É o que torna o **teto de 3 tentativas (= 1º `REPROVADO` + 2 reworks)** reconstruível mesmo com o arquivo sobrescrito (gate: parar quando `reprovacoes >= 2` — ver §2.11.4). Artefato anterior a 2026-10-05 pode ter contado também `RESSALVAS`; o valor fica como está (nunca decresce), e o teto só fica mais conservador.
-- `sha_inicial` — HEAD original no início da fase. Em rework, **reusar** o da tentativa anterior (não redefinir).
-- `sha_final` — HEAD após o trabalho desta tentativa.
-- `range` — `<sha_inicial>..<sha_final>`. Sempre do início original ao HEAD, para o avaliador ver a fase inteira.
+- `base` — de onde a fase partiu: o ramo remoto de que o ramo de trabalho nasceu (ex.: `origin/main`) ou, quando a fase segue outra no mesmo ramo, o sha da ponta no início dela. Em rework, **reusar** o da tentativa anterior. O intervalo da fase é `<merge-base de base e HEAD>..HEAD`.
+- `sha_inicial`, `sha_final`, `range` — **opcionais**, do formato anterior: HEAD original no início da fase (reusado em rework), HEAD após o trabalho, e `<sha_inicial>..<sha_final>`. Obrigatório é `base` **ou** o trio; artefato antigo, só com o trio, segue válido.
 
 **Seções markdown — corpo (após o frontmatter):**
 
-Resumo do que foi feito; tabela de arquivos CRIADOS/ALTERADOS (caminho + propósito); confirmação do REUSO; decisões de design e qualquer desvio da spec/rules com justificativa; **Herdados**; comandos rodados + **saídas reais** (os comandos de validação do projeto, ou `[—]` justificado se ausente); checklist dos ACs/critério de conclusão, cada item com evidência; em rework, o que mudou nesta tentativa; dúvidas para o avaliador.
+Resumo do que foi feito; arquivos CRIADOS/ALTERADOS pela saída de `git diff --stat <merge-base>..HEAD`, com o propósito ao lado só quando não é óbvio; lista dos commits da fase, por assunto (o commit que leva o relatório não tem sha conhecido dentro dele); confirmação do REUSO; decisões de design e qualquer desvio da spec/rules com justificativa; **Herdados**; comandos rodados + **saídas reais** (os comandos de validação do projeto, ou `[—]` justificado se ausente); checklist dos ACs/critério de conclusão, cada item com evidência; em rework, o que mudou nesta tentativa; dúvidas para o avaliador.
 
 **Herdados.** Lista dos IMPORTANTES abertos que esta fase recebeu (§2.11.5), um por linha: a origem (`FASE <id> I-<n>`), o problema e o desfecho — `resolvido em <sha>` ou `não resolvido: <motivo>`. Sem herdado recebido, a seção diz "nenhum". Corrigir um herdado é escopo autorizado da fase que o recebe, mesmo fora dos arquivos que ela declara.
 
@@ -2758,6 +2782,7 @@ Resumo do que foi feito; tabela de arquivos CRIADOS/ALTERADOS (caminho + propós
 - Sem comentários (`#`) dentro do frontmatter (§0.2).
 - `reprovacoes` nunca decresce entre tentativas da mesma fase.
 - Artefato anterior a 2026-10-05, sem a seção **Herdados**, continua válido.
+- **Teto de 60 linhas** no corpo, fora as saídas coladas. Cada saída real são as **últimas 20 linhas** mais o código de saída; a saída inteira fica no log de `.codeflow/checkpoints/` (ex.: o do `fim-de-fase.sh`). Artefato antigo maior continua válido.
 
 #### 2.9.4 Schema opcional
 
@@ -2775,9 +2800,7 @@ slug_fase: evolution-adapter
 status: rework
 tentativa: 2
 reprovacoes: 1
-sha_inicial: a1b2c3d
-sha_final: f6e5d4c
-range: a1b2c3d..f6e5d4c
+base: origin/main
 ---
 
 ## Resumo
@@ -2804,11 +2827,11 @@ Rework da Fase A.1 após avaliação t1 (REPROVADO): token deixava de ser mascar
 
 #### 2.9.6 Regras de validação
 
-1. Frontmatter presente, com `spec`, `fase`, `slug_fase`, `status`, `tentativa`, `reprovacoes`, `sha_inicial`, `sha_final`, `range`.
+1. Frontmatter presente, com `spec`, `fase`, `slug_fase`, `status`, `tentativa`, `reprovacoes` e `base`, ou, no formato anterior, `sha_inicial`, `sha_final` e `range` no lugar de `base`.
 2. Nome do arquivo `FASE-<fase>-<slug_fase>-EXECUCAO.md`, com `<fase>` e `<slug_fase>` iguais aos campos do frontmatter e aos da §5 da spec.
 3. `status` ∈ {`executado`, `rework`}; `tentativa` ≥ 1; `reprovacoes` ≥ 0.
 4. `status: executado` ⇒ `tentativa: 1` e `reprovacoes: 0`. `status: rework` ⇒ `tentativa` ≥ 2 e `reprovacoes` ≥ 1 (todo rework vem de um `REPROVADO`, que conta).
-5. `range` é exatamente `<sha_inicial>..<sha_final>`.
+5. Quando presentes, `range` é exatamente `<sha_inicial>..<sha_final>`.
 6. Corpo cola **saídas reais** dos comandos (ou `[—]` justificado), nunca apenas "passou".
 7. Sem comentários `#` no frontmatter.
 8. Todo herdado destinado à fase (§2.11.5) aparece na seção **Herdados**, com desfecho.
@@ -2816,16 +2839,18 @@ Rework da Fase A.1 após avaliação t1 (REPROVADO): token deixava de ser mascar
 #### 2.9.7 Anti-padrões
 
 - **Versionar o arquivo por tentativa** (`...-EXECUCAO-t2.md`). O contrato é arquivo único + `reprovacoes` cumulativo; múltiplos arquivos quebram os consumidores (§2.10, spec-status).
-- **Redefinir `sha_inicial` em rework.** O range deixaria de cobrir a fase inteira e o avaliador veria só os commits de conserto.
+- **Redefinir `base` (ou `sha_inicial`) em rework.** O intervalo deixaria de cobrir a fase inteira e o avaliador veria só os commits de conserto.
 - **`reprovacoes` ausente ou resetado.** Sem ele o teto de 3 tentativas vira inferência frágil a partir de `tentativa` (uma `tentativa: 3` pode ser a 3ª execução ainda não avaliada, não 3 `REPROVADO`).
 - **Herdado sumido.** Herdado recebido e omitido da seção **Herdados** conta como não resolvido para o avaliador (§2.10.3).
 - **"passou" sem saída.** O avaliador re-roda tudo; relatório sem evidência é ruído.
+- **Commit só para acertar sha.** Gravar o relatório e depois um commit que só corrige `sha_final` ou `range`. Com `base`, o intervalo se calcula; o relatório vai no último commit da fase.
+- **Saída inteira colada e relatório longo.** Colar centenas de linhas de log ou passar de 60 linhas de corpo. O avaliador lê o fim da saída e o código de saída; o resto fica no log de `.codeflow/checkpoints/`.
 
 ### 2.10 Avaliação de fase (`FASE-<id>-<slug>-AVALIACAO.md`)
 
 #### 2.10.1 Localização
 
-Localização única: `<projeto>/.codeflow/specs/<slug-da-spec>/artefatos/FASE-<id>-<slug-da-fase>-AVALIACAO.md`. `<id>` e `<slug-da-fase>` vêm do EXECUCAO avaliado (§2.9), reusados verbatim. Gerado e **commitado** por `/evaluate-spec-phase`, em chat zerado, independente do executor, **na ponta da branch atual** (a mesma onde o trabalho foi commitado; não em detached HEAD — senão o commit da avaliação fica órfão e o pipeline trava). Antes de auditar, o avaliador confirma que os commits do `range` são **ancestrais de HEAD** na branch (`git merge-base --is-ancestor <sha_final> HEAD`); numa branch sem esses commits (ex: a default) os artefatos não existem e as verificações rodariam contra a árvore errada. Note que `HEAD ≠ sha_final` no caminho feliz: o relatório de execução é um commit separado **em cima** de `sha_final` (só markdown), então a ponta da branch já contém o código da fase.
+Localização única: `<projeto>/.codeflow/specs/<slug-da-spec>/artefatos/FASE-<id>-<slug-da-fase>-AVALIACAO.md`. `<id>` e `<slug-da-fase>` vêm do EXECUCAO avaliado (§2.9), reusados verbatim. Gerado e **commitado** por `/evaluate-spec-phase`, em chat zerado, independente do executor, **na ponta da branch atual** (a mesma onde o trabalho foi commitado; não em detached HEAD — senão o commit da avaliação fica órfão e o pipeline trava). Antes de auditar, o avaliador acha o intervalo da fase: com `base`, `mb=$(git merge-base <base> HEAD)` e o intervalo `<mb>..HEAD`; confere `git log --oneline <mb>..HEAD` contra a lista de commits do relatório (commit fora da lista, ou da lista ausente no log, é erro de registro, ou escopo, se trouxer código de outra tarefa) e audita `git diff <mb>..HEAD`. **Formato anterior** (só `sha_inicial`, `sha_final` e `range`): confirma que `sha_final` é ancestral de HEAD (`git merge-base --is-ancestor <sha_final> HEAD`) e usa o `range`. Numa branch sem esses commits (ex: a default) os artefatos não existem e as verificações rodariam contra a árvore errada.
 
 #### 2.10.2 Propósito
 
@@ -2840,7 +2865,7 @@ Registrar o veredito independente da tentativa avaliada, de forma machine-readab
 - `slug_fase` — `slug` da fase, igual ao do EXECUCAO.
 - `tentativa` — a tentativa **avaliada**; casa com `tentativa` do EXECUCAO.
 - `veredito` — `APROVADO` | `REPROVADO` | `PENDENTE-EXTERNO`. `APROVADO` conclui a fase; `REPROVADO` exige rework; `PENDENTE-EXTERNO` espera uma condição de fora da fase e é reavaliado na mesma tentativa. **Legado:** `RESSALVAS`, emitido antes de 2026-10-05, continua válido e se lê como `APROVADO` com os IMPORTANTES daquela avaliação como herdados (§2.11.5). Avaliação nova não emite `RESSALVAS`.
-- `range_avaliado` — `<sha_inicial>..<sha_final>`, o range do EXECUCAO auditado.
+- `range_avaliado` — o intervalo auditado: `<merge-base>..<HEAD auditado>`, calculado da `base` do EXECUCAO (§2.10.1), em sha; no formato anterior, o `range` do EXECUCAO.
 
 Campos `score` e `threshold` — opcionais (§2.10.4).
 
@@ -2858,6 +2883,7 @@ Campos `score` e `threshold` — opcionais (§2.10.4).
   - senão `PENDENTE-EXTERNO` quando um gate da fase não pôde ser fechado por depender de algo fora dela: cota esgotada, push ou CI remoto, ação física do dono, ou outra fase que precisa vir antes. A seção 1 diz qual condição e quem a resolve.
   - senão `APROVADO`: zero BLOQUEANTE. Os IMPORTANTES abertos (no máximo 2, pela escalada) viram **herdados** (§2.11.5).
 - `score` e `threshold`, quando preenchidos, são informativos: **nunca** decidem o veredito.
+- **Teto de 60 linhas** no corpo, fora as saídas coladas; cada saída real são as últimas 20 linhas mais o código de saída (a inteira no log de `.codeflow/checkpoints/`). Avaliação antiga maior continua válida.
 - Sem comentários (`#`) dentro do frontmatter (§0.2).
 
 #### 2.10.4 Schema opcional
@@ -2907,6 +2933,7 @@ APROVADO — zero BLOQUEANTE; 1 IMPORTANTE vira herdado da fase B.2.
 5. `tentativa` casa com a `tentativa` de um `FASE-<fase>-*-EXECUCAO.md` existente.
 6. Corpo cola saídas reais dos comandos e confere cada herdado destinado à fase.
 7. Sem comentários `#` no frontmatter.
+8. `range_avaliado` no formato `<sha>..<sha>`: com `base` no EXECUCAO, o primeiro é o merge-base e o segundo o HEAD auditado.
 
 #### 2.10.7 Anti-padrões
 

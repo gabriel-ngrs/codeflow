@@ -1,5 +1,5 @@
 ---
-versão: 3.6
+versão: 3.7
 status: estável
 atualizado: 2026-11-05
 documento: SPEC.md
@@ -188,7 +188,11 @@ Esta localização contém **tudo que é universal** ao framework.
 │   │   └── scripts/                ← scripts read-only em bash
 │   │       ├── run-structural.sh   ← gate estrutural da §5 da spec
 │   │       ├── pacote-da-fase.sh   ← recorte da spec para executar e avaliar uma fase
-│   │       └── vigia.sh            ← diz se uma frente de orquestração parou (cron)
+│   │       ├── vigia.sh            ← diz se uma frente de orquestração parou (cron)
+│   │       ├── fim-de-fase.sh      ← roda o critério da fase ativa e o L0; modo Stop hook
+│   │       ├── check-commits.sh    ← assunto, Conventional Commits e trailer Tamanho: do ramo
+│   │       ├── check-contexto.sh   ← tetos do contexto fixo (CLAUDE.md, MEMORY.md, INDEX, manifest)
+│   │       └── testes/             ← run-testes.sh e casos/ dos scripts acima
 │   │
 │   ├── meta/                       ← skills que criam outras coisas
 │   │   ├── discover/SKILL.md       ← aprende projeto existente
@@ -199,6 +203,7 @@ Esta localização contém **tudo que é universal** ao framework.
 │   │
 │   └── library/                    ← biblioteca viva (seeds + extensões)
 │       ├── templates/              ← moldes que os workflows copiam e preenchem
+│       │   ├── hooks/              ← Stop hook do fim de fase (opt-in) e como ligar
 │       │   ├── orquestracao/       ← DESPACHO, CICLO-DO-RECRUTA e MAESTRO
 │       │   └── projeto/            ← CLAUDE.md e AGENTS.md curtos (oferecidos pelo bootstrap)
 │       │
@@ -576,6 +581,7 @@ caminho funcional é skills.
 - Quando o manifest falta, ou um gate não está mapeado, a IA **infere do stack** (lê `package.json` scripts, `pyproject.toml`, `Makefile` se houver, configs de CI) e roda o comando equivalente — registrando o que rodou.
 - `discover` descobre e registra esses comandos; `bootstrap` os define para a stack escolhida.
 - Gate ausente ou inaplicável é marcado `[—]` com justificativa, não como falha; o workflow continua.
+- O projeto pode declarar, na seção opcional `## Gate` do manifest, a esteira em camadas: **L0** no loop do agente, **L1** como gate de merge, **L2** pós-merge ou noturno. Quem roda cada camada mora num lugar só, `ARTIFACTS_SPEC.md` §2.3.4, e os workflows o citam; o L2 nunca some, só muda de hora. Sem `## Gate`, vale o que está acima.
 
 **Anti-decisão:**
 - Não presumir `make` nem exigir um Makefile. `make` é uma opção de embrulho, não a interface.
@@ -895,7 +901,7 @@ Os artefatos do codeflow são:
 
 **`specs/<slug>/SPEC_<NAME>.md`:** a spec — documento único autoexecutável gerado por `/create-spec`, com requisitos, abordagem técnica e plano de fases (§5). Versionada na branch atual. É artefato de ciclo de vida (`status: draft|active|done`).
 
-**`specs/<slug>/artefatos/FASE-<id>-<slug>-EXECUCAO.md`:** relatório de execução de uma fase, gerado por `/execute-spec-phase`, com frontmatter machine-readable (`tentativa`, `reprovacoes`, `range` de commits) e evidências, inclusive o desfecho de cada herdado recebido.
+**`specs/<slug>/artefatos/FASE-<id>-<slug>-EXECUCAO.md`:** relatório de execução de uma fase, gerado por `/execute-spec-phase`, com frontmatter machine-readable (`tentativa`, `reprovacoes` e a `base` de onde a fase partiu, da qual o avaliador calcula o intervalo de commits; `sha_inicial`, `sha_final` e `range` seguem aceitos em artefato antigo) e evidências, inclusive o desfecho de cada herdado recebido.
 
 **`specs/<slug>/artefatos/FASE-<id>-<slug>-AVALIACAO.md`:** avaliação independente de uma fase, gerada por `/evaluate-spec-phase` em chat zerado, com achados por severidade, conferência dos herdados e `veredito` (`APROVADO`/`REPROVADO`/`PENDENTE-EXTERNO`; o legado `RESSALVAS` se lê como `APROVADO`). Estado da fase deriva do par EXECUCAO+AVALIACAO (`ARTIFACTS_SPEC.md` §2.11).
 

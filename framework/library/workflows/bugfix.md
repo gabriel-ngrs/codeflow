@@ -1,5 +1,5 @@
 ---
-versão: 1.4
+versão: 1.5
 status: estável
 atualizado: 2026-11-05
 granularidade: médio
@@ -70,6 +70,7 @@ Corrigir bug reproduzível em código existente. Há sintoma observável, hipót
 
 ### Passo 5 — Validar
 - Rodar os comandos de validação do projeto (do `.codeflow/manifest.md`; se ausente, inferir do stack) — **o necessário para provar o fix**: o teste de regressão do Passo 2 + lint/type dos arquivos tocados. Não rodar a suíte inteira por reflexo se o subconjunto já prova.
+- Com `## Gate` no manifest: o L0 antes do commit do fix e o L1 uma vez no fim, salvo quando o `## CI` declara que o CI roda o L1; nunca o L2 (`ARTIFACTS_SPEC.md` §2.3.4).
 - Aplicar skill `self-review` no diff produzido.
 - Se um comando de validação falha: aplicar política de falhas da constitution. Gate que não existe no projeto → `[—]` com justificativa, não falha (SPEC §3.10).
 

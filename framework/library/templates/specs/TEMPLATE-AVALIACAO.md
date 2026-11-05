@@ -4,7 +4,7 @@ fase: <id>
 slug_fase: <slug>
 tentativa: <n da tentativa avaliada>
 veredito: <APROVADO | REPROVADO | PENDENTE-EXTERNO>
-range_avaliado: <sha_inicial>..<sha_final>
+range_avaliado: <merge-base>..<HEAD auditado>
 ---
 
 <!-- Preenchido pelo AVALIADOR (/evaluate-spec-phase) num chat ZERADO e separado
@@ -12,6 +12,10 @@ range_avaliado: <sha_inicial>..<sha_final>
      verdade: verifique tudo contra o código real. Schema em ARTIFACTS_SPEC §2.10.
 
      fase/slug_fase/tentativa vêm do EXECUCAO avaliado (reusar verbatim).
+     range_avaliado: mb=$(git merge-base <base do EXECUCAO> HEAD), e o intervalo
+       <mb>..<HEAD auditado>, em sha; conferir git log --oneline desse intervalo
+       contra a lista de commits do EXECUCAO. EXECUCAO antigo, sem base: o range dele.
+     Teto: 60 linhas de corpo, fora as saídas coladas.
      score e threshold são opcionais e só informam (podem ir no frontmatter);
      não decidem o veredito.
      Escalada (§2.10.3, definição única): vira BLOQUEANTE (a) o mesmo
@@ -66,7 +70,8 @@ de documento, sem nova avaliação.)
 ## 7. Comandos rodados + saídas reais
 
 > O avaliador roda **ele mesmo** os comandos de validação do projeto (do
-> `manifest.md`); não acredita no relatório. Cole as saídas reais.
+> `manifest.md`); não acredita no relatório. Cole as saídas reais: as últimas 20
+> linhas de cada uma e o código de saída.
 
 ```text
 ...

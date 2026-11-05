@@ -1,7 +1,7 @@
 ---
-versão: 1.1
+versão: 1.2
 status: experimental
-atualizado: 2026-10-05
+atualizado: 2026-11-05
 descrição: Classificar um pedido de mudança — tipo (melhoria, feature, ou fora do ciclo) e tamanho (P direta, M pequena ou média, G grande) — por critérios objetivos, antes de planejar.
 ---
 
@@ -76,6 +76,7 @@ Fica assim a régua de processo: **P** (direta) · **M** (pequena ou média, cic
   - **G** → `/create-spec`, ou o fluxo de spec do projeto.
 - Quando um sinal está na fronteira entre duas faixas, classificar na faixa **maior** e dizer por quê.
   A dúvida entre P e M é fronteira: vai para M.
+- O trailer `Tamanho: P|M|G` é conferido por script: `bash ~/.codeflow/framework/core/scripts/check-commits.sh <base>` reprova o ramo `bug/*`, `melhoria/*` ou `chore/*` em que nenhum commit do intervalo o traz.
 
 ## Proibições durante esta skill
 

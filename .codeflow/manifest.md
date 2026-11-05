@@ -1,10 +1,10 @@
 ---
-versão: 1.2
+versão: 1.3
 status: estável
-atualizado: 2026-10-06
+atualizado: 2026-11-05
 projeto: codeflow
-last_validated: 2026-10-06
-validation_hash: 13b3e50d2ca105785eaf63bb06066fe14f27a8741d700460698f702ce2aefc89
+last_validated: 2026-11-05
+validation_hash: 49800c81dbf5e06ba39c7841ddbd59e42ddbbe12b53820cf13b427ddf03242f0
 ---
 
 # Manifest do projeto: codeflow
@@ -16,7 +16,7 @@ validation_hash: 13b3e50d2ca105785eaf63bb06066fe14f27a8741d700460698f702ce2aefc8
 - **Utilitários:** GNU coreutils 9.4 (`sha256sum`, `grep`, `sed`, `awk`)
 - **Varredura de segredo:** gitleaks 8.21.2 — binário da máquina, só no gate `security`
 - **Pull request e merge:** gh 2.45.0
-- **Contrato normativo:** `framework/core/SPEC.md` 3.4, `framework/core/ARTIFACTS_SPEC.md` 2.5
+- **Contrato normativo:** `framework/core/SPEC.md` 3.7, `framework/core/ARTIFACTS_SPEC.md` 2.7
 - **Lint de shell:** shellcheck não instalado
 
 ## Comandos de validação
@@ -32,18 +32,20 @@ validation_hash: 13b3e50d2ca105785eaf63bb06066fe14f27a8741d700460698f702ce2aefc8
 Todos rodam na raiz da worktree, sobre o ramo commitado.
 
 ```bash
-# lint — sintaxe dos scripts, LF nos arquivos rastreados, stack de script, palavra-fraca nos .md que o ramo mudou
-bash -n install.sh setup-*.sh framework/core/scripts/*.sh \
+# lint — sintaxe dos scripts, LF, stack de script, palavra-fraca nos .md do ramo, commits do ramo e contexto fixo
+bash -n install.sh setup-*.sh framework/core/scripts/*.sh framework/core/scripts/testes/*.sh framework/core/scripts/testes/casos/*.sh \
 && ! git ls-files -z | xargs -0 grep -lIU $'\r' \
-&& ! grep -nwE 'jq|yq|python3?|node|go|rust|docker|podman|pbcopy|xclip' install.sh setup-*.sh framework/core/scripts/*.sh \
+&& ! grep -nwE 'jq|yq|python3?|node|go|rust|docker|podman|pbcopy|xclip' install.sh setup-*.sh framework/core/scripts/*.sh framework/core/scripts/testes/*.sh framework/core/scripts/testes/casos/*.sh \
 && ! { git diff --name-only --diff-filter=d origin/main...HEAD -- 'framework/*.md' '.codeflow/*.md' \
          ':!framework/core/SPEC.md' ':!framework/core/ARTIFACTS_SPEC.md' ':!.codeflow/manifest.md' \
          ':!.codeflow/changes/' ':!.codeflow/audits/'; echo /dev/null; } \
-     | xargs grep -niE 'preferencialmente|recomendado|sugere-se|pode considerar|idealmente'
+     | xargs grep -niE 'preferencialmente|recomendado|sugere-se|pode considerar|idealmente' \
+&& bash framework/core/scripts/check-commits.sh origin/main \
+&& bash framework/core/scripts/check-contexto.sh
 ```
 
 ```bash
-# test — regressão do validador (origin/main x ramo, sobre as specs reais) e setup isolado em HOME temporário
+# test — regressão do validador (origin/main x ramo, sobre as specs reais), setup isolado em HOME temporário e casos dos scripts
 (
   T=$(mktemp -d) && trap 'rm -rf "$T"' EXIT
   git show origin/main:framework/core/scripts/run-structural.sh > "$T/base.sh" || exit 2
@@ -57,6 +59,7 @@ bash -n install.sh setup-*.sh framework/core/scripts/*.sh \
   ln -s "$PWD" "$T/.codeflow" \
   && env -u CLAUDE_CONFIG_DIR -u AGENTS_HOME HOME="$T" bash setup-slash-commands.sh \
   && env -u CLAUDE_CONFIG_DIR -u AGENTS_HOME HOME="$T" bash setup-codex-skills.sh \
+  && bash framework/core/scripts/testes/run-testes.sh \
   && [ "$r" = 0 ]
 )
 ```
@@ -71,9 +74,17 @@ gitleaks git . --log-opts="origin/main..HEAD" --no-banner --redact --exit-code 1
    | grep -iwFf ~/.config/codeflow/nomes-proibidos.txt | cut -f1 | sort -u | { ! grep .; }
 ```
 
+## Gate
+
+| Camada | Quando                                                 | Comando                        | Tempo-alvo | Trava |
+|--------|--------------------------------------------------------|--------------------------------|------------|-------|
+| L0     | loop do agente, antes de cada commit                   | `lint` (bloco acima)           | ≤ 1 min    | não   |
+| L1     | antes do PR; gate de merge, local (não há CI)          | `check` (lint, test, security) | ≤ 5 min    | não   |
+| L2     | [—] não há suíte longa nem pós-merge neste repositório | [—]                            | —          | —     |
+
 ## Padrões detectados
 
-- **Estrutura:** `framework/core/` (contrato e core), `framework/library/` (16 workflows, 16 skills, moldes em `templates/specs/`, `templates/changes/`, `templates/audits/`), `framework/meta/` (5 meta-skills); scripts de instalação e setup na raiz.
+- **Estrutura:** `framework/core/` (contrato, core e os scripts de `scripts/`, com os casos em `scripts/testes/`), `framework/library/` (16 workflows, 17 skills, moldes em `templates/specs/`, `templates/changes/`, `templates/audits/`, `templates/orquestracao/`, `templates/projeto/`, `templates/hooks/`), `framework/meta/` (5 meta-skills); scripts de instalação e setup na raiz.
 - **Frontmatter:** os `.md` do framework abrem com `versão`, `status` e `atualizado`; itens criados em 2026-10-02 nascem `experimental`.
 - **Referência ao framework:** por `~/.codeflow/...`, nunca por caminho absoluto.
 - **Scripts:** saídas 0–3 e símbolos `✓`/`✗`/`⚠`; os de setup fixam `CODEFLOW="${HOME}/.codeflow"`, por isso o teste isolado troca o `HOME`.

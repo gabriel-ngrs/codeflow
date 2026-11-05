@@ -1,5 +1,5 @@
 ---
-versão: 1.4
+versão: 1.5
 status: estável
 atualizado: 2026-11-05
 descrição: Cria um projeto novo a partir de ideia, com estrutura mínima e artefatos do .codeflow/.
@@ -114,6 +114,8 @@ A lista e a ordem são exatamente as de `## Arquivos críticos para freshness`. 
 3. `## Padrões definidos` — **não** `## Padrões detectados` (§2.3.3 item 4): bootstrap não inspeciona código, então os padrões são metas da Fase 2. Usar verbos prospectivos ("a estabelecer", "definido como meta", "núcleo a separar de I/O"); nunca afirmar que algo foi "detectado"/"estabelecido" com arquivos inexistentes.
 4. `## Arquivos críticos para freshness` — os arquivos de stack/config criados na Fase 3 que existem no disco (manifest de stack, lockfile se houver, `Makefile`/`justfile`, configs de linter). Mesma ordem usada no hash.
 5. `## Notas de inspeção` — registrar a data (Fase 0), que a meta-skill foi `bootstrap`, e **que os padrões são prospectivos** (não observados).
+
+**Seção opcional `## Gate`** (`ARTIFACTS_SPEC.md` §2.3.4), entre `## Comandos de validação` e `## Padrões definidos`: só quando a Fase 2 decidiu a esteira em camadas (L0 no loop do agente, L1 como gate de merge, L2 pós-merge ou noturno), com o comando decidido para cada uma. Camada sem comando decidido é `[—]`; o L1 sempre tem comando.
 
 #### 4c) `<projeto>/.codeflow/INDEX.md` — schema §2.1.3
 

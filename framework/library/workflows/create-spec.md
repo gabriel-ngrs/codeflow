@@ -1,5 +1,5 @@
 ---
-versão: 1.8
+versão: 1.9
 status: experimental
 atualizado: 2026-11-05
 granularidade: detalhado
@@ -84,7 +84,7 @@ Atualizar `.codeflow/checkpoints/create-spec-<timestamp>.md` com: cada Open Ques
 Escrever a spec final — **um único documento autoexecutável** — no formato canônico, incluindo o plano de fases.
 
 ### Ações
-1. Decompor a abordagem técnica (§4) em **fases ordenadas e executáveis**: cada fase entrega um incremento testável, declara seu `id`, seu `slug`, suas dependências explícitas, seus arquivos/passos/testes/critério de conclusão. Granularidade-alvo: **3 a 8 fases por track** — single-track tem um track só (3–8 no total); `wave: multi` permite 3–8 em cada track (ex: `A.1`–`A.8` + `B.1`–`B.3` = 11 fases), de modo que specs grandes caibam sem violar o teto. Fase grande demais para um agente executar de uma vez deve ser subdividida.
+1. Decompor a abordagem técnica (§4) em **fases ordenadas e executáveis**: cada fase entrega um incremento testável, declara seu `id`, seu `slug`, suas dependências explícitas, seus arquivos/passos/testes/critério de conclusão. O critério de conclusão nasce no formato `` `<comando>` passa; e <condição verificável, numa linha> `` (`ARTIFACTS_SPEC.md` §2.8.3): o comando entre crases é o que prova a fase e o que o `fim-de-fase.sh` roda. Granularidade-alvo: **3 a 8 fases por track** — single-track tem um track só (3–8 no total); `wave: multi` permite 3–8 em cada track (ex: `A.1`–`A.8` + `B.1`–`B.3` = 11 fases), de modo que specs grandes caibam sem violar o teto. Fase grande demais para um agente executar de uma vez deve ser subdividida.
    - **`id` da fase:** inteiro sequencial (`1`, `2`, …) quando a spec é single-track (`wave: single`); ou `<TRACK>.<n>` (`A.1`, `A.2`, `B.1`, …) quando há tracks paralelos (`wave: multi`). O `id` é o que entra no nome dos artefatos (`FASE-<id>-<slug>-…`), então é estável e único.
    - **`slug` da fase:** kebab-case curto e canônico (ex: `evolution-adapter`), definido **aqui** pela spec e reusado verbatim por `/execute-spec-phase` e `/evaluate-spec-phase` nos nomes de arquivo — não derivado de novo a cada chat.
    - **Dependências:** cada fase declara `Depende de:` com a **lista de `id`s** das fases pré-requisito (ex: `A.7`), não apenas "fases anteriores". Em `wave: multi`, isso permite acoplamento cruzado entre tracks (ex: `B.2 depende de A.7`) sem assumir ordem linear. Sem ciclos: o grafo de dependências é acíclico.
