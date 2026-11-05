@@ -1,7 +1,7 @@
 ---
-versão: 3.4
+versão: 3.5
 status: estável
-atualizado: 2026-10-06
+atualizado: 2026-11-05
 documento: SPEC.md
 projeto: codeflow
 localização: framework/core/SPEC.md (instalado em ~/.codeflow/framework/core/SPEC.md)
@@ -197,6 +197,7 @@ Esta localização contém **tudo que é universal** ao framework.
 │   │
 │   └── library/                    ← biblioteca viva (seeds + extensões)
 │       ├── skills/                 ← skills universais (planas)
+│       │   ├── audit-enxugar/SKILL.md    ← dimensão enxugar do /audit (experimental)
 │       │   ├── debug-protocol/SKILL.md
 │       │   └── self-review/SKILL.md
 │       │
