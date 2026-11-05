@@ -901,7 +901,7 @@ Os artefatos do codeflow são:
 
 **`specs/<slug>/SPEC_<NAME>.md`:** a spec — documento único autoexecutável gerado por `/create-spec`, com requisitos, abordagem técnica e plano de fases (§5). Versionada na branch atual. É artefato de ciclo de vida (`status: draft|active|done`).
 
-**`specs/<slug>/artefatos/FASE-<id>-<slug>-EXECUCAO.md`:** relatório de execução de uma fase, gerado por `/execute-spec-phase`, com frontmatter machine-readable (`tentativa`, `reprovacoes`, `range` de commits) e evidências, inclusive o desfecho de cada herdado recebido.
+**`specs/<slug>/artefatos/FASE-<id>-<slug>-EXECUCAO.md`:** relatório de execução de uma fase, gerado por `/execute-spec-phase`, com frontmatter machine-readable (`tentativa`, `reprovacoes` e a `base` de onde a fase partiu, da qual o avaliador calcula o intervalo de commits; `sha_inicial`, `sha_final` e `range` seguem aceitos em artefato antigo) e evidências, inclusive o desfecho de cada herdado recebido.
 
 **`specs/<slug>/artefatos/FASE-<id>-<slug>-AVALIACAO.md`:** avaliação independente de uma fase, gerada por `/evaluate-spec-phase` em chat zerado, com achados por severidade, conferência dos herdados e `veredito` (`APROVADO`/`REPROVADO`/`PENDENTE-EXTERNO`; o legado `RESSALVAS` se lê como `APROVADO`). Estado da fase deriva do par EXECUCAO+AVALIACAO (`ARTIFACTS_SPEC.md` §2.11).
 

@@ -63,7 +63,7 @@ Executar um plano **aprovado** de melhoria ou feature (`.codeflow/changes/<slug>
 ### Passo 3 — Validar a mudança inteira
 - Rodar os comandos de validação do projeto (do manifest) que provam o conjunto — não a suíte inteira por reflexo; a validação final é do revisor (`/review-change`, Passo 2). Gate ausente → `[—]` com justificativa.
 - Com `## Gate` no manifest: o L0 é o gate de cada etapa e o L1 roda uma vez aqui, salvo quando o `## CI` declara que o CI roda o L1; nunca o L2 (`ARTIFACTS_SPEC.md` §2.3.4).
-- Pode usar o `fim-de-fase.sh` como no `/execute-spec-phase`: gravar `.codeflow/checkpoints/fase-ativa` com `fase=<slug>-etapa-<n>` e `criterio=<o gate da etapa>`, rodar `bash ~/.codeflow/framework/core/scripts/fim-de-fase.sh` e colar o log no relatório; apagar `fase-ativa` no fim.
+- Pode usar o `fim-de-fase.sh` como no `/execute-spec-phase`: gravar `.codeflow/checkpoints/fase-ativa` com `fase=<slug>-etapa-<n>` e `criterio=<o gate da etapa>`, rodar `bash ~/.codeflow/framework/core/scripts/fim-de-fase.sh` e colar o log no relatório; apagar `fase-ativa` no fim, também quando a execução termina em `PARADO` ou `PRECISA DE DECISÃO`.
 - Aplicar a skill `self-review` ao diff `<merge-base>..HEAD`, conferindo que tudo cai no escopo do plano.
 - Gate: validação verde (ou `[—]` justificado) e self-review limpo.
 

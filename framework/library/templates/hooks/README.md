@@ -23,7 +23,7 @@
 ## O que o hook faz
 
 - Só age quando há `.codeflow/checkpoints/fase-ativa`, que o `/execute-spec-phase` grava no Passo 3 e apaga
-  no fim (linhas `spec=`, `fase=` e `criterio=`, este com o comando do critério de conclusão da fase).
+  no fim, também quando para em `PARADO` ou `PRECISA DE DECISÃO` (linhas `spec=`, `fase=` e `criterio=`, este com o comando do critério de conclusão da fase).
 - Roda o comando do critério e o L0 do `## Gate`, se houver, e grava a saída em
   `.codeflow/checkpoints/fim-de-fase-<fase>.log`.
 - Vermelho: sai 2 com o fim do log no stderr, e o agente volta ao trabalho com o erro na frente.
