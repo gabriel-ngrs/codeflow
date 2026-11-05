@@ -2659,6 +2659,7 @@ Cada fase é uma sub-seção `### Fase <id> — <nome>` com, no mínimo, os camp
 - `id` — inteiro sequencial (`1`, `2`, …) quando `wave: single`/`null`; `<TRACK>.<n>` (`A.1`, `B.2`, …) quando `wave: multi`. Único na spec; é o que entra nos nomes dos artefatos.
 - `slug` — kebab-case curto, canônico; reusado verbatim por `/execute-spec-phase` e `/evaluate-spec-phase`.
 - `Depende de` — lista de `id`s de fase pré-requisito, ou `nenhuma`. Grafo acíclico; todo `id` referenciado existe na spec. Em `wave: multi`, dependência cruzada entre tracks é permitida (`B.2` depende de `A.7`).
+- **Critério de conclusão (gate)** — no formato `` `<comando>` passa; e <condição verificável, numa linha> ``: o comando entre crases é o que o `fim-de-fase.sh` roda para provar a fase (o teste da fase, um alvo do projeto), e a condição cobre o que o comando não prova. Critério só em prosa segue válido, com aviso (§2.8.6, regra 9).
 
 **Restrições adicionais:**
 
@@ -2709,7 +2710,7 @@ quality_gate:
 - **Passos:** 1) definir a port … 2) implementar o adapter …
 - **Testes:** contrato da port (AC-1), retry idempotente (AC-3).
 - **Escopo travado / violações BLOQUEANTES:** não chamar a API fora do adapter; não vazar token em log.
-- **Critério de conclusão (gate):** testes da port verdes; comandos de validação do projeto zero.
+- **Critério de conclusão (gate):** `pytest tests/ports` passa; e comandos de validação do projeto zero.
 
 ### Fase B.2 — Webhook de status no hub
 - **id:** `B.2`
@@ -2719,7 +2720,7 @@ quality_gate:
 - **Passos:** 1) … 2) …
 - **Testes:** AC-5.
 - **Escopo travado / violações BLOQUEANTES:** não persistir payload bruto com PII.
-- **Critério de conclusão (gate):** round-trip status verde; comandos de validação do projeto zero.
+- **Critério de conclusão (gate):** `pytest tests/hub -k status` passa; e o round-trip de status fica verde.
 ```
 
 #### 2.8.6 Regras de validação
@@ -2733,6 +2734,7 @@ quality_gate:
 6. Todo `id` citado em `Depende de` existe em `## 5`; o grafo de dependências é acíclico.
 7. Cada FR tem ao menos um AC correspondente em `## 3`.
 8. Nenhum caminho citado como alterado/REUSADO é inexistente no repositório (verificação fora do arquivo).
+9. Cada fase traz o bullet **Critério de conclusão (gate)** com ao menos um comando entre crases. **Só aviso**: o `run-structural.sh` imprime `⚠ fase <id>: critério de conclusão sem comando entre crases` (também quando o bullet falta) e mantém o código de saída que as demais regras dão.
 
 #### 2.8.7 Anti-padrões
 

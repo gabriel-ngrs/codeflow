@@ -3,8 +3,8 @@ versão: 1.2
 status: estável
 atualizado: 2026-10-06
 projeto: codeflow
-last_validated: 2026-10-06
-validation_hash: 13b3e50d2ca105785eaf63bb06066fe14f27a8741d700460698f702ce2aefc89
+last_validated: 2026-11-05
+validation_hash: 49800c81dbf5e06ba39c7841ddbd59e42ddbbe12b53820cf13b427ddf03242f0
 ---
 
 # Manifest do projeto: codeflow
@@ -33,9 +33,9 @@ Todos rodam na raiz da worktree, sobre o ramo commitado.
 
 ```bash
 # lint — sintaxe dos scripts, LF nos arquivos rastreados, stack de script, palavra-fraca nos .md que o ramo mudou
-bash -n install.sh setup-*.sh framework/core/scripts/*.sh \
+bash -n install.sh setup-*.sh framework/core/scripts/*.sh framework/core/scripts/testes/*.sh framework/core/scripts/testes/casos/*.sh \
 && ! git ls-files -z | xargs -0 grep -lIU $'\r' \
-&& ! grep -nwE 'jq|yq|python3?|node|go|rust|docker|podman|pbcopy|xclip' install.sh setup-*.sh framework/core/scripts/*.sh \
+&& ! grep -nwE 'jq|yq|python3?|node|go|rust|docker|podman|pbcopy|xclip' install.sh setup-*.sh framework/core/scripts/*.sh framework/core/scripts/testes/*.sh framework/core/scripts/testes/casos/*.sh \
 && ! { git diff --name-only --diff-filter=d origin/main...HEAD -- 'framework/*.md' '.codeflow/*.md' \
          ':!framework/core/SPEC.md' ':!framework/core/ARTIFACTS_SPEC.md' ':!.codeflow/manifest.md' \
          ':!.codeflow/changes/' ':!.codeflow/audits/'; echo /dev/null; } \
@@ -43,7 +43,7 @@ bash -n install.sh setup-*.sh framework/core/scripts/*.sh \
 ```
 
 ```bash
-# test — regressão do validador (origin/main x ramo, sobre as specs reais) e setup isolado em HOME temporário
+# test — regressão do validador (origin/main x ramo, sobre as specs reais), setup isolado em HOME temporário e casos dos scripts
 (
   T=$(mktemp -d) && trap 'rm -rf "$T"' EXIT
   git show origin/main:framework/core/scripts/run-structural.sh > "$T/base.sh" || exit 2
@@ -57,6 +57,7 @@ bash -n install.sh setup-*.sh framework/core/scripts/*.sh \
   ln -s "$PWD" "$T/.codeflow" \
   && env -u CLAUDE_CONFIG_DIR -u AGENTS_HOME HOME="$T" bash setup-slash-commands.sh \
   && env -u CLAUDE_CONFIG_DIR -u AGENTS_HOME HOME="$T" bash setup-codex-skills.sh \
+  && bash framework/core/scripts/testes/run-testes.sh \
   && [ "$r" = 0 ]
 )
 ```

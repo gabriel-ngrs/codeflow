@@ -79,6 +79,7 @@ Identificar a spec que o usuário pediu (por caminho ou slug em `.codeflow/specs
 - **Branch:** trabalhar na branch atual (o pipeline não troca de branch). Se for a default (`main`), avisar e pedir confirmação antes de commitar (Passo 6).
 - **Ciclo da spec:** se o frontmatter da spec está `status: draft` e esta é a primeira execução de qualquer fase, atualizar para `status: active` + `updated_at` (commitado junto no Passo 7).
 - **SHA inicial:** em **nova execução**, anotar o HEAD atual como `sha_inicial` (início ORIGINAL da fase). Em **rework**, **reusar** o `sha_inicial` do EXECUCAO existente (não redefinir).
+- **Fase ativa:** gravar `.codeflow/checkpoints/fase-ativa` com três linhas, `spec=<caminho da spec>`, `fase=<id>` e `criterio=<o comando entre crases do critério de conclusão da fase>` (`ARTIFACTS_SPEC.md` §2.8.3). Critério só em prosa (spec antiga): não gravar `fase-ativa`, e o Passo 5 roda o que a prosa pede. É o que o `fim-de-fase.sh` lê, e o Stop hook do projeto, quando ligado (`~/.codeflow/framework/library/templates/hooks/README.md`).
 - Gate: pré-requisitos satisfeitos, `artefatos/` existe, `sha_inicial` conhecido.
 
 ### Passo 4 — Executar a fase (TDD, escopo fechado)
@@ -92,6 +93,7 @@ Identificar a spec que o usuário pediu (por caminho ou slug em `.codeflow/specs
 - Com `## Gate` no manifest: o L0 a cada etapa e o L1 uma vez no fim da fase, salvo quando o `## CI` declara que o CI roda o L1; nunca o L2 (`ARTIFACTS_SPEC.md` §2.3.4).
 - Se um gate de validação **não existir** no projeto: marcar `[—]` com justificativa no relatório e rodar a validação mínima possível (os testes/lint da fase) — não tratar como falha (SPEC §3.10).
 - Se um comando de validação existir e falhar: aplicar a política de falhas da constitution (falha Lógica → re-tentar com o erro como contexto, limite de **2 tentativas**; falha de Escopo/Ambiente → parar). Distinto do teto do Passo 2 (3 `REPROVADO`, ciclo executor↔avaliador).
+- **Fim de fase:** com `fase-ativa` gravada, rodar `bash ~/.codeflow/framework/core/scripts/fim-de-fase.sh`: roda o critério e o L0 do `## Gate` e grava `.codeflow/checkpoints/fim-de-fase-<id>.log`. Saída 1 é falha Lógica (bullet acima); 0 fecha o critério.
 - Gate: os comandos de validação aplicáveis retornaram zero (ou `[—]` justificado) e self-review limpo.
 
 ### Passo 6 — Commitar a fase
@@ -118,6 +120,7 @@ Identificar a spec que o usuário pediu (por caminho ou slug em `.codeflow/specs
   Regras dos campos: `status` é `executado` (nova execução) ou `rework`. **Nova execução:** `tentativa: 1`, `reprovacoes: 0`, `sha_inicial` = HEAD original da fase. **Rework:** `tentativa` = anterior + 1; `reprovacoes` = anterior + 1 (o `REPROVADO` que motivou este rework; §2.9.3 / §2.11.4); `sha_inicial` = **reusar** o do EXECUCAO anterior. `range` é sempre `sha_inicial..sha_final` (início original → HEAD), para o avaliador ver a fase inteira. O avaliador roda na **mesma branch** (o pipeline não troca de branch), então o `range` basta — não há campo de branch no frontmatter.
   Corpo: resumo do que foi feito; tabela de arquivos CRIADOS/ALTERADOS (caminho + propósito); confirmação do REUSO; decisões de design e **qualquer desvio** da spec/rules com justificativa; **Herdados** (cada herdado recebido → `resolvido em <sha>` ou `não resolvido: <motivo>`; "nenhum" se não houver); comandos rodados + **saídas reais** (os comandos de validação do projeto); checklist dos ACs/critério de conclusão, cada item **com evidência**; (em rework) o que mudou nesta tentativa; dúvidas para o avaliador.
 - **Commitar o relatório** (`.codeflow/specs/` é versionado): commit separado do de código. Se a spec teve o frontmatter atualizado neste run (`status: draft → active`, ou `→ done` no caso 6 do Passo 2), commitar a spec também.
+- **Log do fim de fase:** as saídas reais do critério e do L0 vêm do `.codeflow/checkpoints/fim-de-fase-<id>.log`, não digitadas. Feito o relatório, apagar `.codeflow/checkpoints/fase-ativa`.
 - Ser **honesto** sobre o que não ficou pronto — será conferido contra o código real por um revisor independente. As decisões da fase ficam registradas **neste relatório**, não em artefato paralelo.
 - Apresentar o resumo final e instruir: avaliar a fase com `/evaluate-spec-phase` em **chat zerado**.
 

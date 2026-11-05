@@ -100,7 +100,7 @@ como REUSADO/alterado existe de fato no repo.
 - **Escopo travado / violações BLOQUEANTES:** o que esta fase NÃO pode fazer
   (atalhos, anti-padrões, quebras de princípio) — vira os achados bloqueantes
   do avaliador.
-- **Critério de conclusão (gate):** condição verificável de pronto.
+- **Critério de conclusão (gate):** `<comando>` passa; e <condição verificável, numa linha>
 
 ### Fase <id> — <nome>
 

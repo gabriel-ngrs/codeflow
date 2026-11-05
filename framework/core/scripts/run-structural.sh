@@ -8,6 +8,8 @@
 # `id`, todo `id` citado em "Depende de" existe na §5, grafo de dependências
 # acíclico, 3–8 fases por track, `wave: multi` exige ao menos um id `<TRACK>.<n>`
 # (e `single`/`null` exige ids inteiros) e slug em kebab-case.
+# Avisa (⚠, sem mudar o código de saída) a fase cujo critério de conclusão não tem
+# comando entre crases (§2.8.6, regra 9).
 #
 # Read-only: lê apenas o arquivo indicado; não modifica a working tree nem o repo.
 # Assume o formato canônico emitido por `/create-spec` (bullets com o valor entre
@@ -20,6 +22,7 @@ set -euo pipefail
 
 SUCESSO="✓"
 FALHA="✗"
+AVISO="⚠"
 
 usage() {
   cat <<'EOF'
@@ -44,7 +47,7 @@ if [ ! -f "$spec" ]; then
 fi
 
 rc=0
-awk -v OK="$SUCESSO" -v NOK="$FALHA" '
+awk -v OK="$SUCESSO" -v NOK="$FALHA" -v AV="$AVISO" '
   BEGIN { fm=0; in_s5=0; np=0; wave=""; cur=0 }
 
   # frontmatter: capturar wave
@@ -63,7 +66,7 @@ awk -v OK="$SUCESSO" -v NOK="$FALHA" '
   in_s5==1 && $0 ~ /^### Fase[ \t]+/ {
     np++; cur=np
     h=$0; sub(/^### Fase[ \t]+/,"",h); split(h, p, /[ \t]+/); hid[cur]=p[1]
-    bid[cur]=""; slg[cur]=""; dep[cur]=""
+    bid[cur]=""; slg[cur]=""; dep[cur]=""; crit[cur]=0
     next
   }
 
@@ -73,6 +76,11 @@ awk -v OK="$SUCESSO" -v NOK="$FALHA" '
   }
   in_s5==1 && cur>0 && $0 ~ /^- \*\*slug:\*\*/ && slg[cur]=="" {
     if (match($0, /`[^`]+`/)) slg[cur]=substr($0,RSTART+1,RLENGTH-2)
+    next
+  }
+  # critério de conclusão com comando entre crases (§2.8.6, regra 9: só aviso)
+  in_s5==1 && cur>0 && $0 ~ /^- \*\*Critério de conclusão/ {
+    if ($0 ~ /`[^`]+`/) crit[cur]=1
     next
   }
   in_s5==1 && cur>0 && $0 ~ /^- \*\*Depende de:\*\*/ && dep[cur]=="" {
@@ -184,6 +192,9 @@ awk -v OK="$SUCESSO" -v NOK="$FALHA" '
     }
     if (removed<total) { printf "%s grafo de dependências tem ciclo (%d de %d fases envolvidas)\n", NOK, total-removed, total; fail=1 }
     else printf "%s grafo de dependências acíclico\n", OK
+
+    # aviso, sem mudar o código de saída
+    for (i=1;i<=np;i++) if (!crit[i]) printf "%s fase %s: critério de conclusão sem comando entre crases\n", AV, (bid[i]==""?hid[i]:bid[i])
 
     if (fail) exit 1
     printf "%s §5 estruturalmente válida\n", OK
