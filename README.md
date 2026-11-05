@@ -1,5 +1,5 @@
 ---
-versão: 1.4
+versão: 1.5
 status: estável
 atualizado: 2026-11-05
 ---
@@ -18,7 +18,8 @@ feature fase a fase, com `/create-spec`, `/execute-spec-phase`,
 `/evaluate-spec-phase` e `/spec-status`), o ciclo de mudança para melhorias e
 features pequenas e médias (planejar, implementar e revisar, com `/plan-change`,
 `/implement-change` e `/review-change`) e a auditoria de repositório por
-dimensão (`/audit` e `/verify-audit`, com `/security-sweep` para segurança) —
+dimensão (`/audit` e `/verify-audit`, com `/security-sweep` para segurança,
+e a dimensão `enxugar` para enxugar o código existente em lotes pequenos) —
 e você quer respostas consistentes, diff mínimo e decisões registradas.
 
 ## Pré-requisitos
