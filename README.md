@@ -1,7 +1,7 @@
 ---
-versão: 1.3
+versão: 1.4
 status: estável
-atualizado: 2026-07-29
+atualizado: 2026-11-05
 ---
 
 # codeflow
@@ -88,10 +88,13 @@ compatibilidade para builds que exponham `/prompts:<nome>`. Na CLI local
 A árvore completa está descrita em `framework/core/SPEC.md` §2.2. Em alto nível:
 
 - `framework/core/` — constitution, glossary, EVOLUTION, rules universais, os
-  contratos normativos de runtime (`SPEC.md`, `ARTIFACTS_SPEC.md`) e o validador
-  estrutural (`scripts/run-structural.sh`).
+  contratos normativos de runtime (`SPEC.md`, `ARTIFACTS_SPEC.md`) e os scripts
+  read-only: `scripts/run-structural.sh` (gate estrutural da §5 da spec),
+  `scripts/pacote-da-fase.sh` (recorte da spec para uma fase) e `scripts/vigia.sh`
+  (diz se uma frente de orquestração parou; chamado por cron).
 - `framework/meta/` — meta-skills (`discover`, `bootstrap`, `create-*`).
-- `framework/library/` — skills e workflows universais seed.
+- `framework/library/` — skills e workflows universais seed, e os moldes em
+  `templates/` (inclusive `orquestracao/` e `projeto/`).
 - `install.sh` — script de instalação em projeto-alvo.
 - `setup-slash-commands.sh` — sincroniza wrappers para Claude Code.
 - `setup-codex-skills.sh` — sincroniza skills locais para Codex.

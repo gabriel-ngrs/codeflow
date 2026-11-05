@@ -1,7 +1,7 @@
 ---
-versão: 2.5
+versão: 2.6
 status: estável
-atualizado: 2026-10-06
+atualizado: 2026-11-05
 documento: ARTIFACTS_SPEC.md
 projeto: codeflow
 localização: framework/core/ARTIFACTS_SPEC.md (instalado em ~/.codeflow/framework/core/ARTIFACTS_SPEC.md)

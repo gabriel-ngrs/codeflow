@@ -1,7 +1,7 @@
 ---
-versão: 1.2
+versão: 1.3
 status: estável
-atualizado: 2026-07-29
+atualizado: 2026-11-05
 descrição: Entrevista o usuário e gera workflow novo no formato correto.
 é_meta_skill: yes
 granularidade: médio

@@ -1,7 +1,7 @@
 ---
-versão: 3.4
+versão: 3.5
 status: estável
-atualizado: 2026-10-06
+atualizado: 2026-11-05
 documento: SPEC.md
 projeto: codeflow
 localização: framework/core/SPEC.md (instalado em ~/.codeflow/framework/core/SPEC.md)
@@ -185,8 +185,10 @@ Esta localização contém **tudo que é universal** ao framework.
 │   │   │   ├── testing.md
 │   │   │   ├── security.md
 │   │   │   └── naming.md
-│   │   └── scripts/                ← validadores read-only em bash
-│   │       └── run-structural.sh   ← gate estrutural da §5 da spec
+│   │   └── scripts/                ← scripts read-only em bash
+│   │       ├── run-structural.sh   ← gate estrutural da §5 da spec
+│   │       ├── pacote-da-fase.sh   ← recorte da spec para executar e avaliar uma fase
+│   │       └── vigia.sh            ← diz se uma frente de orquestração parou (cron)
 │   │
 │   ├── meta/                       ← skills que criam outras coisas
 │   │   ├── discover/SKILL.md       ← aprende projeto existente
@@ -196,6 +198,10 @@ Esta localização contém **tudo que é universal** ao framework.
 │   │   └── create-agent/SKILL.md
 │   │
 │   └── library/                    ← biblioteca viva (seeds + extensões)
+│       ├── templates/              ← moldes que os workflows copiam e preenchem
+│       │   ├── orquestracao/       ← DESPACHO, CICLO-DO-RECRUTA e MAESTRO
+│       │   └── projeto/            ← CLAUDE.md e AGENTS.md curtos (oferecidos pelo bootstrap)
+│       │
 │       ├── skills/                 ← skills universais (planas)
 │       │   ├── debug-protocol/SKILL.md
 │       │   └── self-review/SKILL.md
@@ -283,8 +289,8 @@ Resultado: a IA tem contexto completo sem duplicação física.
 O codeflow é deliberadamente **paralelo** aos arquivos existentes do projeto. Não substitui, não modifica, não conflita.
 
 **O codeflow NÃO toca em:**
-- `CLAUDE.md` na raiz do projeto (mesmo se existir)
-- `AGENTS.md` (idem)
+- `CLAUDE.md` na raiz do projeto (mesmo se existir) — exceto o que o `bootstrap` de projeto novo cria com "sim" explícito do dono (§10.9)
+- `AGENTS.md` (idem, com a mesma exceção)
 - `.cursorrules` (idem)
 - `.claude/` ou similar de outros frameworks
 - `README.md`, `ARCHITECTURE.md`, ou qualquer doc do projeto
@@ -1807,9 +1813,11 @@ O codeflow analisou o framework `.devmind` (do projeto ritmly) e identificou os 
 
 **Descrição:** ideia inicial de gerar arquivos específicos por ferramenta (CLAUDE.md para Claude Code, AGENTS.md para Codex, etc.) na raiz do projeto.
 
-**Por que não:** todos os arquivos do projeto são território do projeto. Codeflow não toca neles. IA descobre o codeflow via slash commands, não via arquivos na raiz.
+**Por que não:** todos os arquivos do projeto são território do projeto. Codeflow não toca neles. IA descobre o codeflow via slash commands, não via arquivos na raiz. Gerar e manter esses arquivos continua rejeitado.
 
-**Reconsiderar quando:** nunca. Esta é decisão fundamental.
+**Exceção (emenda de 2026-11-05, decision `2026-11-05-contexto-e-papeis`):** num projeto **novo**, o `bootstrap` **oferece** um `AGENTS.md` curto (≤ 8.000 caracteres, < 200 linhas) e um `CLAUDE.md` que só importa `@AGENTS.md`, a partir de `framework/library/templates/projeto/`, e só os escreve com "sim" explícito do dono; nunca sobrescreve um que já existe. O `discover` mede os existentes e relata o que passou do teto, sem editar. Depois de criados, os arquivos são do projeto: nenhum workflow os altera (§8.3).
+
+**Reconsiderar quando:** a exceção acima é o limite. Gerar ou manter adapters fora dela segue fora do escopo.
 
 ---
 

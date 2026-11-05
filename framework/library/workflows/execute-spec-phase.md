@@ -1,7 +1,7 @@
 ---
-versão: 1.10
+versão: 1.11
 status: experimental
-atualizado: 2026-10-05
+atualizado: 2026-11-05
 granularidade: médio
 gera_decision: no
 usa_checkpoints: no

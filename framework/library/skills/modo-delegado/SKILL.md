@@ -1,7 +1,7 @@
 ---
-versão: 1.2
+versão: 1.3
 status: experimental
-atualizado: 2026-10-02
+atualizado: 2026-11-05
 descrição: Executar um workflow despachado por um orquestrador (Maestro) — gates humanos respondidos pelas decisões delegadas, o resto volta como PARADO, sem subagente, retorno curto.
 ---
 

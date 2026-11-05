@@ -1,7 +1,7 @@
 ---
-versão: 1.1
+versão: 1.2
 status: estável
-atualizado: 2026-10-05
+atualizado: 2026-11-05
 granularidade: médio
 gera_decision: auto
 usa_checkpoints: no
