@@ -2,7 +2,7 @@
 versão: 1.0
 status: estável
 atualizado: 2026-11-05
-total_decisions: 6
+total_decisions: 7
 última_atualização: 2026-11-05
 ---
 
@@ -12,6 +12,7 @@ total_decisions: 6
 
 | Data       | Título                                                 | Workflow | Tags                                                                  | Status |
 |------------|--------------------------------------------------------|----------|-----------------------------------------------------------------------|--------|
+| 2026-11-05 | Esteira em camadas, fim de fase executável e registro mínimo | implement-change | contrato, manifest, gate, spec, registro, scripts | ativa  |
 | 2026-11-05 | Contexto enxuto, modelo por papel e moldes de orquestração | implement-change | spec, contrato, orquestracao, modelo, contexto, bootstrap | ativa  |
 | 2026-11-05 | Skill universal `audit-enxugar` como exceção à anti-evolução | implement-change | anti-evolucao, auditoria, enxugar, experimental | ativa  |
 | 2026-10-05 | Aceleração do ciclo — veredito, tamanho e contexto | implement-change | veredito, avaliacao, schema, herdados, teto, retrocompatibilidade, tamanho, decisions | ativa  |
@@ -23,8 +24,12 @@ total_decisions: 6
 
 | Tag        | Decisões (data + título)                                    |
 |------------|-------------------------------------------------------------|
-| spec | 2026-11-05 — Contexto enxuto, modelo por papel e moldes de orquestração |
-| contrato | 2026-11-05 — Contexto enxuto, modelo por papel e moldes de orquestração |
+| manifest | 2026-11-05 — Esteira em camadas, fim de fase executável e registro mínimo |
+| gate | 2026-11-05 — Esteira em camadas, fim de fase executável e registro mínimo |
+| registro | 2026-11-05 — Esteira em camadas, fim de fase executável e registro mínimo |
+| scripts | 2026-11-05 — Esteira em camadas, fim de fase executável e registro mínimo |
+| spec | 2026-11-05 — Contexto enxuto, modelo por papel e moldes de orquestração; 2026-11-05 — Esteira em camadas, fim de fase executável e registro mínimo |
+| contrato | 2026-11-05 — Contexto enxuto, modelo por papel e moldes de orquestração; 2026-11-05 — Esteira em camadas, fim de fase executável e registro mínimo |
 | orquestracao | 2026-11-05 — Contexto enxuto, modelo por papel e moldes de orquestração |
 | modelo | 2026-11-05 — Contexto enxuto, modelo por papel e moldes de orquestração |
 | contexto | 2026-11-05 — Contexto enxuto, modelo por papel e moldes de orquestração |
@@ -55,7 +60,7 @@ total_decisions: 6
 
 ## Estatísticas
 
-- **Total:** 6
-- **Ativas:** 5
+- **Total:** 7
+- **Ativas:** 6
 - **Superseded:** 1
 - **Arquivadas:** 0
