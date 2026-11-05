@@ -52,9 +52,9 @@ Vale para a fase inteira. Antes de escrever, ler o código que a fase toca e lis
 - No relatório de execução, uma linha: o que ficou deliberadamente de fora e o risco, se houver.
 
 ### Passo 1 — Carregar a spec e o contexto
-- Localizar `.codeflow/specs/<slug>/SPEC_<NAME>.md` e lê-lo **na íntegra** — atenção a §4 (abordagem), §5 (plano de fases) e ao escopo travado / violações bloqueantes de cada fase.
+- Localizar `.codeflow/specs/<slug>/SPEC_<NAME>.md` **sem ler a spec inteira**: o frontmatter (`sed -n '2,/^---$/p' <SPEC>`) e a lista de fases com as dependências, `grep -n '^### Fase\|Depende de' <SPEC>`. O conteúdo da fase-alvo chega pelo pacote do Passo 3.
 - **Gate estrutural da §5 (determinístico, antes de classificar fases):** rodar `bash ~/.codeflow/framework/core/scripts/run-structural.sh .codeflow/specs/<slug>/SPEC_<NAME>.md`. Exit `0` libera o Passo 2. Exit `1` = §5 malformada (id duplicado, heading ≠ bullet `id`, "Depende de" órfão, ciclo, fora de 3–8 por track, ou slug inválido): **parar**, colar a saída do script e pedir correção da spec por `/create-spec` — não classificar fases sobre uma §5 quebrada. Exit `2`/`3` = erro de execução/uso: parar. Aplica as regras de ARTIFACTS_SPEC §2.8.6 sem depender de leitura humana.
-- Ler os documentos referenciados (`linked_adr`, rules, decisions ativas, os comandos do `.codeflow/manifest.md` pela expressão de `## LEIA TAMBÉM`) e inspecionar os seams de código citados em §4. **Não escrever nada ainda.**
+- Ler os documentos referenciados (`linked_adr`, rules, decisions ativas, os comandos do `.codeflow/manifest.md` pela expressão de `## LEIA TAMBÉM`). Os seams de código citados se inspecionam no Passo 3, a partir do pacote. **Não escrever nada ainda.**
 - Gate: spec encontrada, `run-structural.sh` retornou `0`, e §5 interpretada como lista ordenada de fases.
 
 ### Passo 2 — Determinar a fase-alvo (estado por frontmatter, não por prosa)
@@ -75,7 +75,7 @@ Vale para a fase inteira. Antes de escrever, ler o código que a fase toca e lis
 - Gate: um único alvo definido (rework ou nova execução), ou parada limpa/escalonamento.
 
 ### Passo 3 — Preparar e marcar o início
-- Reler o bloco da fase-alvo em §5. Em rework, ler também os achados BLOQUEANTES/IMPORTANTES da AVALIACAO. Em nova execução, levantar os **herdados** destinados à fase (ARTIFACTS_SPEC §2.11.5): os IMPORTANTES `I-<n>` abertos de avaliações `APROVADO` (ou do legado `RESSALVAS`) cuja fase de destino é esta — a **primeira** fase, na ordem textual da §5, que depende da fase de origem; outra dependente não os recebe. Sem dependente, o destino é o fechamento (gatilho 6). Confirmar que os **caminhos de "Arquivos alterados" existem** no repo (se a spec citou caminho inexistente, parar e apontar — não inventar).
+- **Pacote da fase:** gravar o recorte da spec com `bash ~/.codeflow/framework/core/scripts/pacote-da-fase.sh .codeflow/specs/<slug>/SPEC_<NAME>.md <id> > .codeflow/checkpoints/pacote-<slug>-<id>.md` e lê-lo: frontmatter, resumo executivo, princípios invioláveis, o bloco da fase (com o escopo travado e as violações bloqueantes), os AC/FR/NFR/R citados e as linhas da §9. Seção fora do pacote (ex.: a §4, para os seams de código) se abre pelas linhas do rodapé, `sed -n '<a>,<b>p'`, quando a fase a cita ou um item depende dela. Id com `⚠` no rodapé se procura na spec por `grep -n`. Em rework, ler também os achados BLOQUEANTES/IMPORTANTES da AVALIACAO. Em nova execução, levantar os **herdados** destinados à fase (ARTIFACTS_SPEC §2.11.5): os IMPORTANTES `I-<n>` abertos de avaliações `APROVADO` (ou do legado `RESSALVAS`) cuja fase de destino é esta — a **primeira** fase, na ordem textual da §5, que depende da fase de origem; outra dependente não os recebe. Sem dependente, o destino é o fechamento (gatilho 6). Confirmar que os **caminhos de "Arquivos alterados" existem** no repo (se a spec citou caminho inexistente, parar e apontar — não inventar).
 - Conferir dependências: cada `id` listado em "Depende de" da fase-alvo está **concluído** (AVALIACAO `veredito: APROVADO`, ou o legado `RESSALVAS`, da tentativa corrente); se faltar, **parar** e relatar qual dependência. Criar `artefatos/` se não existir (esta pasta é criada aqui, não por `/create-spec`).
 - **Branch:** trabalhar na branch atual (o pipeline não troca de branch). Se for a default (`main`), avisar e pedir confirmação antes de commitar (Passo 6).
 - **Ciclo da spec:** se o frontmatter da spec está `status: draft` e esta é a primeira execução de qualquer fase, atualizar para `status: active` + `updated_at` (commitado junto no Passo 7).
@@ -122,7 +122,7 @@ Vale para a fase inteira. Antes de escrever, ler o código que a fase toca e lis
 - Apresentar o resumo final e instruir: avaliar a fase com `/evaluate-spec-phase` em **chat zerado**.
 
 ## Definition of Done
-- [ ] Spec lida na íntegra (incl. escopo travado); `run-structural.sh` retornou `0` (gate da §5) e documentos referenciados carregados (Passo 1).
+- [ ] Frontmatter e lista de fases lidos sem ler a spec inteira; `run-structural.sh` retornou `0` (gate da §5) e documentos referenciados carregados (Passo 1). Pacote da fase gravado em `.codeflow/checkpoints/` e lido (incl. escopo travado); seção fora dele aberta por linha quando citada (Passo 3).
 - [ ] Fase-alvo determinada por frontmatter (estado/elegibilidade/teto conforme §2.11), pareando EXECUCAO/AVALIACAO pela `tentativa`; guard de teto (3 `REPROVADO` → escala ao owner) respeitado (Passo 2).
 - [ ] Herdados destinados à fase (ou ao fechamento) resolvidos e listados com o desfecho (Passos 3, 4 e 7).
 - [ ] Dependências (por `id`) e caminhos verificados; `sha_inicial` anotado (Passo 3).

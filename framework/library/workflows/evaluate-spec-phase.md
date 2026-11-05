@@ -39,7 +39,7 @@ Avaliar, de forma **independente e cética**, a fase executada por `/execute-spe
 
 ### Passo 1 — Carregar a spec, a fase e o relatório (sem confiar nele)
 - **Gate estrutural da §5 (determinístico, antes de classificar/usar fases):** rodar `bash ~/.codeflow/framework/core/scripts/run-structural.sh .codeflow/specs/<slug>/SPEC_<NAME>.md`. Exit `0` segue. Exit `1` = §5 malformada (ARTIFACTS_SPEC §2.8.6) → **abortar**, colar a saída do script e pedir correção da spec por `/create-spec`. Exit `2`/`3` = erro de execução/uso → parar.
-- Ler o bloco da fase-alvo em §5, a DoD (§9), os princípios (§1.x), os ACs (§3), os FR/NFR (§2) e o **escopo travado / violações bloqueantes** declarado na spec, mais as rules e ADRs referenciados.
+- Gravar e ler o pacote da fase, o mesmo recorte do executor: `bash ~/.codeflow/framework/core/scripts/pacote-da-fase.sh .codeflow/specs/<slug>/SPEC_<NAME>.md <id> > .codeflow/checkpoints/pacote-<slug>-<id>.md`. Ele traz o bloco da fase-alvo em §5, as linhas da DoD (§9) que citam a fase, os princípios (§1.x), os AC/FR/NFR/R citados e o **escopo travado / violações bloqueantes**. Ler também as rules e ADRs referenciados. O avaliador **pode conferir contra a spec inteira**, ou abrir a seção pelas linhas do rodapé (`sed -n '<a>,<b>p'`), sempre que um achado pedir; id com `⚠` no rodapé se procura na spec por `grep -n`. O critério do veredito não muda com o pacote.
 - Ler o relatório `FASE-<id>-*-EXECUCAO.md` (frontmatter + corpo) como **ponto de partida, NÃO fonte de verdade**.
 - Se a spec não tem `## 5. Plano de desenvolvimento por fases`, ou não existe `FASE-<id>-*-EXECUCAO.md` para a fase-alvo, **abortar** (nada a avaliar) — guard simétrico ao do executor e do spec-status.
 - Gate: §5 estruturalmente válida (`run-structural.sh` = `0`), fase-alvo identificada pelo campo `fase:` e contexto carregado.
@@ -81,7 +81,7 @@ Avaliar, de forma **independente e cética**, a fase executada por `/execute-spe
 - Apresentar o resumo final com o veredito explícito e instruir o próximo passo: `REPROVADO` → colar esta avaliação no chat do executor para o rework e reavaliar em chat zerado; `PENDENTE-EXTERNO` → resolver a condição nomeada e rodar `/evaluate-spec-phase` de novo na mesma tentativa, sem rework; `APROVADO` com herdados → a fase de destino os recebe; erros de registro → o executor os corrige num commit só de documento, sem nova avaliação.
 
 ## Definition of Done
-- [ ] Pré-condição de independência satisfeita (chat zerado); `run-structural.sh` retornou `0` (gate da §5); spec, fase, DoD, princípios, ACs, escopo travado e rules/ADRs carregados (Passo 1).
+- [ ] Pré-condição de independência satisfeita (chat zerado); `run-structural.sh` retornou `0` (gate da §5); pacote da fase gravado em `.codeflow/checkpoints/` e lido (fase, DoD, princípios, ACs, escopo travado), a spec inteira ou a seção do rodapé aberta sempre que um achado pediu, e rules/ADRs carregados (Passo 1).
 - [ ] Na branch onde o trabalho foi commitado, commits do `range` confirmados como ancestrais de HEAD (senão parar); diff de código (excluindo `artefatos/`) lido na íntegra (Passo 2).
 - [ ] Verificações rodadas pelo próprio avaliador (os comandos de validação do projeto, ou `[—]` justificado se ausente), com saídas reais e árvore limpa ao final (Passo 3).
 - [ ] Herdados destinados à fase conferidos contra o código; cada achado classificado com evidência, com a escalada aplicada e os erros de registro à parte (Passo 4).
