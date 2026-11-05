@@ -192,7 +192,7 @@ for f in "${CODEFLOW}/framework/library/workflows"/*.md; do
     "$name" \
     "Execute o workflow codeflow ${name}; use quando o usuário invocar \$${name} ou pedir explicitamente este workflow." \
     "$display_path" \
-    "Leia ${display_path} e execute o protocolo descrito ali, aplicando ao projeto atual. Carregue todos os arquivos listados em ## LEIA TAMBÉM antes de começar."
+    "Leia ${display_path} e execute o protocolo descrito ali, aplicando ao projeto atual. Carregue os arquivos de ## LEIA TAMBÉM como cada item manda (só a seção indicada; os condicionais só quando a condição vale) antes de começar."
 done
 
 for d in "${CODEFLOW}/framework/meta"/*/; do
@@ -238,7 +238,7 @@ if [ -n "$PROJECT_DIR" ]; then
         "$skill_name" \
         "Execute o workflow codeflow de projeto ${PROJECT_PREFIX}/${wf_name}; use quando o usuário invocar \$${skill_name}." \
         "$source_path" \
-        "Leia ${source_path} e execute o protocolo descrito ali, aplicando ao projeto atual. Carregue todos os arquivos listados em ## LEIA TAMBÉM antes de começar."
+        "Leia ${source_path} e execute o protocolo descrito ali, aplicando ao projeto atual. Carregue os arquivos de ## LEIA TAMBÉM como cada item manda (só a seção indicada; os condicionais só quando a condição vale) antes de começar."
     done
   else
     printf '%s nenhum workflow de projeto encontrado em %s/.\n' "$AVISO" "$project_workflows"

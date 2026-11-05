@@ -1,7 +1,7 @@
 ---
-versão: 1.0
+versão: 1.2
 status: experimental
-atualizado: 2026-10-02
+atualizado: 2026-11-05
 granularidade: médio
 gera_decision: no
 usa_checkpoints: no
@@ -11,7 +11,7 @@ politica_falhas: padrão
 # Workflow: audit
 
 ## Quando usar
-Auditar o repositório (ou um alvo dentro dele) em **uma dimensão**: `code-quality`, `architecture`, `tests`, `data-privacy`, `living-docs`, `dependencies` ou `interface`. Um auditor, uma dimensão, um laudo — várias dimensões rodam em paralelo, cada uma num chat próprio. O auditor **só levanta candidatos**, com régua e evidência, em `.codeflow/audits/<AAAA-MM-DD>-<slug>/LAUDO-<dimensão>.md`; quem confirma é o `/verify-audit`, em chat zerado. Argumentos: a dimensão, o alvo e o `<slug>` da auditoria.
+Auditar o repositório (ou um alvo dentro dele) em **uma dimensão**: `code-quality`, `architecture`, `tests`, `data-privacy`, `living-docs`, `dependencies`, `interface` ou `enxugar`. Um auditor, uma dimensão, um laudo — várias dimensões rodam em paralelo, cada uma num chat próprio. O auditor **só levanta candidatos**, com régua e evidência, em `.codeflow/audits/<AAAA-MM-DD>-<slug>/LAUDO-<dimensão>.md`; quem confirma é o `/verify-audit`, em chat zerado. Argumentos: a dimensão, o alvo e o `<slug>` da auditoria.
 
 ## Quando NÃO usar
 - Para **segurança** → `/security-sweep`, que já mapeia, caça e faz a própria triagem.
@@ -26,7 +26,7 @@ Auditar o repositório (ou um alvo dentro dele) em **uma dimensão**: `code-qual
 - ~/.codeflow/framework/library/templates/audits/LAUDO.md (o molde)
 - .codeflow/INDEX.md
 - .codeflow/constitution.md
-- .codeflow/manifest.md
+- .codeflow/manifest.md — **só a stack, os padrões e os comandos**, nunca o arquivo inteiro: `awk '/^## /{p=($0 ~ /^## (Stack identificada|Padrões|Comandos de validação|Gate|CI)/)} p' .codeflow/manifest.md`
 - .codeflow/rules/ e .codeflow/decisions/INDEX.md (a régua do projeto)
 
 ## Antes de começar

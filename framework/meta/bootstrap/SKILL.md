@@ -1,7 +1,7 @@
 ---
-versão: 1.3
+versão: 1.4
 status: estável
-atualizado: 2026-06-18
+atualizado: 2026-11-05
 descrição: Cria um projeto novo a partir de ideia, com estrutura mínima e artefatos do .codeflow/.
 é_meta_skill: yes
 granularidade: detalhado
@@ -74,6 +74,7 @@ Antes de coletar requisitos, preparar o terreno e decidir **onde** o projeto ser
 - Materializar os comandos de validação na forma idiomática da stack (scripts em `package.json`, um `Makefile`, ou `justfile`) quando útil — cada um chamando o comando real da stack, ou um `noop` quando ainda não há comando definido. O embrulho é opcional; a fonte canônica dos comandos é o `manifest.md` (Fase 4).
 - Criar `<projeto>/.gitignore` com entradas mínimas: artefatos de build da stack, `.codeflow/checkpoints/`, arquivos de IDE comuns.
 - Criar `<projeto>/LICENSE` com texto da licença escolhida.
+- **Oferecer** `AGENTS.md` e `CLAUDE.md` curtos na raiz, a partir de `~/.codeflow/framework/library/templates/projeto/` (`SPEC.md` §2.5 e §10.9): o `AGENTS.md` com o que é o projeto, as invariantes, os ramos e o ponteiro para os comandos do manifest, dentro do teto do molde (8.000 caracteres, menos de 200 linhas); o `CLAUDE.md` só com `@AGENTS.md`. Perguntar uma vez e **só escrever com "sim" explícito**; qualquer outra resposta, ou silêncio, não cria nada. Se um dos dois já existe, não sobrescrever: relatar o tamanho (`wc -c`, `wc -l`) e seguir.
 - Gravar checkpoint ao fim da fase.
 
 ### Fase 4 — Geração de artefatos do `.codeflow/`
@@ -140,7 +141,7 @@ Para cada um dos três arquivos:
 
 ### Fase 5 — Entrega e próximos passos
 
-- Apresentar ao usuário o resumo: árvore de pastas criadas, arquivos gerados (raiz + `.codeflow/`), próximos passos sugeridos.
+- Apresentar ao usuário o resumo: árvore de pastas criadas, arquivos gerados (raiz + `.codeflow/`), próximos passos sugeridos. Listar `AGENTS.md` e `CLAUDE.md` com o tamanho de cada um quando foram criados na Fase 3, ou dizer que não foram (recusados, ou já existiam).
 - Sugerir comandos imediatos, **nesta ordem**: (1) `git init` (se ainda não for repo); (2) `bash ~/.codeflow/install.sh` — completa o aparato do `.codeflow/` (sincroniza `specs/_TEMPLATES/`, garante `decisions/`, registra `.codeflow/checkpoints/` no `.gitignore`); é idempotente e **preserva** os artefatos que o bootstrap já gerou; (3) instalar dependências da stack; (4) primeiro commit.
 - **Avisar sobre entrypoints prospectivos:** se o manifest de stack declara um entrypoint que aponta para módulo ainda inexistente (ex.: `[project.scripts] tsconv = "tsconv.cli:main"` com `cli.py` a ser criado por uma feature futura), avisar explicitamente que `pip install -e` (ou equivalente) criará um console-script **quebrado** até a primeira feature materializar esse módulo. Não é erro do esqueleto — é consequência honesta de o entrypoint preceder o código —, mas o usuário precisa saber. Isso soma-se ao já conhecido `pytest exit 5` (nenhum teste coletado) num projeto recém-criado.
 - Aguardar resposta do usuário. Aplicar ajustes solicitados, re-rodar validação. Após confirmação final, encerrar.
@@ -153,6 +154,7 @@ Para cada um dos três arquivos:
 - Não baixar dependências nem rodar instaladores. Bootstrap gera arquivos; o usuário roda comandos da stack.
 - Não criar projeto em diretório que já contém **código-fonte**. Um diretório vazio, com `.git/`, ou com `.codeflow/` de um `install.sh` prévio é aceitável (Fase 0); código de aplicação existente não — isso é caso de `discover`.
 - Não inventar regras invariantes na constitution sem ancorar em decisão tomada nas Fases 1 ou 2.
+- Não criar nem editar `CLAUDE.md` ou `AGENTS.md` sem "sim" explícito do usuário na Fase 3, e nunca sobrescrever um que já existe.
 - **Não escrever `validation_hash` de memória.** O hash é sempre a saída literal do `sha256sum` rodado via Bash sobre os arquivos de `## Arquivos críticos para freshness` criados na Fase 3. Fabricar 64 hex é proibido — e omitir o campo reprova o schema §2.3.3.
 - **Não inferir datas de memória.** Toda data ISO vem do `date +%F` da Fase 0.
 
@@ -172,7 +174,7 @@ Substituir placeholders com valores coletados nas Fases 1 e 2. Datas em formato 
 Dois conjuntos de destinos:
 
 - **Artefatos do codeflow** (gerados nesta meta-skill): `<projeto>/.codeflow/INDEX.md`, `<projeto>/.codeflow/constitution.md`, `<projeto>/.codeflow/manifest.md`.
-- **Arquivos do projeto** (estrutura mínima): `<projeto>/README.md`, `<projeto>/.gitignore`, `<projeto>/LICENSE`, o embrulho de comandos se houver (`Makefile`/scripts), e pastas decididas na Fase 2.
+- **Arquivos do projeto** (estrutura mínima): `<projeto>/README.md`, `<projeto>/.gitignore`, `<projeto>/LICENSE`, o embrulho de comandos se houver (`Makefile`/scripts), `<projeto>/AGENTS.md` e `<projeto>/CLAUDE.md` só com o "sim" da Fase 3, e pastas decididas na Fase 2.
 
 Nenhum arquivo é criado em `~/.codeflow/` por esta meta-skill.
 

@@ -1,7 +1,7 @@
 ---
-versão: 1.1
+versão: 1.3
 status: experimental
-atualizado: 2026-10-05
+atualizado: 2026-11-05
 granularidade: detalhado
 gera_decision: auto
 usa_checkpoints: yes
@@ -14,7 +14,7 @@ politica_falhas: padrão
 Refatorar é mudar a forma sem mudar o que o código faz — e só se sabe se a forma preserva o comportamento com uma rede de testes verde antes do primeiro toque. Este workflow investiga o código real antes de propor qualquer coisa, alinha objetivo e escopo com o owner em diálogo, e executa em passos pequenos e reversíveis. Decisão aberta é resolvida com o owner, nunca chutada; mudança quebradora é declarada e confirmada antes de aplicada, nunca silenciosa.
 
 ## Quando usar
-Reorganizar código existente que já funciona: extrair função ou módulo, renomear, quebrar um arquivo grande, remover duplicação, isolar uma dependência, endireitar uma camada. Serve para os dois modos, decididos na Fase 1: **puro** (comportamento observável idêntico, contrato preservado, testes verdes → verdes) e **reestruturação** (redesenho que pode mudar API, schema ou comportamento interno, com cada quebra confirmada e registrada). Pré-requisitos: o repositório tem `.codeflow/` inicializado (rode `/discover` antes, se não tiver) e o owner está disponível para confirmar objetivo, escopo e o plano — este workflow é conversacional por natureza.
+Reorganizar código existente que já funciona: extrair função ou módulo, renomear, quebrar um arquivo grande, remover duplicação, isolar uma dependência, endireitar uma camada. Serve para os dois modos, decididos na Fase 1: **puro** (comportamento observável idêntico, contrato preservado, testes verdes → verdes) e **reestruturação** (redesenho que pode mudar API, schema ou comportamento interno, com cada quebra confirmada e registrada). Pré-requisitos: o repositório tem `.codeflow/` inicializado (rode `/discover` antes, se não tiver) e o owner está disponível para confirmar objetivo, escopo e o plano — este workflow é conversacional por natureza. Um lote do laudo `enxugar` roda aqui em modo puro, e o lote aprovado no consolidado é o escopo.
 
 ## Quando NÃO usar
 - Para corrigir um bug reproduzível (o objetivo é mudar comportamento) → use `/bugfix`.
@@ -29,9 +29,9 @@ Reorganizar código existente que já funciona: extrair função ou módulo, ren
 - ~/.codeflow/framework/library/skills/safe-refactor/SKILL.md
 - ~/.codeflow/framework/library/skills/debug-protocol/SKILL.md
 - ~/.codeflow/framework/library/skills/self-review/SKILL.md
-- .codeflow/INDEX.md
+- ~/.codeflow/framework/library/skills/audit-enxugar/SKILL.md (só quando o pedido é um lote do laudo `enxugar`)
 - .codeflow/constitution.md
-- .codeflow/manifest.md
+- .codeflow/manifest.md — **só a stack, os padrões e os comandos**, nunca o arquivo inteiro: `awk '/^## /{p=($0 ~ /^## (Stack identificada|Padrões|Comandos de validação|Gate|CI)/)} p' .codeflow/manifest.md`
 - .codeflow/decisions/INDEX.md (filtrar pelas tags da área a refatorar)
 
 ## Estrutura do workflow

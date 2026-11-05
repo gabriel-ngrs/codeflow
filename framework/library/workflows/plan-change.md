@@ -1,7 +1,7 @@
 ---
-versão: 1.1
+versão: 1.2
 status: experimental
-atualizado: 2026-10-05
+atualizado: 2026-11-05
 granularidade: médio
 gera_decision: no
 usa_checkpoints: no
@@ -24,9 +24,8 @@ Planejar uma **melhoria** (mudar, ajustar ou melhorar o que já existe) ou uma *
 - ~/.codeflow/framework/core/constitution.md
 - ~/.codeflow/framework/library/skills/change-sizing/SKILL.md
 - ~/.codeflow/framework/library/templates/changes/PLANO.md (o molde — copiar, não parafrasear)
-- .codeflow/INDEX.md
 - .codeflow/constitution.md
-- .codeflow/manifest.md (os comandos de validação que viram os gates das etapas)
+- .codeflow/manifest.md — **só a stack, os padrões e os comandos**, nunca o arquivo inteiro: `awk '/^## /{p=($0 ~ /^## (Stack identificada|Padrões|Comandos de validação|Gate|CI)/)} p' .codeflow/manifest.md` (os comandos de validação que viram os gates das etapas)
 - .codeflow/rules/ (as aplicáveis à área tocada)
 
 ## Antes de começar

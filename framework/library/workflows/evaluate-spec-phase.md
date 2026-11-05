@@ -1,7 +1,7 @@
 ---
-versão: 1.9
+versão: 1.10
 status: experimental
-atualizado: 2026-10-05
+atualizado: 2026-11-05
 granularidade: médio
 gera_decision: no
 usa_checkpoints: no
@@ -28,9 +28,8 @@ Avaliar, de forma **independente e cética**, a fase executada por `/execute-spe
 - ~/.codeflow/framework/library/skills/avoid-ai-look/SKILL.md (carregar quando a fase avaliada toca interface gráfica)
 - ~/.codeflow/framework/library/skills/accessibility-audit/SKILL.md (carregar quando a fase avaliada toca interface gráfica)
 - ~/.codeflow/framework/library/skills/visual-consistency/SKILL.md (carregar quando a fase avaliada toca interface gráfica)
-- .codeflow/INDEX.md
 - .codeflow/constitution.md
-- .codeflow/manifest.md
+- .codeflow/manifest.md — **só os comandos**, nunca o arquivo inteiro: `awk '/^## /{p=($0 ~ /^## (Comandos de validação|Gate|CI)/)} p' .codeflow/manifest.md`
 - .codeflow/decisions/INDEX.md (carregar decisions ATIVAS cujas tags cruzem o domínio da fase)
 
 ## Antes de começar
@@ -40,7 +39,7 @@ Avaliar, de forma **independente e cética**, a fase executada por `/execute-spe
 
 ### Passo 1 — Carregar a spec, a fase e o relatório (sem confiar nele)
 - **Gate estrutural da §5 (determinístico, antes de classificar/usar fases):** rodar `bash ~/.codeflow/framework/core/scripts/run-structural.sh .codeflow/specs/<slug>/SPEC_<NAME>.md`. Exit `0` segue. Exit `1` = §5 malformada (ARTIFACTS_SPEC §2.8.6) → **abortar**, colar a saída do script e pedir correção da spec por `/create-spec`. Exit `2`/`3` = erro de execução/uso → parar.
-- Ler o bloco da fase-alvo em §5, a DoD (§9), os princípios (§1.x), os ACs (§3), os FR/NFR (§2) e o **escopo travado / violações bloqueantes** declarado na spec, mais as rules e ADRs referenciados.
+- Gravar e ler o pacote da fase, o mesmo recorte do executor: `bash ~/.codeflow/framework/core/scripts/pacote-da-fase.sh .codeflow/specs/<slug>/SPEC_<NAME>.md <id> > .codeflow/checkpoints/pacote-<slug>-<id>.md`. Ele traz o bloco da fase-alvo em §5, as linhas da DoD (§9) que citam a fase, os princípios (§1.x), os AC/FR/NFR/R citados e o **escopo travado / violações bloqueantes**. Ler também as rules e ADRs referenciados. O avaliador **pode conferir contra a spec inteira**, ou abrir a seção pelas linhas do rodapé (`sed -n '<a>,<b>p'`), sempre que um achado pedir; id com `⚠` no rodapé se procura na spec por `grep -n`. **Saída ≠ 0 do script** (fase não achada, ou recorte não confiável, ex.: bloco de código sem fechamento): o pacote **não se usa** — apagá-lo, ler a spec inteira por trecho (`grep -n` nos headings e `sed -n` por seção: o bloco da fase, a DoD, os princípios, os AC/FR/NFR/R citados e o escopo travado) e registrar na avaliação a saída do script e que a fase foi conferida sem pacote. Nunca avaliar contra o pacote vazio. O critério do veredito não muda com o pacote.
 - Ler o relatório `FASE-<id>-*-EXECUCAO.md` (frontmatter + corpo) como **ponto de partida, NÃO fonte de verdade**.
 - Se a spec não tem `## 5. Plano de desenvolvimento por fases`, ou não existe `FASE-<id>-*-EXECUCAO.md` para a fase-alvo, **abortar** (nada a avaliar) — guard simétrico ao do executor e do spec-status.
 - Gate: §5 estruturalmente válida (`run-structural.sh` = `0`), fase-alvo identificada pelo campo `fase:` e contexto carregado.
@@ -54,7 +53,7 @@ Avaliar, de forma **independente e cética**, a fase executada por `/execute-spe
 ### Passo 3 — Rodar as verificações você mesmo (não acreditar no relatório)
 - Rodar os **comandos de validação do projeto** (do `.codeflow/manifest.md`; se ausente, inferir do stack): lint e type-check dos arquivos tocados, a suíte de testes relevante, segurança quando aplicável. Reportar falhas **reais**. Gate que **não existir** no projeto → `[—]` com justificativa; rodar as validações mínimas possíveis — gate ausente é "pulado", não falha (SPEC §3.10).
 - Aplicáveis conforme a fase: hooks de fitness, round-trip de migration se houver schema, `grep` de segredo/PII (deve ser zero) e os **greps de escopo travado** declarados na spec.
-- **Sem mutar o repo:** as verificações não podem alterar a working tree nem criar/reescrever commits; se uma checagem suja a árvore (artefatos de teste), reverter (`git stash`/`git checkout --`); resets de banco só em DB de **dev descartável**. Colar as **SAÍDAS REAIS** — nunca "passou" sem output. Opcional: `/code-review`.
+- **Sem mutar o repo:** as verificações não podem alterar a working tree nem criar/reescrever commits; se uma checagem suja a árvore (artefatos de teste), reverter só o que a verificação criou, por caminho (`git checkout -- <caminho>` e `git clean -fd -- <caminho>`), nunca guardando na pilha do git, que é a mesma em todas as worktrees; resets de banco só em DB de **dev descartável**. Colar as **SAÍDAS REAIS** — nunca "passou" sem output. Opcional: `/code-review`.
 - Gate: verificações aplicáveis rodadas, com evidência, e árvore limpa ao final.
 
 ### Passo 4 — Achados e veredito
@@ -82,7 +81,7 @@ Avaliar, de forma **independente e cética**, a fase executada por `/execute-spe
 - Apresentar o resumo final com o veredito explícito e instruir o próximo passo: `REPROVADO` → colar esta avaliação no chat do executor para o rework e reavaliar em chat zerado; `PENDENTE-EXTERNO` → resolver a condição nomeada e rodar `/evaluate-spec-phase` de novo na mesma tentativa, sem rework; `APROVADO` com herdados → a fase de destino os recebe; erros de registro → o executor os corrige num commit só de documento, sem nova avaliação.
 
 ## Definition of Done
-- [ ] Pré-condição de independência satisfeita (chat zerado); `run-structural.sh` retornou `0` (gate da §5); spec, fase, DoD, princípios, ACs, escopo travado e rules/ADRs carregados (Passo 1).
+- [ ] Pré-condição de independência satisfeita (chat zerado); `run-structural.sh` retornou `0` (gate da §5); pacote da fase gravado em `.codeflow/checkpoints/` e lido (fase, DoD, princípios, ACs, escopo travado), ou, com saída ≠ 0 do script, a spec conferida por trecho e o fato registrado na avaliação, a spec inteira ou a seção do rodapé aberta sempre que um achado pediu, e rules/ADRs carregados (Passo 1).
 - [ ] Na branch onde o trabalho foi commitado, commits do `range` confirmados como ancestrais de HEAD (senão parar); diff de código (excluindo `artefatos/`) lido na íntegra (Passo 2).
 - [ ] Verificações rodadas pelo próprio avaliador (os comandos de validação do projeto, ou `[—]` justificado se ausente), com saídas reais e árvore limpa ao final (Passo 3).
 - [ ] Herdados destinados à fase conferidos contra o código; cada achado classificado com evidência, com a escalada aplicada e os erros de registro à parte (Passo 4).

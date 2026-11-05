@@ -1,7 +1,7 @@
 ---
-versão: 1.2
+versão: 1.3
 status: estável
-atualizado: 2026-10-06
+atualizado: 2026-11-05
 granularidade: médio
 gera_decision: no
 usa_checkpoints: no
@@ -24,9 +24,8 @@ Verificar, contra um lote de bugs, se as correções realmente sanaram cada bug 
 - ~/.codeflow/framework/core/rules/testing.md
 - ~/.codeflow/framework/library/workflows/batch-bugfix.md
 - ~/.codeflow/framework/library/skills/debug-protocol/SKILL.md
-- .codeflow/INDEX.md
 - .codeflow/constitution.md
-- .codeflow/manifest.md
+- .codeflow/manifest.md — **só os comandos**, nunca o arquivo inteiro: `awk '/^## /{p=($0 ~ /^## (Comandos de validação|Gate|CI)/)} p' .codeflow/manifest.md`
 
 ## Antes de começar
 - Este workflow **não modifica código de produção.** Se ele encontrar um bug ainda reproduzível (regrediu ou nunca foi sanado), o veredito é registrado e o bug é devolvido ao `/batch-bugfix` ou `/bugfix` — corrigir aqui violaria a separação de responsabilidades.

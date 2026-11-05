@@ -23,6 +23,7 @@
 | `living-docs` | `audit-living-docs` |
 | `dependencies` | `audit-dependencies` |
 | `interface` | `audit-interface` (só em projeto com interface gráfica) |
+| `enxugar` | `audit-enxugar` (projeto JS/TS; outra stack só com as ferramentas que tiver) |
 | segurança | **não é dimensão do `/audit`**: é o `/security-sweep`, que já faz a própria triagem |
 
 ## Fluxo

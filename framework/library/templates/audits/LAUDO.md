@@ -1,6 +1,6 @@
 ---
 auditoria: <AAAA-MM-DD>-<slug>
-dimensao: <code-quality | architecture | tests | data-privacy | living-docs | dependencies | interface>
+dimensao: <code-quality | architecture | tests | data-privacy | living-docs | dependencies | interface | enxugar>
 alvo: <o que foi auditado, em uma frase>
 data: <AAAA-MM-DD>
 candidatos: <n>

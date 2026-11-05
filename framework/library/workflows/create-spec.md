@@ -1,7 +1,7 @@
 ---
-versão: 1.7
+versão: 1.8
 status: experimental
-atualizado: 2026-10-05
+atualizado: 2026-11-05
 granularidade: detalhado
 gera_decision: no
 usa_checkpoints: yes
@@ -28,7 +28,7 @@ Transformar uma necessidade **grande** (G pela skill `change-sizing`: 5 ou mais 
 - ~/.codeflow/framework/library/skills/self-review/SKILL.md
 - .codeflow/INDEX.md
 - .codeflow/constitution.md
-- .codeflow/manifest.md
+- .codeflow/manifest.md — **só a stack, os padrões e os comandos**, nunca o arquivo inteiro: `awk '/^## /{p=($0 ~ /^## (Stack identificada|Padrões|Comandos de validação|Gate|CI)/)} p' .codeflow/manifest.md`
 - .codeflow/decisions/INDEX.md (carregar decisions ATIVAS cujas tags cruzem o domínio da necessidade)
 
 ## Estrutura do workflow
@@ -55,7 +55,7 @@ Gravar `.codeflow/checkpoints/create-spec-<timestamp>.md` com: necessidade origi
 Ancorar a spec na realidade do repositório: o que já existe e deve ser reusado, o que é genuinamente novo, e quais padrões/regras são invioláveis.
 
 ### Ações
-1. Mapear a arquitetura relevante: camadas, ports/adapters, módulos, convenções de nomes e rotas, ferramentas (consultar `.codeflow/manifest.md` e o código).
+1. Mapear a arquitetura relevante: camadas, ports/adapters, módulos, convenções de nomes e rotas, ferramentas (consultar as seções de stack e padrões do `.codeflow/manifest.md`, pela expressão de `## LEIA TAMBÉM`, e o código).
 2. Localizar **seams existentes** que a necessidade deve plugar (precedentes, enums extensíveis, tabelas genéricas, registries) — o "molde de referência" mais próximo já implementado.
 3. Levantar ADRs, rules e decisions que restringem a solução (segurança, isolamento de tenant, RBAC, LGPD, migrations — o que se aplicar).
 4. Construir o **mapa NOVO vs. REUSADO vs. REMOVIDO**: o que a spec constrói, o que reusa sem duplicar, o que (se algo) remove. **Confirmar no repo** que todo caminho citado como REUSADO/alterado realmente existe — não citar caminho inventado.
