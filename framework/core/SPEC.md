@@ -924,15 +924,15 @@ A Parte 4 introduziu workflows como conceito. Esta parte detalha a mecânica int
 
 ### 5.1 Como workflows puxam dependências
 
-Workflows usam **referências explícitas** no início do arquivo. A IA é instruída a ler todos os arquivos listados antes de começar o protocolo.
+Workflows usam **referências explícitas** no início do arquivo. A IA carrega os arquivos listados antes de começar o protocolo, **como cada item manda**: só a seção indicada, e os condicionais só quando a condição vale (`ARTIFACTS_SPEC.md` §1.5.3 e o literal do wrapper em §1.11.5).
 
 **Mecanismo:** seção "LEIA TAMBÉM" obrigatória logo após o cabeçalho. Cada item é um caminho absoluto (com `~`) que a IA resolve e carrega no contexto da sessão.
 
 **Ordem de carregamento (orientativa, não estrita):**
 1. Constitution universal (`~/.codeflow/framework/core/constitution.md`)
-2. INDEX.md do projeto (`.codeflow/INDEX.md`)
+2. INDEX.md do projeto (`.codeflow/INDEX.md`), só no workflow que sonda o projeto sem lista fechada de leitura (ex.: `create-spec`, `audit`)
 3. Constitution do projeto (`.codeflow/constitution.md`)
-4. Manifest do projeto (`.codeflow/manifest.md`)
+4. Manifest do projeto (`.codeflow/manifest.md`), lido por seção: só os comandos (`## Comandos de validação`, `## Gate`, `## CI`), mais a stack e os padrões quando o workflow precisa deles (`ARTIFACTS_SPEC.md` §1.5.3)
 5. Rules temáticas relevantes (uma ou mais de `~/.codeflow/framework/core/rules/*.md`)
 6. Skills relevantes (uma ou mais de `~/.codeflow/framework/library/skills/*/SKILL.md`)
 7. Decisões anteriores relevantes (consulta opcional ao `.codeflow/decisions/INDEX.md` por tag)
@@ -1451,7 +1451,7 @@ Conteúdo obrigatório:
 - Aviso sobre arquivos gerados automaticamente que não devem ser editados (checkpoints, decisions individuais).
 - Indicação de versão do schema e última atualização.
 
-A IA é instruída a ler o INDEX antes de qualquer outro artefato em `.codeflow/`. Sem o INDEX, ela teria que adivinhar a estrutura.
+O INDEX é o mapa para quem sonda o projeto sem lista fechada de leitura (ex.: `create-spec`, `audit`): esse leitor abre o INDEX antes dos outros artefatos de `.codeflow/`, em vez de adivinhar a estrutura. O workflow que já declara o que ler em `## LEIA TAMBÉM` não precisa dele (`ARTIFACTS_SPEC.md` §1.5.3).
 
 #### 6.7.2 Decisões navegáveis
 
