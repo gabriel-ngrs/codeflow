@@ -2,9 +2,9 @@
 mudanca: audit-enxugar
 tipo: feature
 tamanho: media
-status: proposto
-aprovado_por:
-aprovado_em:
+status: aprovado
+aprovado_por: dono (lista de 05/11)
+aprovado_em: 2026-11-05
 registro: pacote de tokens aprovado pelo dono em 2026-11-05 (lista inteira, D1 e D5 do plano do Maestro da trilha de evolução); base na pesquisa de tokens de 2026-11-02, seções "Enxugar o código que JÁ existe" e "Rotina para o código existente"
 ---
 
