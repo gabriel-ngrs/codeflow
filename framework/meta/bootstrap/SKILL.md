@@ -1,5 +1,5 @@
 ---
-versão: 1.4
+versão: 1.5
 status: estável
 atualizado: 2026-11-05
 descrição: Cria um projeto novo a partir de ideia, com estrutura mínima e artefatos do .codeflow/.

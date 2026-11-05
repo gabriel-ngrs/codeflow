@@ -1,5 +1,5 @@
 ---
-versão: 1.8
+versão: 1.9
 status: experimental
 atualizado: 2026-11-05
 granularidade: detalhado

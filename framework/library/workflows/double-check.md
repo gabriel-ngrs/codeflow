@@ -1,5 +1,5 @@
 ---
-versão: 1.3
+versão: 1.4
 status: estável
 atualizado: 2026-11-05
 granularidade: médio

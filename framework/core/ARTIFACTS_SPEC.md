@@ -1,5 +1,5 @@
 ---
-versão: 2.6
+versão: 2.7
 status: estável
 atualizado: 2026-11-05
 documento: ARTIFACTS_SPEC.md
@@ -2148,7 +2148,7 @@ E `## Notas de inspeção` em bootstrap registra que os padrões são prospectiv
 - **Comando de validação inventado.** O manifest registra o comando **real** de cada gate (`SPEC.md` §3.10); workflows usam exatamente esse comando, não um inventado. Quando um gate não tem comando no projeto, é `[—]`, não um palpite.
 - **Misturar inspeção com configuração.** Manifest é resultado de inspeção. Configurações desejadas (que não existem ainda) vivem em decision ou são solicitadas via `/discover --refresh`.
 - **Notas de inspeção como histórico longo.** Notas registram a inspeção atual, não histórico de inspeções anteriores. Reinspeção sobrescreve.
-- **`## Comandos de validação` com histórico, acima de 4.000 caracteres.** A célula de comando guarda o comando de hoje, não a crônica de como ele chegou ali; a seção inteira cabe em 4.000 caracteres, porque todo workflow que valida a lê. O histórico vai para `## Notas de inspeção` ou para uma decision.
+- **`## Comandos de validação` com histórico, acima de 4.000 caracteres.** A célula de comando guarda o comando de hoje, não a crônica de como ele chegou ali; a seção inteira cabe em 4.000 caracteres, porque todo workflow que valida a lê. O histórico vai para `## Notas de inspeção` ou para uma decision. O `~/.codeflow/framework/core/scripts/check-contexto.sh` confere este teto e os do contexto fixo (`CLAUDE.md`, `MEMORY.md` do projeto, INDEX, constitution, manifest).
 
 ### 2.4 Discovered
 

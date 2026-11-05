@@ -91,11 +91,17 @@ A árvore completa está descrita em `framework/core/SPEC.md` §2.2. Em alto ní
 - `framework/core/` — constitution, glossary, EVOLUTION, rules universais, os
   contratos normativos de runtime (`SPEC.md`, `ARTIFACTS_SPEC.md`) e os scripts
   read-only: `scripts/run-structural.sh` (gate estrutural da §5 da spec),
-  `scripts/pacote-da-fase.sh` (recorte da spec para uma fase) e `scripts/vigia.sh`
-  (diz se uma frente de orquestração parou; chamado por cron).
+  `scripts/pacote-da-fase.sh` (recorte da spec para uma fase), `scripts/vigia.sh`
+  (diz se uma frente de orquestração parou; chamado por cron), `scripts/fim-de-fase.sh`
+  (roda o critério da fase ativa e o L0 do `## Gate` e grava só o log em
+  `.codeflow/checkpoints/`; serve de Stop hook),
+  `scripts/check-commits.sh` (assunto, Conventional Commits e trailer `Tamanho:` do ramo)
+  e `scripts/check-contexto.sh` (tetos do contexto fixo); os casos de teste deles ficam
+  em `scripts/testes/` (`bash framework/core/scripts/testes/run-testes.sh`).
 - `framework/meta/` — meta-skills (`discover`, `bootstrap`, `create-*`).
 - `framework/library/` — skills e workflows universais seed, e os moldes em
-  `templates/` (inclusive `orquestracao/` e `projeto/`).
+  `templates/` (inclusive `orquestracao/`, `projeto/` e `hooks/`, com o Stop hook
+  opt-in do fim de fase).
 - `install.sh` — script de instalação em projeto-alvo.
 - `setup-slash-commands.sh` — sincroniza wrappers para Claude Code.
 - `setup-codex-skills.sh` — sincroniza skills locais para Codex.

@@ -1,5 +1,5 @@
 ---
-versão: 1.11
+versão: 1.12
 status: experimental
 atualizado: 2026-11-05
 granularidade: médio

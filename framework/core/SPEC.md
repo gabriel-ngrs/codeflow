@@ -1,5 +1,5 @@
 ---
-versão: 3.6
+versão: 3.7
 status: estável
 atualizado: 2026-11-05
 documento: SPEC.md
@@ -188,7 +188,11 @@ Esta localização contém **tudo que é universal** ao framework.
 │   │   └── scripts/                ← scripts read-only em bash
 │   │       ├── run-structural.sh   ← gate estrutural da §5 da spec
 │   │       ├── pacote-da-fase.sh   ← recorte da spec para executar e avaliar uma fase
-│   │       └── vigia.sh            ← diz se uma frente de orquestração parou (cron)
+│   │       ├── vigia.sh            ← diz se uma frente de orquestração parou (cron)
+│   │       ├── fim-de-fase.sh      ← roda o critério da fase ativa e o L0; modo Stop hook
+│   │       ├── check-commits.sh    ← assunto, Conventional Commits e trailer Tamanho: do ramo
+│   │       ├── check-contexto.sh   ← tetos do contexto fixo (CLAUDE.md, MEMORY.md, INDEX, manifest)
+│   │       └── testes/             ← run-testes.sh e casos/ dos scripts acima
 │   │
 │   ├── meta/                       ← skills que criam outras coisas
 │   │   ├── discover/SKILL.md       ← aprende projeto existente
@@ -199,6 +203,7 @@ Esta localização contém **tudo que é universal** ao framework.
 │   │
 │   └── library/                    ← biblioteca viva (seeds + extensões)
 │       ├── templates/              ← moldes que os workflows copiam e preenchem
+│       │   ├── hooks/              ← Stop hook do fim de fase (opt-in) e como ligar
 │       │   ├── orquestracao/       ← DESPACHO, CICLO-DO-RECRUTA e MAESTRO
 │       │   └── projeto/            ← CLAUDE.md e AGENTS.md curtos (oferecidos pelo bootstrap)
 │       │

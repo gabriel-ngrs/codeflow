@@ -1,5 +1,5 @@
 ---
-versão: 1.4
+versão: 1.5
 status: estável
 atualizado: 2026-11-05
 descrição: Aprende um projeto existente e gera os artefatos iniciais do .codeflow/.
