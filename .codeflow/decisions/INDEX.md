@@ -2,7 +2,7 @@
 versão: 1.0
 status: estável
 atualizado: 2026-11-05
-total_decisions: 8
+total_decisions: 10
 última_atualização: 2026-11-05
 ---
 
@@ -12,6 +12,8 @@ total_decisions: 8
 
 | Data       | Título                                                 | Workflow | Tags                                                                  | Status |
 |------------|--------------------------------------------------------|----------|-----------------------------------------------------------------------|--------|
+| 2026-11-05 | Adoção do glossary — registro da execução de fase pela base | implement-change | core, glossary, registro, adocao | ativa |
+| 2026-11-05 | Proposta: glossary — registro da execução de fase pela base | implement-change | core, glossary, registro, proposta | superseded |
 | 2026-11-05 | Codex primeiro, Claude quando a cota acabar | implement-change | scripts, contrato, modelo, custo | ativa  |
 | 2026-11-05 | Esteira em camadas, fim de fase executável e registro mínimo | implement-change | contrato, manifest, gate, spec, registro, scripts | ativa  |
 | 2026-11-05 | Contexto enxuto, modelo por papel e moldes de orquestração | implement-change | spec, contrato, orquestracao, modelo, contexto, bootstrap | ativa  |
@@ -28,7 +30,7 @@ total_decisions: 8
 | custo | 2026-11-05 — Codex primeiro, Claude quando a cota acabar |
 | manifest | 2026-11-05 — Esteira em camadas, fim de fase executável e registro mínimo |
 | gate | 2026-11-05 — Esteira em camadas, fim de fase executável e registro mínimo |
-| registro | 2026-11-05 — Esteira em camadas, fim de fase executável e registro mínimo |
+| registro | 2026-11-05 — Esteira em camadas, fim de fase executável e registro mínimo; 2026-11-05 — Adoção do glossary — registro da execução de fase pela base; 2026-11-05 — Proposta: glossary — registro da execução de fase pela base |
 | scripts | 2026-11-05 — Esteira em camadas, fim de fase executável e registro mínimo; 2026-11-05 — Codex primeiro, Claude quando a cota acabar |
 | spec | 2026-11-05 — Contexto enxuto, modelo por papel e moldes de orquestração; 2026-11-05 — Esteira em camadas, fim de fase executável e registro mínimo |
 | contrato | 2026-11-05 — Contexto enxuto, modelo por papel e moldes de orquestração; 2026-11-05 — Esteira em camadas, fim de fase executável e registro mínimo; 2026-11-05 — Codex primeiro, Claude quando a cota acabar |
@@ -47,10 +49,10 @@ total_decisions: 8
 | deploy     | 2026-10-02 — Operação do repositório do codeflow por trilhas |
 | wrappers   | 2026-10-02 — Operação do repositório do codeflow por trilhas |
 | atribuicao | 2026-10-02 — Operação do repositório do codeflow por trilhas |
-| core       | 2026-10-02 — Operação do repositório do codeflow por trilhas; 2026-10-05 — Proposta: glossary — veredito e avaliação de fase; 2026-10-06 — Adoção do glossary — veredito, avaliação de fase e herdado |
-| adocao | 2026-10-06 — Adoção do glossary — veredito, avaliação de fase e herdado |
-| proposta | 2026-10-05 — Proposta: glossary — veredito e avaliação de fase |
-| glossary | 2026-10-05 — Proposta: glossary — veredito e avaliação de fase; 2026-10-06 — Adoção do glossary — veredito, avaliação de fase e herdado |
+| core | 2026-10-02 — Operação do repositório do codeflow por trilhas; 2026-10-05 — Proposta: glossary — veredito e avaliação de fase; 2026-10-06 — Adoção do glossary — veredito, avaliação de fase e herdado; 2026-11-05 — Adoção do glossary — registro da execução de fase pela base; 2026-11-05 — Proposta: glossary — registro da execução de fase pela base |
+| adocao | 2026-10-06 — Adoção do glossary — veredito, avaliação de fase e herdado; 2026-11-05 — Adoção do glossary — registro da execução de fase pela base |
+| proposta | 2026-10-05 — Proposta: glossary — veredito e avaliação de fase; 2026-11-05 — Proposta: glossary — registro da execução de fase pela base |
+| glossary | 2026-10-05 — Proposta: glossary — veredito e avaliação de fase; 2026-10-06 — Adoção do glossary — veredito, avaliação de fase e herdado; 2026-11-05 — Adoção do glossary — registro da execução de fase pela base; 2026-11-05 — Proposta: glossary — registro da execução de fase pela base |
 | decisions | 2026-10-05 — Aceleração do ciclo — veredito, tamanho e contexto |
 | tamanho | 2026-10-05 — Aceleração do ciclo — veredito, tamanho e contexto |
 | retrocompatibilidade | 2026-10-05 — Aceleração do ciclo — veredito, tamanho e contexto |
@@ -62,7 +64,7 @@ total_decisions: 8
 
 ## Estatísticas
 
-- **Total:** 8
-- **Ativas:** 7
-- **Superseded:** 1
+- **Total:** 10
+- **Ativas:** 8
+- **Superseded:** 2
 - **Arquivadas:** 0
