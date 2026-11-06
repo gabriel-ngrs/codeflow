@@ -77,14 +77,16 @@ despacho. Quem não segue a tabela continua em high: ela corta gasto, não muda 
 | Executor | `execute-spec-phase`, `implement-change`, `bugfix`, `batch-bugfix` | Opus · medium |
 | Avaliador e revisor de mudança | `evaluate-spec-phase`, `review-change` | Opus · medium |
 | Conferente e mecânico | `double-check`, `verify-audit`, `spec-status`, levantamentos | Opus · medium |
-| 2ª opinião | 1ª rodada de revisão de spec; conferência de delta pós-rework | Codex Sol (`codex -p sol -c model_reasoning_effort=high`), só leitura, no máximo 1 por spec, retorno ≤ 15 linhas |
-| Mecânico barato | revisão de PR só de documento; registrar bug ou índice, contar, conferir consistência, rodar o gate e resumir a saída | Codex Luna (perfil base, medium; `-p revisor` = Luna high) |
+| 2ª opinião | 1ª rodada de revisão de spec; conferência de delta pós-rework | Codex Sol alto (`codex -p revisor`), só leitura, no máximo 1 por spec, retorno ≤ 15 linhas |
+| Mecânico barato | revisão de PR só de documento; registrar bug ou índice, contar, conferir consistência, rodar o gate e resumir a saída | Codex Sol médio (perfil base do `~/.codex/config.toml`) |
 
-- **Codex primeiro:** as duas linhas Codex vão ao Codex enquanto houver cota. **Nunca Codex:** spec,
-  orquestração, contrato, debug difícil, execução de fase, segurança e pentest.
+- **Codex primeiro:** as duas linhas Codex vão ao Codex enquanto houver cota, sempre no Sol (médio ou
+  alto). **Nunca Codex:** redação de spec, orquestração, contrato, debug difícil, execução de
+  fase, segurança e pentest.
 - **Fallback:** recruta Codex que bate em `usage_limit_reached` troca para o preset Claude Médio no
   mesmo terminal (`CICLO-DO-RECRUTA.md`, regra 7); tarefa não interativa vai por
-  `~/.codeflow/framework/core/scripts/agente-barato.sh`, que cai no Claude sozinho.
+  `~/.codeflow/framework/core/scripts/agente-barato.sh` (`--alto` para o Sol alto), que cai no
+  Claude sozinho.
 - **Orçamento:** teto diário de despachos Codex (padrão 20), pelo `agente-barato.sh --contar`
   (`MAESTRO.md`, regra 8).
 
