@@ -1,7 +1,7 @@
 ---
-versão: 2.0
+versão: 3.0
 status: estável
-atualizado: 2026-10-06
+atualizado: 2026-11-05
 ---
 
 # Glossário do codeflow
@@ -128,7 +128,7 @@ O pipeline de spec é a cadeia `/create-spec` → `/execute-spec-phase` → `/ev
 
 ### Execução de fase
 
-- **Definição:** relatório `FASE-<id>-<slug>-EXECUCAO.md` gerado por `/execute-spec-phase` ao implementar (ou refazer) uma fase, com frontmatter machine-readable (`fase`, `tentativa`, `reprovacoes`, `sha_inicial`, `sha_final`, `range`) e corpo com evidências.
+- **Definição:** relatório `FASE-<id>-<slug>-EXECUCAO.md` gerado por `/execute-spec-phase` ao implementar (ou refazer) uma fase, com frontmatter machine-readable (`fase`, `tentativa`, `reprovacoes`, `base`) e corpo com evidências. O intervalo da fase se calcula pela `base` (`<merge-base de base e HEAD>..HEAD`); `sha_inicial`, `sha_final` e `range`, do formato anterior, seguem aceitos em artefato antigo.
 - **Onde mora:** `<projeto>/.codeflow/specs/<slug>/artefatos/`. Versionado, mas é artefato de ciclo de vida (sem `versão`/`atualizado`; usa `status: executado|rework`).
 - **O que NÃO é:** não é a fonte de verdade da avaliação. O avaliador o trata como ponto de partida e confere tudo contra o código real.
 - **Referência canônica:** `ARTIFACTS_SPEC.md` §2.9.
