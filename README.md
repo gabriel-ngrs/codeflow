@@ -1,5 +1,5 @@
 ---
-versão: 1.5
+versão: 1.6
 status: estável
 atualizado: 2026-11-05
 ---
@@ -95,8 +95,10 @@ A árvore completa está descrita em `framework/core/SPEC.md` §2.2. Em alto ní
   (diz se uma frente de orquestração parou; chamado por cron), `scripts/fim-de-fase.sh`
   (roda o critério da fase ativa e o L0 do `## Gate` e grava só o log em
   `.codeflow/checkpoints/`; serve de Stop hook),
-  `scripts/check-commits.sh` (assunto, Conventional Commits e trailer `Tamanho:` do ramo)
-  e `scripts/check-contexto.sh` (tetos do contexto fixo); os casos de teste deles ficam
+  `scripts/check-commits.sh` (assunto, Conventional Commits e trailer `Tamanho:` do ramo),
+  `scripts/check-contexto.sh` (tetos do contexto fixo) e `scripts/agente-barato.sh` (tarefa
+  não interativa no Codex primeiro, no Claude quando a cota ou o teto diário acaba; grava o
+  contador em `~/.cache/codeflow` e roda agentes); os casos de teste deles ficam
   em `scripts/testes/` (`bash framework/core/scripts/testes/run-testes.sh`).
 - `framework/meta/` — meta-skills (`discover`, `bootstrap`, `create-*`).
 - `framework/library/` — skills e workflows universais seed, e os moldes em

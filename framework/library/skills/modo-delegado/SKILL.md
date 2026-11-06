@@ -1,5 +1,5 @@
 ---
-versão: 1.3
+versão: 1.4
 status: experimental
 atualizado: 2026-11-05
 descrição: Executar um workflow despachado por um orquestrador (Maestro) — gates humanos respondidos pelas decisões delegadas, o resto volta como PARADO, sem subagente, retorno curto.
@@ -77,7 +77,18 @@ despacho. Quem não segue a tabela continua em high: ela corta gasto, não muda 
 | Executor | `execute-spec-phase`, `implement-change`, `bugfix`, `batch-bugfix` | Opus · medium |
 | Avaliador e revisor de mudança | `evaluate-spec-phase`, `review-change` | Opus · medium |
 | Conferente e mecânico | `double-check`, `verify-audit`, `spec-status`, levantamentos | Opus · medium |
-| 2ª opinião | só a 1ª rodada de revisão de spec | Codex, só leitura, no máximo 1 por spec, retorno ≤ 15 linhas |
+| 2ª opinião | 1ª rodada de revisão de spec; conferência de delta pós-rework | Codex Sol alto (`codex -p revisor`), só leitura, no máximo 1 por spec, retorno ≤ 15 linhas |
+| Mecânico barato | revisão de PR só de documento; registrar bug ou índice, contar, conferir consistência, rodar o gate e resumir a saída | Codex Sol médio (perfil base do `~/.codex/config.toml`) |
+
+- **Codex primeiro:** as duas linhas Codex vão ao Codex enquanto houver cota, sempre no Sol (médio ou
+  alto). **Nunca Codex:** redação de spec, orquestração, contrato, debug difícil, execução de
+  fase, segurança e pentest.
+- **Fallback:** recruta Codex que bate em `usage_limit_reached` troca para o preset Claude Médio no
+  mesmo terminal (`CICLO-DO-RECRUTA.md`, regra 7); tarefa não interativa vai por
+  `~/.codeflow/framework/core/scripts/agente-barato.sh` (`--alto` para o Sol alto), que cai no
+  Claude sozinho.
+- **Orçamento:** teto diário de despachos Codex (padrão 20), pelo `agente-barato.sh --contar`
+  (`MAESTRO.md`, regra 8).
 
 - **Escalada para high:** duas falhas Lógicas seguidas (política de falhas da constitution), o 2º
   `REPROVADO` da mesma fase, ou um sinal de risco da `change-sizing` (contrato, migração,

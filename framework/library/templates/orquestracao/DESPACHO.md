@@ -3,7 +3,7 @@ Orquestrador: <nome do terminal do Maestro>
 Pasta: <worktree> — comece com `cd <worktree>`.
 Ramo: <ramo> (já aberto; não troque) | somente leitura
 Workflow: /<workflow> sobre <alvo>
-Modelo: <papel> · Opus · <medium|high> (tabela 4b do modo-delegado)
+Modelo: <papel> · <Opus · medium|high | Codex Sol médio|alto> (tabela 4b do modo-delegado)
 Decisões delegadas:
   1. <decisão que responde um gate do workflow>
 Regras de todo despacho:
