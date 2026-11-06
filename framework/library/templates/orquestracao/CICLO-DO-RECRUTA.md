@@ -20,6 +20,9 @@
 5. **`/clear` só antes de uma tarefa nova** no mesmo terminal, e só quando ele não for dispensado.
 6. **Escalada:** se o retorno pede "escalar para high", a mesma tarefa reabre em high (terminal novo
    ou `/effort high` antes do despacho); a correção segue nesse terminal.
+7. **Codex sem cota troca para Claude.** Se o `maestri check` de um recruta Codex mostra
+   `usage_limit_reached` (ou erro de cota ou limite), trocar no mesmo terminal com
+   `maestri recruit "<nome>" --preset "Claude Médio" --replace "<nome>"` e reenviar o despacho.
 
 ## Sequência típica
 

@@ -22,6 +22,9 @@
    partir dele, nunca mantidos à mão em paralelo.
 7. **Vigília fora do Maestro.** Quem vigia é o cron ou a routine do Maestri, não um passo do
    roteiro: eles rodam o `vigia.sh` e, quando ele sai 1, chamam `maestri notify`.
+8. **Teto diário do Codex.** Antes de despachar um recruta Codex, rodar
+   `bash ~/.codeflow/framework/core/scripts/agente-barato.sh --contar` (teto padrão 20 por dia,
+   `--teto <n>`): saiu 0, despacha Codex; saiu 1, despacha o preset Claude do papel.
 
 ## Vigília com `vigia.sh`
 
