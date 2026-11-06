@@ -1,5 +1,5 @@
 ---
-versão: 3.7
+versão: 3.8
 status: estável
 atualizado: 2026-11-05
 documento: SPEC.md
@@ -192,6 +192,7 @@ Esta localização contém **tudo que é universal** ao framework.
 │   │       ├── fim-de-fase.sh      ← roda o critério da fase ativa e o L0; modo Stop hook
 │   │       ├── check-commits.sh    ← assunto, Conventional Commits e trailer Tamanho: do ramo
 │   │       ├── check-contexto.sh   ← tetos do contexto fixo (CLAUDE.md, MEMORY.md, INDEX, manifest)
+│   │       ├── agente-barato.sh    ← Codex primeiro, Claude na cota; grava contador em ~/.cache/codeflow, roda agentes
 │   │       └── testes/             ← run-testes.sh e casos/ dos scripts acima
 │   │
 │   ├── meta/                       ← skills que criam outras coisas
@@ -1532,6 +1533,8 @@ Cada princípio é uma lente de revisão: ao construir ou modificar qualquer ele
 **Como verificar:** clonar o framework numa máquina recém-instalada com apenas bash, git e coreutils. Tudo deve funcionar.
 
 **Anti-prática:** "ah, é só instalar jq" — não é. Cada dependência adicional é fricção para o usuário final.
+
+**Exceção declarada:** `scripts/agente-barato.sh` chama `codex` e `claude`. Eles são a carga do script (os agentes que ele despacha), não ferramenta da lógica, que segue só bash e coreutils; sem os dois, o script sai 2.
 
 ### 7.4 T4 — Reversibilidade por padrão
 
