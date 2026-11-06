@@ -2,7 +2,7 @@
 versão: 1.0
 status: estável
 atualizado: 2026-11-05
-total_decisions: 7
+total_decisions: 8
 última_atualização: 2026-11-05
 ---
 
@@ -12,6 +12,7 @@ total_decisions: 7
 
 | Data       | Título                                                 | Workflow | Tags                                                                  | Status |
 |------------|--------------------------------------------------------|----------|-----------------------------------------------------------------------|--------|
+| 2026-11-05 | Codex primeiro, Claude quando a cota acabar | implement-change | scripts, contrato, modelo, custo | ativa  |
 | 2026-11-05 | Esteira em camadas, fim de fase executável e registro mínimo | implement-change | contrato, manifest, gate, spec, registro, scripts | ativa  |
 | 2026-11-05 | Contexto enxuto, modelo por papel e moldes de orquestração | implement-change | spec, contrato, orquestracao, modelo, contexto, bootstrap | ativa  |
 | 2026-11-05 | Skill universal `audit-enxugar` como exceção à anti-evolução | implement-change | anti-evolucao, auditoria, enxugar, experimental | ativa  |
@@ -24,14 +25,15 @@ total_decisions: 7
 
 | Tag        | Decisões (data + título)                                    |
 |------------|-------------------------------------------------------------|
+| custo | 2026-11-05 — Codex primeiro, Claude quando a cota acabar |
 | manifest | 2026-11-05 — Esteira em camadas, fim de fase executável e registro mínimo |
 | gate | 2026-11-05 — Esteira em camadas, fim de fase executável e registro mínimo |
 | registro | 2026-11-05 — Esteira em camadas, fim de fase executável e registro mínimo |
-| scripts | 2026-11-05 — Esteira em camadas, fim de fase executável e registro mínimo |
+| scripts | 2026-11-05 — Esteira em camadas, fim de fase executável e registro mínimo; 2026-11-05 — Codex primeiro, Claude quando a cota acabar |
 | spec | 2026-11-05 — Contexto enxuto, modelo por papel e moldes de orquestração; 2026-11-05 — Esteira em camadas, fim de fase executável e registro mínimo |
-| contrato | 2026-11-05 — Contexto enxuto, modelo por papel e moldes de orquestração; 2026-11-05 — Esteira em camadas, fim de fase executável e registro mínimo |
+| contrato | 2026-11-05 — Contexto enxuto, modelo por papel e moldes de orquestração; 2026-11-05 — Esteira em camadas, fim de fase executável e registro mínimo; 2026-11-05 — Codex primeiro, Claude quando a cota acabar |
 | orquestracao | 2026-11-05 — Contexto enxuto, modelo por papel e moldes de orquestração |
-| modelo | 2026-11-05 — Contexto enxuto, modelo por papel e moldes de orquestração |
+| modelo | 2026-11-05 — Contexto enxuto, modelo por papel e moldes de orquestração; 2026-11-05 — Codex primeiro, Claude quando a cota acabar |
 | contexto | 2026-11-05 — Contexto enxuto, modelo por papel e moldes de orquestração |
 | bootstrap | 2026-11-05 — Contexto enxuto, modelo por papel e moldes de orquestração |
 | anti-evolucao | 2026-11-05 — Skill universal `audit-enxugar` como exceção à anti-evolução |
@@ -60,7 +62,7 @@ total_decisions: 7
 
 ## Estatísticas
 
-- **Total:** 7
-- **Ativas:** 6
+- **Total:** 8
+- **Ativas:** 7
 - **Superseded:** 1
 - **Arquivadas:** 0
