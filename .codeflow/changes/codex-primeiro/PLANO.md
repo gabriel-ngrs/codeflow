@@ -2,9 +2,9 @@
 mudanca: codex-primeiro
 tipo: melhoria
 tamanho: media
-status: proposto
-aprovado_por: <quem aprovou, quando aprovado>
-aprovado_em: <AAAA-MM-DD, quando aprovado>
+status: aprovado
+aprovado_por: dono (lista de 05/11)
+aprovado_em: 2026-11-05
 registro: pedido do dono de 2026-11-05 ("Codex primeiro enquanto houver cota, Claude quando acabar"); plano do orquestrador de 2026-11-05, decisões D1, D2 e D3
 ---
 
