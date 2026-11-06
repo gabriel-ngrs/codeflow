@@ -4,15 +4,18 @@ ab="$SCRIPTS/agente-barato.sh"
 b="$T/ab-bin"
 bs="$T/ab-bin-sem-codex"
 mkdir -p "$b" "$bs"
-# codex falso: grava os argumentos; o modo vem de $AB_CODEX (ok, cota, falha)
+# codex falso: grava os argumentos e ecoa o prompt no stderr, como o real; o modo vem de
+# $AB_CODEX (ok, cota, rate, falha, quota-na-saida)
 cat > "$b/codex" <<'FALSO'
 #!/usr/bin/env bash
-printf '%s\n' "$*" > "$AB_LOG/codex.args"
+printf "%s\n" "$*" > "$AB_LOG/codex.args"
+printf "user\n%s\n" "${!#}" >&2
 case "${AB_CODEX:-ok}" in
   ok) echo "SAIDA-CODEX" ;;
-  cota) echo "ERROR: usage_limit_reached"; exit 1 ;;
-  rate) echo "Rate Limit exceeded"; exit 1 ;;
-  falha) echo "erro de briefing"; exit 1 ;;
+  cota) echo "ERROR: usage_limit_reached" >&2; exit 1 ;;
+  rate) echo "[2026-11-05T10:00:00] ERROR: Rate Limit exceeded" >&2; exit 1 ;;
+  falha) echo "erro de briefing"; echo "ERROR: stream disconnected" >&2; exit 1 ;;
+  quota-na-saida) echo "a quota do plano acabou (texto da tarefa)"; exit 1 ;;
 esac
 FALSO
 cat > "$b/claude" <<'FALSO'
@@ -40,12 +43,14 @@ nao_tem "SAIDA-CLAUDE"
 caso 0 "contador do dia em XDG_CACHE_HOME vale 1" grep -qx 1 "$cont"
 caso 1 "claude não foi chamado" test -e "$AB_LOG/claude.args"
 
-# CA-7: perfis e sandbox
-caso 0 "perfil luna: sem -p, read-only" grep -qx 'exec -s read-only tarefa um' "$AB_LOG/codex.args"
-caso 0 "perfil sol" ab_rodar --perfil sol "t"
-caso 0 "sol: -p sol e esforço high" grep -qx 'exec -s read-only -p sol -c model_reasoning_effort=high t' "$AB_LOG/codex.args"
-caso 0 "perfil revisor com escrita" ab_rodar --perfil revisor --escrita "t"
-caso 0 "revisor: -p revisor, workspace-write" grep -qx 'exec -s workspace-write -p revisor t' "$AB_LOG/codex.args"
+# CA-7: Codex só Sol; médio é o perfil base, alto é -p revisor; read-only salvo --escrita
+caso 0 "sol médio: sem -p, read-only" grep -qx "exec -s read-only tarefa um" "$AB_LOG/codex.args"
+caso 0 "--alto" ab_rodar --alto "t"
+tem "codex: sol alto (2 de 20 hoje)"
+caso 0 "alto: -p revisor" grep -qx "exec -s read-only -p revisor t" "$AB_LOG/codex.args"
+caso 0 "--alto com escrita" ab_rodar --alto --escrita "t"
+caso 0 "escrita: workspace-write" grep -qx "exec -s workspace-write -p revisor t" "$AB_LOG/codex.args"
+caso 3 "--perfil não existe mais" ab_rodar --perfil sol "t"
 
 # CA-2: mensagem de cota cai no Claude
 ab_limpa
@@ -69,6 +74,14 @@ AB_CODEX=falha
 caso 1 "falha sem cota sai 1" ab_rodar "t"
 tem "erro de briefing"
 caso 1 "falha sem cota não chama o claude" test -e "$AB_LOG/claude.args"
+caso 1 "prompt que cita rate limit e quota, erro comum, sai 1" ab_rodar "conferir o rate limit e a quota do endpoint"
+nao_tem "SAIDA-CLAUDE"
+caso 1 "eco do prompt não chama o claude" test -e "$AB_LOG/claude.args"
+caso 1 "prompt numa linha de ERROR: quota, erro comum, sai 1" ab_rodar "ERROR: quota"
+AB_CODEX=quota-na-saida
+caso 1 "quota na saída da tarefa (stdout) não cai no claude" ab_rodar "t"
+tem "a quota do plano acabou"
+caso 1 "saída da tarefa não chama o claude" test -e "$AB_LOG/claude.args"
 unset AB_CODEX
 
 # CA-3: sem codex vai direto ao Claude
@@ -103,6 +116,5 @@ caso 1 "--contar não roda agente" test -e "$AB_LOG/codex.args"
 # CA-6: uso inválido
 caso 3 "sem tarefa sai 3" ab_rodar
 caso 3 "opção desconhecida sai 3" ab_rodar --xis "t"
-caso 3 "perfil inválido sai 3" ab_rodar --perfil gpt "t"
 caso 3 "teto inválido sai 3" ab_rodar --teto x "t"
 unset AB_LOG

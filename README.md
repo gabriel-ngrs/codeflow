@@ -95,7 +95,7 @@ A árvore completa está descrita em `framework/core/SPEC.md` §2.2. Em alto ní
   (diz se uma frente de orquestração parou; chamado por cron), `scripts/fim-de-fase.sh`
   (roda o critério da fase ativa e o L0 do `## Gate` e grava só o log em
   `.codeflow/checkpoints/`; serve de Stop hook),
-  `scripts/check-commits.sh` (assunto, Conventional Commits e trailer `Tamanho:` do ramo)
+  `scripts/check-commits.sh` (assunto, Conventional Commits e trailer `Tamanho:` do ramo),
   `scripts/check-contexto.sh` (tetos do contexto fixo) e `scripts/agente-barato.sh` (tarefa
   não interativa no Codex primeiro, no Claude quando a cota ou o teto diário acaba; grava o
   contador em `~/.cache/codeflow` e roda agentes); os casos de teste deles ficam

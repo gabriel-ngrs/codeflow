@@ -5,7 +5,9 @@
 #
 # Grava o contador de despachos Codex do dia em
 # `${XDG_CACHE_HOME:-$HOME/.cache}/codeflow/codex-AAAA-MM-DD` (um inteiro). Falha do Codex
-# sem mensagem de cota não cai no Claude: repassa a saída e sai 1.
+# sem mensagem de cota não cai no Claude: repassa a saída e sai 1. A cota se reconhece só na
+# linha de erro do Codex (stderr), nunca na saída da tarefa nem no eco do prompt.
+# O Codex roda sempre o Sol: médio no perfil base, alto com --alto (`-p revisor`).
 # `codex` e `claude` são a carga do script, não a lógica (exceção declarada no `SPEC.md` §7.3).
 #
 # Conforme `SPEC.md` §7.2/§7.3 e `ARTIFACTS_SPEC.md` §0.7/§0.9.
@@ -16,10 +18,10 @@ set -uo pipefail
 
 usage() {
   cat <<'USO'
-Uso: bash ~/.codeflow/framework/core/scripts/agente-barato.sh [--perfil sol|luna|revisor] [--escrita] [--teto <n>] "<tarefa>"
+Uso: bash ~/.codeflow/framework/core/scripts/agente-barato.sh [--alto] [--escrita] [--teto <n>] "<tarefa>"
      bash ~/.codeflow/framework/core/scripts/agente-barato.sh --contar [--teto <n>]
 
---perfil   sol (-p sol, esforço high), luna (padrão, perfil base), revisor (-p revisor).
+--alto     Sol alto (-p revisor); padrão: Sol médio (perfil base do ~/.codex/config.toml).
 --escrita  sandbox workspace-write (padrão: read-only).
 --teto     despachos Codex por dia (padrão: 20).
 --contar   só soma 1 ao contador do dia: sai 0 abaixo do teto, 1 no teto (não soma).
@@ -32,14 +34,14 @@ uso_invalido() {
   exit 3
 }
 
-perfil=luna
+alto=0
 sandbox=read-only
 teto=20
 contar=0
 tarefa=""
 while [ "$#" -gt 0 ]; do
   case "$1" in
-    --perfil) [ "$#" -ge 2 ] || uso_invalido "informe o perfil."; perfil=$2; shift 2 ;;
+    --alto) alto=1; shift ;;
     --escrita) sandbox=workspace-write; shift ;;
     --teto) [ "$#" -ge 2 ] || uso_invalido "informe o teto."; teto=$2; shift 2 ;;
     --contar) contar=1; shift ;;
@@ -48,7 +50,6 @@ while [ "$#" -gt 0 ]; do
     *) [ -z "$tarefa" ] || uso_invalido "uma tarefa só, entre aspas."; tarefa=$1; shift ;;
   esac
 done
-case "$perfil" in sol|luna|revisor) ;; *) uso_invalido "perfil inválido: '$perfil'." ;; esac
 case "$teto" in ''|*[!0-9]*) uso_invalido "teto inválido: '$teto' (inteiro)." ;; esac
 [ "$contar" = 1 ] || [ -n "$tarefa" ] || uso_invalido "informe a tarefa."
 
@@ -70,28 +71,31 @@ fi
 
 claude_roda() {
   command -v claude >/dev/null || { printf '✗ nem codex nem claude disponíveis\n' >&2; exit 2; }
-  printf '→ claude (%s)\n' "$1" >&2
+  printf "claude: %s\n" "$1" >&2
   claude -p --effort medium "$tarefa" </dev/null
   exit $?
 }
 
 command -v codex >/dev/null || claude_roda "codex ausente"
-[ "$usados" -lt "$teto" ] || claude_roda "teto diário de $teto atingido"
+[ "$usados" -lt "$teto" ] || claude_roda "teto diario de $teto atingido"
 
 args=(exec -s "$sandbox")
-case "$perfil" in
-  sol) args+=(-p sol -c model_reasoning_effort=high) ;;
-  revisor) args+=(-p revisor) ;;
-esac
-saida=$(mktemp) || exit 2
-trap 'rm -f "$saida"' EXIT
+esforco=medio
+[ "$alto" = 1 ] && { args+=(-p revisor); esforco=alto; }
+saida=$(mktemp) && erro=$(mktemp) || exit 2
+trap 'rm -f "$saida" "$erro"' EXIT
 soma || exit 2
-printf '→ codex %s (%d de %d hoje)\n' "$perfil" $((usados + 1)) "$teto" >&2
-codex "${args[@]}" "$tarefa" </dev/null > "$saida" 2>&1
+printf 'codex: sol %s (%d de %d hoje)\n' "$esforco" $((usados + 1)) "$teto" >&2
+codex "${args[@]}" "$tarefa" </dev/null > "$saida" 2> "$erro"
 rc=$?
-if [ "$rc" != 0 ] && grep -qiE 'usage_limit_reached|usage limit|rate limit|quota' "$saida"; then
+# Cota só pelo erro do próprio Codex: linha de erro no stderr, nunca a saída da tarefa (stdout)
+# nem o eco do prompt (linhas iguais às da tarefa ficam fora).
+if [ "$rc" != 0 ] \
+  && grep -iE '^(\[[^]]*\] *)?error[]: ]' "$erro" | grep -vxF -f <(printf '%s\n' "$tarefa") \
+     | grep -qiE 'usage_limit_reached|usage limit|rate limit|quota'; then
   claude_roda "cota do Codex esgotada"
 fi
 cat "$saida"
+cat "$erro" >&2
 [ "$rc" = 0 ] || exit 1
 exit 0
