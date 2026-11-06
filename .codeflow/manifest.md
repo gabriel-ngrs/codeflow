@@ -1,5 +1,5 @@
 ---
-versão: 1.3
+versão: 1.4
 status: estável
 atualizado: 2026-11-05
 projeto: codeflow
@@ -16,7 +16,7 @@ validation_hash: 49800c81dbf5e06ba39c7841ddbd59e42ddbbe12b53820cf13b427ddf03242f
 - **Utilitários:** GNU coreutils 9.4 (`sha256sum`, `grep`, `sed`, `awk`)
 - **Varredura de segredo:** gitleaks 8.21.2 — binário da máquina, só no gate `security`
 - **Pull request e merge:** gh 2.45.0
-- **Contrato normativo:** `framework/core/SPEC.md` 3.7, `framework/core/ARTIFACTS_SPEC.md` 2.7
+- **Contrato normativo:** `framework/core/SPEC.md` 3.8, `framework/core/ARTIFACTS_SPEC.md` 2.7
 - **Lint de shell:** shellcheck não instalado
 
 ## Comandos de validação
